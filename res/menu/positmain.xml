@@ -1,0 +1,4 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"><item android:visible="true" android:id="@+id/about" android:enabled="true" android:title="@string/menu_about"></item>
+<item android:id="@+id/new_find" android:visible="true" android:title="@string/menu_newfind" android:enabled="true"></item>
+<item android:id="@+id/item01"></item>
+</menu>
