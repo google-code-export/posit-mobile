@@ -1,5 +1,0 @@
-Options +FollowSymLinks 
-RewriteEngine on 
-
-RewriteCond $1 !^(index\.php|images|captcha|ez_user_guide|css|_js|uploads|robots\.txt)
-RewriteRule ^(.*)$ /apps/positweb/index.php/$1 [L]
