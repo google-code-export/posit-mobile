@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<resources>
+	<string-array name="types">
+		
+		<item>cat</item>
+		<item>Siamese cat</item>
+		<item>Tiger</item>
+		<item>Leopard</item>
+	</string-array>
+	<string-array name="bird_types">
+		<item>Red Tail Hawk</item>
+		<item>Barn Owl</item>
+		<item>Bald Eagle</item>
+	</string-array>
+	
+	<string-array name ="observation_types">
+		<item>Observation</item>
+		<item>Telemetry</item>
+		<item>Radio</item>
+		</string-array>
+
+
+
+<string-array name="new_find_dialog">
+	<item>New Bird</item>
+	<item>Add Sighting to existing Bird</item>
+</string-array>
+
+<string-array name="map_modes">
+	<item>Traffic</item>
+	<item>Satellite</item>
+	<item>Street View</item>
+</string-array>
+</resources>
