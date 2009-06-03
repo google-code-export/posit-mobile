@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="org/hfoss/posit/CameraPreview.java|org/hfoss/posit/ViewSightings.java|org/hfoss/posit/util/LocationDialog.java|org/hfoss/posit/util/StaticOverlay.java|org/hfoss/posit/Mapper.java|org/kxmlrpc/XmlRpcParser.java|org/kxmlrpc/|org/hfoss/webServices/|org/hfoss/posit/ListFindOnServer.java" kind="src" path="src"/>
+	<classpathentry excluding="org/hfoss/posit/CameraPreview.java|org/hfoss/posit/ViewSightings.java|org/hfoss/posit/util/LocationDialog.java|org/hfoss/posit/util/StaticOverlay.java|org/hfoss/posit/Mapper.java|org/kxmlrpc/XmlRpcParser.java|org/kxmlrpc/|org/hfoss/webServices/|org/hfoss/posit/ListFindOnServer.java|org/hfoss/posit/DBHelper.java|org/hfoss/posit/AddFindActivity.java" kind="src" path="src"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
-
