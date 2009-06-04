@@ -11,9 +11,7 @@
 package org.hfoss.posit;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,8 +42,11 @@ public class MyDBHelper extends SQLiteOpenHelper {
 //	private static final int[] TABLES = { R.array.TABLE_FINDS }; // Only 1 table for now
     private static final String TAG = "MyDBHelper";
 
-	/* the core items that we would be using in POSIT for sure. */
-    public static final String TABLE_NAME = "finds";
+	/**
+	 *  The primary table
+	 */
+    public static final String FIND_TABLE_NAME = "finds";
+    
 	public static final String KEY_ID = "_id";
 	public static final String KEY_NAME = "name";
 	public static final String KEY_IDENTIFIER = "identifier";
@@ -56,13 +57,24 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public static final String KEY_SYNCED = "synced";
 	public static final String KEY_SID = "sid";
 	public static final String KEY_REVISION = "revision";
+
+	
+	/**
+	 * Table and Fields for the photos table
+	 */
+    public static final String PHOTO_TABLE_NAME = "photos";
+	public static final String KEY_PHOTO_ID = "_id";
+	public static final String KEY_FIND_ID = "photoId";
+	public static final String KEY_IMAGE_URI = "imageUri";
+	public static final String KEY_THUMBNAIL_URI = "thumbnailUri";
+
 	public static final String[] list_row_data = { 
 		KEY_ID,
 		KEY_NAME,
 		KEY_DESCRIPTION,
 		KEY_LATITUDE,
 		KEY_LONGITUDE,
-		KEY_SYNCED
+		KEY_SYNCED,
 	};
 	
 	public static final int[] list_row_views = {
@@ -71,15 +83,16 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		R.id.description_id,
 		R.id.latitude_id,
 		R.id.longitude_id,
-    	R.id.status
+    	R.id.status,
 	};
 	
 	/**
-     * Database creation sql statement. 
+	 * 
+     * Finds table creation sql statement. 
      *  To clean up:  get those string literals out of there
      */
-    private static final String DATABASE_CREATE = "CREATE TABLE "
-		+ TABLE_NAME  
+    private static final String CREATE_FINDS_TABLE = "CREATE TABLE "
+		+ FIND_TABLE_NAME  
 		+ " (" + KEY_ID + " integer primary key autoincrement, "
         + KEY_NAME + " text, "
         + KEY_DESCRIPTION + " text, "
@@ -89,7 +102,17 @@ public class MyDBHelper extends SQLiteOpenHelper {
         + KEY_TIME + " text, "
         + KEY_SID + " integer, "
         + KEY_SYNCED + " integer default 0, "
-        + KEY_REVISION + " integer default 1"
+        + KEY_REVISION + " integer default 1, "
+        + KEY_IMAGE_URI + " text, "
+        + KEY_THUMBNAIL_URI + " text "
+        + ");";
+    
+    private static final String CREATE_IMAGES_TABLE = "CREATE TABLE "
+		+ PHOTO_TABLE_NAME  
+		+ " (" + KEY_ID + " integer primary key autoincrement, "  // User Key
+		+ KEY_FIND_ID + " integer, "      // User Key
+		+ KEY_IMAGE_URI + " text, "      // The image's URI
+		+ KEY_THUMBNAIL_URI + " text "      // The thumbnail's URI
         + ");";
     
 	private Context mContext;   // The Activity
@@ -105,7 +128,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onCreate(SQLiteDatabase db) throws SQLException {
-		db.execSQL(DATABASE_CREATE);
+		db.execSQL(CREATE_FINDS_TABLE);
+		db.execSQL(CREATE_IMAGES_TABLE);
 	}
 
 	/**
@@ -116,20 +140,47 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                 + newVersion + ", which will destroy all old data");
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+		db.execSQL("DROP TABLE IF EXISTS " + FIND_TABLE_NAME);
+		db.execSQL("DROP TABLE IF EXISTS " + PHOTO_TABLE_NAME);
 		onCreate(db);		
 	}
 	
     /**
      * This method is called from a Find object to add its data to DB.
      * @param values  contains the <column_name,value> pairs for each DB field.
-     * @return
+     * @return the rowId of the new insert or -1 in case of error
      */
     public long addNewFind(ContentValues values) {
 		mDb = getWritableDatabase();  // Either create the DB or open it.
-        long result = mDb.insert(TABLE_NAME, null, values);
+       long result = mDb.insert(FIND_TABLE_NAME, null, values);
         mDb.close();
         return result;
+    }
+    
+    /**
+     * This method is called from a Find object to add a photo to DB.
+     * @param values  contains the <column_name,value> pairs for each DB field.
+     * @return
+     */  
+    public long addNewPhoto(ContentValues values, long id) {
+    	mDb = getWritableDatabase(); // Either create or open DB
+    	values.put(KEY_FIND_ID,id);
+    	long result = mDb.insert(PHOTO_TABLE_NAME, null, values);
+    	mDb.close();
+    	return result;
+    }
+    
+    /**
+     * This method is called from a Find object, passing a photo ID and deletes that photo.
+     * @param photoId is the Id of the image to be deleted
+     * @return
+     */
+    public boolean deletePhoto(long photoId) {
+    	//deleteImages(mRowId);
+		mDb = getWritableDatabase();
+		boolean result = mDb.delete(PHOTO_TABLE_NAME, KEY_ID+"="+photoId, null)>0;
+		mDb.close();
+    	return result;
     }
 
     /**
@@ -142,7 +193,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		mDb = getWritableDatabase();  // Either create or open the DB.
 		boolean result = false;
     	if (args != null) {
-    		result = mDb.update(TABLE_NAME, args, KEY_ID + "=" + rowId, null) > 0;
+    		result = mDb.update(FIND_TABLE_NAME, args, KEY_ID + "=" + rowId, null) > 0;
     	}
     	mDb.close();
     	return result;
@@ -157,7 +208,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
     public boolean deleteFind(long mRowId) {
     	//deleteImages(mRowId);
 		mDb = getWritableDatabase();
-		boolean result = mDb.delete(TABLE_NAME, KEY_ID+"="+mRowId, null)>0;
+		boolean result = mDb.delete(FIND_TABLE_NAME, KEY_ID+"="+mRowId, null)>0;
 		mDb.close();
     	return result;
     }
@@ -170,7 +221,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
     public boolean deleteAllFinds() {
     	//deleteImages(mRowId);
 		mDb = getWritableDatabase();
-		boolean result = mDb.delete(TABLE_NAME, null, null) == 0;  // deletes all rows
+		boolean result = mDb.delete(FIND_TABLE_NAME, null, null) == 0;  // deletes all rows
 		mDb.close();
     	return result;
     }
@@ -180,7 +231,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
      *   Find's ID. It constructs a ContentsValue hash table and returns it.
      *   Note that it closes the DB and the Cursor -- to prevent leaks.
      *   TODO:  It should handle a failed query with an Exception 
-     * @param id
+     * @param id the find's id
      * @return
      */
     public ContentValues fetchFindData(long id) {
@@ -189,13 +240,56 @@ public class MyDBHelper extends SQLiteOpenHelper {
     	return values;
     }
     
+    public Cursor getImagesCursor(long id) {
+    	mDb = getReadableDatabase(); 
+    	String[] columns = {KEY_IMAGE_URI, KEY_THUMBNAIL_URI};
+    	String[] selectionArgs = null;
+		String groupBy = null, having = null, orderBy = null;
+    	Cursor cursor = mDb.query(PHOTO_TABLE_NAME, columns, KEY_FIND_ID+"="+id, selectionArgs, groupBy, having, orderBy);
+    	return cursor;
+    }
+    
+    public ContentValues getImages(long id) {
+    	Cursor cursor = getImagesCursor(id);
+       	cursor.moveToFirst();
+    	ContentValues values = null;
+    	Log.i(TAG, "Images count = " + cursor.getCount());
+    	if (cursor.getCount() != 0)
+    		values = getValuesFromRow(cursor);
+    	cursor.close();
+    	mDb.close();
+    	return values;
+    }
+    
+    /**
+     * Adds images Uris to existing ContentValues
+     * @param id  is the Key of the Find whose images are sought
+     * @param values is an existing ContentValues with Find's <key, value> pairs
+     */
+    public void getImages(long id, ContentValues values) {
+    	Cursor cursor = getImagesCursor(id);
+    	cursor.moveToFirst();
+    	Log.i(TAG, "Images count = " + cursor.getCount());
+    	if (cursor.getCount() != 0) {
+    	   	cursor.moveToFirst();
+        	for (String column : cursor.getColumnNames()) {
+        		Log.i(TAG, "Column " + column + " = " + 
+        				cursor.getString(cursor.getColumnIndexOrThrow(column)));
+        		values.put(column, cursor.getString(cursor.getColumnIndexOrThrow(column)));
+        	}
+
+    	}
+    	cursor.close();
+    	mDb.close();
+    }
+    
     public ContentValues fetchFindColumns(long id, String[] columns) {
     	mDb = getReadableDatabase();  // Either open or create the DB    	
     	//String[] columns = mContext.getResources().getStringArray(R.array.TABLE_FINDS_core_fields);
 
     	String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;
-    	Cursor cursor = mDb.query(TABLE_NAME, columns, KEY_ID+"="+id, selectionArgs, groupBy, having, orderBy);
+    	Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, KEY_ID+"="+id, selectionArgs, groupBy, having, orderBy);
     	cursor.moveToFirst();
     	ContentValues values = null;
     	if (cursor.getCount() != 0)
@@ -220,7 +314,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		String[] columns = null;
     	String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;
-    	Cursor cursor = mDb.query(TABLE_NAME, columns, KEY_ID+"="+id, selectionArgs, groupBy, having, orderBy);
+    	Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, KEY_ID+"="+id, selectionArgs, groupBy, having, orderBy);
     	cursor.moveToFirst();
     	HashMap<String,String> findsMap = new HashMap<String, String>();
     	if (cursor.getCount() != 0) 
@@ -243,6 +337,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
     	ContentValues values = new ContentValues();
     	cursor.moveToFirst();
     	for (String column : cursor.getColumnNames()) {
+    		Log.i(TAG, "Column " + column + " = " + 
+    				cursor.getString(cursor.getColumnIndexOrThrow(column)));
     		values.put(column, cursor.getString(cursor.getColumnIndexOrThrow(column)));
     	}
     	return values;
@@ -254,33 +350,17 @@ public class MyDBHelper extends SQLiteOpenHelper {
      */
     public Cursor fetchAllFinds() {
     	mDb = getReadableDatabase(); // Either open or create the DB.
-    	return mDb.query(TABLE_NAME,list_row_data, null, null, null, null, null);
+    	return mDb.query(FIND_TABLE_NAME,list_row_data, null, null, null, null, null);
     }
     
     public Cursor fetchSelectedColumns(String[] columns){
     	mDb = getReadableDatabase(); // Either open or create the DB.
     	Cursor c = null;
-    	c = mDb.query(TABLE_NAME, columns,null,null,null, null, null);
+    	c = mDb.query(FIND_TABLE_NAME, columns,null,null,null, null, null);
  //   	mDb.close();  //  NOTE WELL: Closing causes an error in cursor mgmt
     	return c;
     }
-    
-	  /**
-	   * Gets all the new finds from the DB.
-	   * @param tableId
-	   * @return
-	   */
-    /***
-	    public Cursor getAllUnsynced(int tableId){
-	    	mDb = getReadableDatabase(); // Either open or create the DB
-	    	String[] columns = new String[]{
-	    			KEY_ID,KEY_NAME,KEY_DESCRIPTION,KEY_LATITUDE,KEY_LONGITUDE, KEY_DESCRIPTION,KEY_TIME
-	    		};
-	    	Cursor c =  mDb.query(TABLE_NAME, columns,KEY_SYNCED+"=0",null,null, null, null);
-	    	mDb.close();
-	    	return c;
-	    }
-	    **/
+
 	    
 	    /**
 	     * 
@@ -340,75 +420,6 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			return args;
 		}    
    
-	    /**
-	     * Gets new finds and updated finds on the server.
-	     * @param remoteFindsList
-	     * @return list of all ids in the server that have to be updated i.e, the sids we have to request
-	     */
-		/****
-	    public List<Integer> getNewAndUpdatedFindIdsOnServer(
-			List<HashMap<String, Object>> remoteFindsList) {
-		String qExisting = "";
-		String qNew = "";
-		List<Integer> allIds = new ArrayList<Integer>();
-		Collection<Integer> idsSet = new HashSet<Integer>();
-		try {
-			mDb = getReadableDatabase();
-			// Get all the SIDs in the phone's database in a list 
-			// SID is initialized to 0, so we ignore SID=0 because we are looking for updates
-//			Cursor c = c = mDb.query(TABLE_NAME, new String[] { KEY_SID }, KEY_SID+"!=0", null,
-//					null, null, null);
-			Cursor c = c = mDb.query(TABLE_NAME, new String[] { KEY_SID }, null, null,
-					null, null, null);
-			if (c.getCount() != 0) {
-				c.moveToFirst();
-				do {
-					allIds.add(c.getInt(c.getColumnIndexOrThrow(KEY_SID)));
-				} while (c.moveToNext());
-			}
-			c.close();
-			
-			Log.i(TAG, "All SIDs on phone " + allIds.toString());
-
-
-			 // For each of the remote finds, create the query. If the remote find
-			 // isn't in our database, put it in our set
-			 //
-			for (int i = 0; i < remoteFindsList.size(); i++) {
-				HashMap<String, Object> find = remoteFindsList.get(i);
-				Integer Id = Integer.parseInt(find.get("id").toString());
-				qExisting += "( " + KEY_SID + "=" + Id + " AND " + KEY_REVISION
-						+ "<" + find.get("revision") + ")";
-				if (!allIds.contains(Id)) {
-					// idsList.add(Id);
-					idsSet.add(Id);
-				}
-				if (i != remoteFindsList.size() - 1) {
-					qExisting += " OR ";
-				}
-			}
-			Log.i(TAG, "Server IDs that exist on phone: " + qExisting);
-
-			c = mDb.query(TABLE_NAME, new String[] { KEY_SID }, qExisting, null,
-					null, null, null);
-			if (c.getCount() != 0) {
-				c.moveToFirst();
-				do {
-					// add the unsynced ones here.
-					idsSet.add(c.getInt(c.getColumnIndexOrThrow(KEY_SID)));
-				} while (c.moveToNext());
-			}
-			c.close();
-			mDb.close(); // close mDb
-			Log.i(TAG, "Finds that need synching to server (SIDs): " + idsSet.toString());
-
-			// returning as List for consistency
-		} catch (Exception e) {
-			Log.e(TAG, e.getStackTrace()+"");
-		}
-		return Utils.getListFromCollection(idsSet);
-	}
-	***/
 	    
 	    /**
 	     * This method returns a list of those Finds that have been updated
@@ -434,7 +445,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		try {
 			mDb = getReadableDatabase();
 
-			Cursor c = mDb.query(TABLE_NAME, new String[] { KEY_ID },
+			Cursor c = mDb.query(FIND_TABLE_NAME, new String[] { KEY_ID },
 					queryCondition, null, null, null, null);
 			if (c.getCount() != 0) {
 				c.moveToFirst();
@@ -477,7 +488,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		try {
 			mDb = getReadableDatabase();
 
-			Cursor c = mDb.query(TABLE_NAME, new String[] { KEY_ID },
+			Cursor c = mDb.query(FIND_TABLE_NAME, new String[] { KEY_ID },
 					queryCondition, null, null, null, null);
 			if (c.getCount() != 0) {
 				c.moveToFirst();
@@ -500,7 +511,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	     * @param l
 	     */
 	    private long findIdofRemoteFind(int l) {
-	    	Cursor c = mDb.query(TABLE_NAME, new String[] {KEY_ID}, KEY_SID+"="+l, null, null, null, null);
+	    	Cursor c = mDb.query(FIND_TABLE_NAME, new String[] {KEY_ID}, KEY_SID+"="+l, null, null, null, null);
 	    	c.moveToFirst();
 	    	if ( c.getCount()== 0)
 	    		return  0;
@@ -530,69 +541,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			return allSIDs;
 	    }
 	   
-	    
-	    /**
-	     * Gets and returns the Ids of new Finds that need to be sent to the server.
-	     *  New Finds have SID = 0
-	     * @param remoteFindsList -- a list, possibly empty, of SIDs from the server
-	     * @return list of all ids on the phone that have to be sent to server
-	     */
-	    /**
-		public List<Integer> getNewFindIdsOnPhone(List<HashMap<String,Object>> remoteFindsList) {
-			List<Integer> allSIDs = new ArrayList<Integer>();
-			try {
-				mDb = getReadableDatabase();
-				// Get all the SIDs in our database in a list 
-				Cursor c = fetchSelectedColumns(new String[] { KEY_SID });
-				if (c.getCount() != 0) {
-					c.moveToFirst();
-					do {
-						allSIDs.add(c.getInt(c.getColumnIndexOrThrow(KEY_SID)));
-					} while (c.moveToNext());
-				}
-				c.close();
-				close(); // Close the DB
-				Log.i(TAG, "All SIDs on phone: " + allSIDs.toString());
-			} catch (Exception e) {
-				Log.e(TAG,  e.getStackTrace() + "blah blah");
-			}
-			List<Integer> removals = new ArrayList<Integer>();
 
-			for (int i = 0; i < allSIDs.size(); i++) {
-				int findID = allSIDs.get(i);  // Get a find ID
-				Log.i(TAG, "allIds " + findID);
-				Integer findIdInteger = new Integer(findID);
-				if (hashMapContains(remoteFindsList, findIdInteger)) {
-					Log.i(TAG, "Contains " + findID);
-					removals.add(findIdInteger);
-				}
-			}
-			for (int k=0; k < removals.size(); k++) {
-				Integer findIDInteger = removals.get(k);
-				allSIDs.remove(findIDInteger);
-			}
-			return allSIDs;
-		}	  
-**/
-		
-		/**
-		 * Help method to search for an Integer in a HashMap
-		 * @param list
-		 * @param id
-		 * @return
-		 */
-	    /**
-		private boolean hashMapContains(List<HashMap<String,Object>> list, Integer id) {
-			for (int k = 0; k < list.size(); k++) {
-				HashMap<String, Object> item = list.get(k);
-				Integer itemId = Integer.parseInt(item.get("id").toString());
-				if (itemId.equals(id))
-					return true;
-			}
-				
-			return false;
-		}	 
-		**/   
     /**
      * This method deletes all the images associated with a find or pretty much anything else.
      * @param imagesQuery
@@ -620,7 +569,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		List<Integer> findsList = new ArrayList<Integer>();
 		try {
 			mDb = getReadableDatabase();
-			Cursor c = mDb.query(TABLE_NAME, projection, KEY_SID + "=0",
+			Cursor c = mDb.query(FIND_TABLE_NAME, projection, KEY_SID + "=0",
 					null, null, null, null);
 //			Cursor c = mDb.query(TABLE_NAME, projection, null,
 //					null, null, null, null);			
@@ -637,15 +586,6 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		}
 		return findsList;
     }
-    
-    /***
-    public List<Integer> getMatchingSIDs (List<HashMap<String, Object>> remoteFindsList) {
-    	String[] projection = new String[] { KEY_SID };
-    	List<Integer> findsList = new ArrayList<Integer>();
-		
-		return findsList;
 
-    }
-    ***/
     
 }

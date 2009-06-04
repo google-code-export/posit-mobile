@@ -20,11 +20,11 @@ import android.widget.ImageView;
 class ImageAdapter extends BaseAdapter {
     int mGalleryItemBackground;
 	private Context mContext;
-	private Cursor cursor;
+	private Cursor mCursor;
 
-    public ImageAdapter(Cursor _cursor, Context c) {
+    public ImageAdapter(Cursor cursor, Context c) {
         mContext = c;
-        cursor = _cursor;
+        mCursor = cursor;
         // See res/values/attrs.xml for the  defined values here for styling
         TypedArray a = mContext.obtainStyledAttributes(R.styleable.Gallery1);
         mGalleryItemBackground = a.getResourceId(
@@ -33,7 +33,7 @@ class ImageAdapter extends BaseAdapter {
     }
 
     public int getCount() {
-      return cursor.getCount();
+      return mCursor.getCount();
     }
 
     public Object getItem(int position) {
@@ -46,16 +46,18 @@ class ImageAdapter extends BaseAdapter {
 
     public View getView(int position, View convertView, ViewGroup parent) {
       ImageView i = new ImageView(mContext);
-      cursor.requery();
+      mCursor.requery();
       if (convertView == null) {
-           cursor.moveToPosition(position);
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(BaseColumns._ID));
-           		i.setImageURI(Uri.withAppendedPath(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, ""+id));
+           mCursor.moveToPosition(position);
+           		String s = mCursor.getString(mCursor.getColumnIndexOrThrow(mContext.getString(R.string.imageUriDB)));
+ //          		int id = mCursor.getInt(mCursor.getColumnIndexOrThrow(BaseColumns._ID));
+           		i.setImageURI(Uri.parse(s));
+ //          		i.setImageURI(Uri.withAppendedPath(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, ""+id));
                 i.setScaleType(ImageView.ScaleType.FIT_XY);
                 i.setLayoutParams(new Gallery.LayoutParams(136, 136));
                 i.setBackgroundResource(mGalleryItemBackground);
                
       }
-           return i;
+      return i;
     }
   }

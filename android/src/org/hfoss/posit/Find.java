@@ -3,15 +3,11 @@
 package org.hfoss.posit;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.BaseColumns;
-import android.provider.MediaStore;
-import android.provider.MediaStore.Images.ImageColumns;
+import android.net.Uri;
 import android.util.Log;
 
 /**
@@ -22,12 +18,14 @@ public class Find {
 	private static final String TAG = "Find";
 
 	private MyDBHelper mDbHelper;  // Handles all the DB actions
-//	private NotesDbAdapter mDbHelper;  // Handles all the DB actions
-
 	private Context mContext;    // The Activity, needed for DB access
 	private long mId;  	         // The Find's rowID (should be changed to DB ID)
 	private Cursor images=null;
+	private Uri mImageUri;
+	private Uri mThumbnailUri;
 	
+
+
 	/**
 	 * This constructor is used for a new Find
 	 * @param context is the Activity
@@ -51,20 +49,47 @@ public class Find {
 	}
 	
 	/**
+	 * @return the mImageUri
+	 */
+	public Uri getImageUri() {
+		return mImageUri;
+	}
+
+	/**
+	 * @param imageUri the mImageUri to set
+	 */
+	public void setImageUri(Uri imageUri) {
+		mImageUri = imageUri;
+	}
+
+	/**
+	 * @return the mBitmapUri
+	 */
+	public Uri getThumbnailUri() {
+		return mThumbnailUri;
+	}
+
+	/**
+	 * @param bitmapUri the mBitmapUri to set
+	 */
+	public void setThumbnailUri(Uri bitmapUri) {
+		mThumbnailUri = bitmapUri;
+	}
+	
+	/**
 	 * getContent() returns the Find's <attr:value> pairs in a ContentValues array. 
 	 *   This method assumes the Find object has been instantiated with a context
 	 *   and an id.
-	 * @return
+	 * @return A ContentValues with <key, value> pairs
 	 */
 	public ContentValues getContent() {
-		return mDbHelper.fetchFindData(mId);
-		/**
-		Cursor cursor = mDbHelper.fetchFind(mId);
-		ContentValues values = new ContentValues();
-		values = mDbHelper.getValuesFromRow(cursor);
-		mDbHelper.close();
+		ContentValues values = mDbHelper.fetchFindData(mId);
+		getImageUrisFromDb(values);
 		return values;
-		*/
+	}
+	
+	private void getImageUrisFromDb(ContentValues values) {
+		mDbHelper.getImages(mId, values);
 	}
 	
 	/**
@@ -82,7 +107,7 @@ public class Find {
 	 * @param content contains the Find's attributes and values.  
 	 * @return whether the DB operation succeeds
 	 */
-	public boolean insertToDB(ContentValues content) {
+	public boolean insertToDB(ContentValues content, ContentValues images) {
 		if (!content.containsKey(MyDBHelper.KEY_SID)) {
 			content.put(MyDBHelper.KEY_SID, 0);
 			Log.i(TAG, "Set KEY_SID to 0");
@@ -90,9 +115,10 @@ public class Find {
 		}
 		if (!content.containsKey(MyDBHelper.KEY_REVISION))
 			content.put(MyDBHelper.KEY_REVISION, 1);
-//		mDbHelper.open();
-//		mId = mDbHelper.createNote("notesdbadapter", "testingtesting");
-		mId = mDbHelper.addNewFind(content);
+	
+		mId = mDbHelper.addNewFind(content); // returns rowId
+		if (images != null)
+			mDbHelper.addNewPhoto(images, mId);
 		return mId != -1;
 	}
 	
@@ -101,7 +127,7 @@ public class Find {
 	 * @param content contains the Find's attributes and values.  
 	 * @return whether the DB operation succeeds
 	 */
-	public boolean updateToDB(ContentValues content) {
+	public boolean updateToDB(ContentValues content, ContentValues images) {
 		if (isSynced()) { //TODO think of a better way to do this
 			//set it as unsynced
 			content.put(MyDBHelper.KEY_SYNCED, false);
@@ -109,6 +135,7 @@ public class Find {
 			content.put(MyDBHelper.KEY_REVISION, getRevision()+1);
 		}
 		boolean result = mDbHelper.updateFind(mId, content);
+		mDbHelper.addNewPhoto(images, mId);
 		return result;
 //		return false;
 	}	
@@ -133,12 +160,10 @@ public class Find {
 		return mId;
 	}
 	
+
+	
 	public Cursor getImages() {
-		Cursor imageQuery = mContext.getContentResolver().query (MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        		new String[]{ BaseColumns._ID, ImageColumns.BUCKET_ID},
-        		ImageColumns.BUCKET_ID+"=\"posit\" AND "
-        		+ImageColumns.BUCKET_DISPLAY_NAME+"=\"posit|"+mId+"\"", null,null);
-		return imageQuery;
+		return mDbHelper.getImagesCursor(this.mId);
 	}
 	
 	private boolean deleteImages() {
@@ -157,19 +182,19 @@ public class Find {
 	public void setServerId(int serverId){
 		ContentValues content = new ContentValues();
 		content.put(MyDBHelper.KEY_SID, serverId);
-		updateToDB(content);
+		updateToDB(content, null);
 	}
 	
 	public void setRevision(int revision){
 		ContentValues content = new ContentValues();
 		content.put(MyDBHelper.KEY_REVISION, revision);
-		updateToDB(content);
+		updateToDB(content, null);
 	}
 	
 	public void setSyncStatus(boolean status){
 		ContentValues content = new ContentValues();
 		content.put(MyDBHelper.KEY_SYNCED, status);
-		updateToDB(content);
+		updateToDB(content, null);
 	}
 	
 	public int getRevision() {

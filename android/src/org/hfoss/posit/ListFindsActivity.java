@@ -11,6 +11,7 @@
 package org.hfoss.posit;
 
 import android.app.ListActivity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -118,6 +119,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
     	startManagingCursor(mCursor); // NOTE: Can't close DB while managing cursor
 
         // CursorAdapter binds the data in 'columns' to the views in 'views' 
+    	// It repeatedly calls ViewBinder.setViewValue() (see below) for each column
         SimpleCursorAdapter adapter = 
         		new SimpleCursorAdapter(this, R.layout.list_row, mCursor, columns, views);
         adapter.setViewBinder(this);
@@ -205,55 +207,31 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	}
 
 	/**
-	 * Binds to the view Binder to show the image and if the image is synced.
-	 * @author pgautam
-	 *
+	 * Part of ViewBinder interface. Binds the Cursor column defined 
+	 * by the specified index to the specified view. When binding is handled 
+	 * by this ViewBinder, this method must return true. If this method returns false, 
+	 * SimpleCursorAdapter will attempt to handle the binding on its own.
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 		switch (view.getId()) {
 		case R.id.find_image:
+			
 			int rowId = cursor.getInt(cursor
 					.getColumnIndexOrThrow(MyDBHelper.KEY_ID));
-			Cursor imagesQuery = managedQuery(
-					MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
-					new String[] {
-					BaseColumns._ID, ImageColumns.BUCKET_ID },
-					ImageColumns.BUCKET_ID + "=\"347330322\"", // AND "
-							//+ ImageColumns.BUCKET_DISPLAY_NAME + "=\"posit|"
-							//+ rowId + "\"", 
-							null, null);
-			/**
-			Log.i(TAG, "cusor count = " + imagesQuery.getCount());
-			imagesQuery.moveToFirst();
-			 for (int k = 0; k < imagesQuery.getCount(); k++) {
-		     for (String column : imagesQuery.getColumnNames()) {
-		    	 Log.i(TAG, column + "=" +  imagesQuery.getString(imagesQuery.getColumnIndexOrThrow(column)));
-		     }
-		     imagesQuery.moveToNext();
-			 }
+			MyDBHelper myDbHelper = new MyDBHelper(this);
+			ContentValues values = myDbHelper.getImages(rowId);
+			if (values != null) {
+				Uri iUri = Uri.parse(values.getAsString(getString(R.string.imageUriDB)));
+				Log.i(TAG,"Image URI = " + iUri.toString());
+				ImageView iv = (ImageView) view;
 
-**/
-			try {
-				if (imagesQuery.getCount() > 0) {
-					imagesQuery.moveToFirst();
-					ImageView i = (ImageView) view;
-					int id = imagesQuery.getInt(cursor
-							.getColumnIndexOrThrow(BaseColumns._ID));
-					i.setImageURI(Uri.withAppendedPath(
-							MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-							"" + id));
-					i.setScaleType(ImageView.ScaleType.FIT_XY);
-				}
-			} catch (NullPointerException e) {
-				// avoid null imageQueries
+				iv.setImageURI(iUri);
+				iv.setScaleType(ImageView.ScaleType.FIT_XY);
 			}
 			return true;
 			
 		case R.id.status:
 			int status = cursor.getInt(cursor.getColumnIndexOrThrow(MyDBHelper.KEY_SYNCED));
-			/*CheckBox cb = (CheckBox) view;
-			cb.setChecked(status==1?true:false);
-			cb.setClickable(false);*/
 			TextView tv = (TextView) view;
 			tv.setText(status==1?"Synced":"Not synced");
 			return true;

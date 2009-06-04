@@ -49,8 +49,14 @@
 					android:fadingEdge="vertical" android:scrollbarStyle="insideOverlay" android:layout_height="fill_parent"/>
 			</LinearLayout>
 			
-			<Gallery android:id="@+id/picturesTaken" android:layout_width="fill_parent"
-		android:layout_height="wrap_content"/>
+			<ImageView android:id="@+id/photo"  
+			android:adjustViewBounds="true"
+		    android:layout_width="100px"
+            android:layout_height="100px" />
+			
+			<Gallery android:id="@+id/picturesTaken" 
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"/>
 		
 		</LinearLayout>
 
