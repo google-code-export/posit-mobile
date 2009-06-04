@@ -56,7 +56,7 @@ public class PositMain extends Activity {
        String APP_KEY = sp.getString("APP_KEY", null);
        
        // If not APP_KEY, register the phone, otherwise display is server address.
-        if (APP_KEY.equals("")||APP_KEY.equals(null)){
+        if (APP_KEY == null || APP_KEY.equals("")||APP_KEY.equals(null)){
         	Intent intent = new Intent(this, ShowProjectsActivity.class);
         	startActivity(intent);
         } else {

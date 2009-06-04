@@ -25,6 +25,10 @@
     <string name="timeDB">time</string>
     <string name="descriptionDB">description</string>
     <string name="syncedDB">synced</string>
+    <string name="photoIdDB">photoId</string>
+    <string name="imageUriDB">imageUri</string>
+    <string name="thumbnailUriDB">thumbnailUri</string>
+    
    
     
     <!-- Related to saving to the database -->
@@ -75,6 +79,8 @@
     
    <!-- Related to Configuration -->
     <string name="general">General</string>
+    <string name="synchronization_on_off">Sync On</string>
+    <string name="synchronization_on_off_detail">Toggle to turn synchronization with the server on/off.</string>
     <string name="notify_start_stop">Sync Notification</string>
     <string name="notify_start_stop_detail">Notifies the user when the application starts or stops syncing</string>
     <string name="communication">Communication</string>

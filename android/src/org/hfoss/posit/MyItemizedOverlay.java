@@ -55,7 +55,7 @@ public class MyItemizedOverlay extends ItemizedOverlay {
         }
         
         /**
-         * This method is called when the user clicks on one of the Find icons
+         * Called when the user clicks on one of the Find icons
          *   in the map. It shows a description of the Find
          * @param pIndex is the Find's index in the ArrayList
          */

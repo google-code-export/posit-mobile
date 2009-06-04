@@ -3,25 +3,36 @@
  */
 package org.hfoss.posit;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Calendar;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
+import android.provider.MediaStore.MediaColumns;
 import android.provider.MediaStore.Images.ImageColumns;
-import android.util.Config;
+import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,23 +43,31 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Gallery;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
-/**
- * @author rmorelli
- *
- */
-public class FindActivity extends Activity implements OnClickListener, OnItemClickListener {
+public class FindActivity extends Activity 
+	implements OnClickListener, OnItemClickListener, LocationListener {
 
 	private Find mFind;
 	private long mRowId;
+	private Bitmap mTempImage;
+	private Uri mImageUri;
+	private Uri mThumbnailUri;
 	private int mState;
 	private Cursor mCursor = null;
 	private Gallery mGallery;
+	
+	private double mLongitude = 0;
+	private double mLatitude = 0;
+	
+	private TextView mLatitudeTextView;
+	private TextView mLongitudeTextView;
+
+	private Thread mThread;
+	private Message mMessage;
 	private LocationManager mLocationManager;
-	private Location mLocation;
-	private MyLocationListener[] mLocationListeners;
 	
 	public static final int STATE_EDIT = 1;
 	public static final int STATE_INSERT= 2;
@@ -57,18 +76,37 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 	public static final int SYNC_ACTIVITY= 5;
 	private static final String TAG = "FindActivity";
 	private static final int CONFIRM_DELETE_DIALOG = 0;
+	private static final int UPDATE_LOCATION = 2;
+	private static final boolean ENABLED_ONLY = true;
+	private static final int THUMBNAIL_TARGET_SIZE = 320;
+
 
 	/**
-	 * 
+	 * Handles GPS updates.  
+	 * Source: Android tutorials
+	 * @see http://www.androidph.com/2009/02/app-10-beer-radar.html
 	 */
-	public FindActivity() {
-		// TODO Auto-generated constructor stub
-	}
+	Handler updateHandler = new Handler() {
+		/** Gets called on every message that is received */
+		// @Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case UPDATE_LOCATION: {
+				mLatitudeTextView.setText(" " + mLatitude);
+				mLongitudeTextView.setText(" " + mLongitude);
+				break;
+			}
+			}
+			super.handleMessage(msg);
+		}
+	};
+
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	/**
+	 * Sets up the various actions for the FindActivity, which are 
+	 * to insert new finds in the DB, edit existing finds, and delete 
+	 * existing finds (one or all) from the phone's DB.
+	 * @param savedInstanceState (not currently used) is to restore state.
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +119,8 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 			showDialog(CONFIRM_DELETE_DIALOG);
 		} else {		
 			setContentView(R.layout.add_find);
+			mLatitudeTextView = (TextView)findViewById(R.id.latitudeText);
+			mLongitudeTextView = (TextView)findViewById(R.id.longitudeText);
 			mGallery = (Gallery)findViewById(R.id.picturesTaken);
 			((Button)findViewById(R.id.idBarcodeButton)).setOnClickListener(this);
 	
@@ -92,33 +132,72 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 		}
 	} // onCreate()
 	
+	/**
+	 * Inserts a new Find. A TextView handles all the data entry. For new
+	 * Finds, both a time stamp and GPS location are fixed.  
+	 */
 	private void doInsertAction() {
 		mState = STATE_INSERT;
 		TextView tView = (TextView) findViewById(R.id.timeText);
 		tView.setText(getDateText());
-		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		mLocationListeners = new MyLocationListener[2];
-		mLocationListeners[0] = new MyLocationListener(this, LocationManager.GPS_PROVIDER);
-		mLocationListeners[1] = new MyLocationListener(this, LocationManager.NETWORK_PROVIDER);
-		mLocation = getCurrentLocation();
-		startReceivingLocationUpdates(); // Throws exception if no GPS??		
+//		initializeLocationAndStartGpsThread();
 	}
 	
+	/**
+	 * Sets the Find's location to the last known location and starts 
+	 *  a separate thread to update GPS location.
+	 */
+	private void initializeLocationAndStartGpsThread() {
+		mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		List<String> providers = mLocationManager.getProviders(ENABLED_ONLY);
+		Log.i(TAG, "Enabled providers = " + providers.toString());
+		String provider = mLocationManager.getBestProvider(new Criteria(),ENABLED_ONLY);
+		Log.i(TAG, "Best provider = " + provider);
+
+		setCurrentGpsLocation(null);   
+		mThread = new Thread(new MyThreadRunner());
+		mThread.start();
+	}
+
+	/**
+	 * Repeatedly attempts to update the Find's location.
+	 */
+	class MyThreadRunner implements Runnable {
+		// @Override
+		public void run() {
+			while (!Thread.currentThread().isInterrupted()) {
+				Message m = Message.obtain();
+				m.what = 0;
+				FindActivity.this.updateHandler.sendMessage(m);
+				try {
+					Thread.sleep(5);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Allows editing of editable data for existing finds.  For existing finds, 
+	 * we retrieve the Find's data from the DB and display it in a TextView. The
+	 * Find's location and time stamp are not updated.
+	 */
 	private void doEditAction() {
 		mState = STATE_EDIT;
 		mRowId = getIntent().getLongExtra(MyDBHelper.KEY_ID, 0); 
 		Log.i(TAG, "rowID = " + mRowId);
 
-		// Create a find object and get its data
+		// Instantiate a find object and retrieve its data from the DB
 		mFind = new Find(this, mRowId);        
 		ContentValues values = mFind.getContent();
 		if (values == null) {
-			Utils.showToast(this, "No values found for item " + mRowId);
+			Utils.showToast(this, "No values found for Find " + mRowId);
 			mState = STATE_INSERT;
 		} else {
-			putContentToView(values);
+			displayContentInView(values);  
 		}
-		showImages();
+		displayGallery(mRowId);
 	}
 	
 	
@@ -155,7 +234,6 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
                 	if (mDbHelper.deleteAllFinds()) {
         				Utils.showToast(FindActivity.this, R.string.deleted_from_database);
         				FindActivity.this.finish();
- //       				fillData(); // Doesn't refresh the view.
                 	}
         			else {
         				Utils.showToast(FindActivity.this, R.string.delete_failed);
@@ -175,8 +253,14 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
         } // switch
     }
 	
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+	}
+
+	/** 
+	 * Creates the menu for this activity by inflating a menu resource file.
 	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -185,24 +269,31 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 		return true;
 	} // onCreateOptionsMenu()
 	
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onMenuItemSelected(int, android.view.MenuItem)
+	/** 
+	 * Handles the various menu item actions.
+	 * @param featureId is unused
+	 * @param item is the MenuItem selected by the user
 	 */
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		Intent intent;
 		switch (item.getItemId()) {
 		case R.id.save_find_menu_item:
-			ContentValues contentValues = getContentFromView();
+			ContentValues contentValues = retrieveContentFromView();
+
 			if (mState == STATE_INSERT) {
 				mFind = new Find(this);
-				if (mFind.insertToDB(contentValues))
+				saveCameraImageAndUri(mFind, mTempImage);
+				ContentValues imageValues = retrieveImagesFromUris();
+
+				if (mFind.insertToDB(contentValues, imageValues))
 					Utils.showToast(this, R.string.saved_to_database);
 				else 
 					Utils.showToast(this, R.string.save_failed);
-
 			} else {  // STATE_EDIT
-				if (mFind.updateToDB(contentValues))
+				saveCameraImageAndUri(mFind, mTempImage);
+				ContentValues imageValues = retrieveImagesFromUris();
+				if (mFind.updateToDB(contentValues, imageValues))
 					Utils.showToast(this, R.string.saved_to_database);
 				else 
 					Utils.showToast(this, R.string.save_failed);
@@ -211,7 +302,7 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 			break;
 		case R.id.discard_changes_menu_item:
 			if (mState == STATE_EDIT) {
-				putContentToView(mFind.getContent());
+				displayContentInView(mFind.getContent());
 			} else {
 				setContentView(R.layout.add_find);
 			}
@@ -228,6 +319,10 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 			
 		case R.id.camera_menu_item:
 			intent = new Intent("android.media.action.IMAGE_CAPTURE");
+			mTempImage = null;
+			ImageView iv = (ImageView) findViewById(R.id.photo); // Hide the previous image if any
+			iv.setImageBitmap(null);
+			intent.putExtra("rowId",mRowId);
 			startActivityForResult(intent, CAMERA_ACTIVITY);
 			break;
 		default:
@@ -237,10 +332,12 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 	} // onMenuItemSelected
 
 	/**
-	 * Takes values from View fields and puts them in a ContentValues hash table.
-	 * @return The hash table.
+	 * Retrieves values from the View fields and stores them as <key,value> pairs in a ContentValues.
+	 * This method is invoked from the Save menu item.  It also marks the find 'unsynced'
+	 * so it will be updated to the server.
+	 * @return The ContentValues hash table.
 	 */
-	private ContentValues getContentFromView() {
+	private ContentValues retrieveContentFromView() {
 		ContentValues result = new ContentValues();
 		
 		EditText eText = (EditText) findViewById(R.id.nameText);
@@ -269,14 +366,28 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 		
 		// Mark the find unsynched
 		result.put(getString(R.string.syncedDB),"0");
+		
 		return result;
 	}
 	
+	private ContentValues retrieveImagesFromUris() {
+		ContentValues result = new ContentValues();
+		String value = "";
+		if (mImageUri != null) {
+			value = mImageUri.toString();
+			result.put(getString(R.string.imageUriDB), value);
+			value = mThumbnailUri.toString();
+			result.put(getString(R.string.thumbnailUriDB),value);
+		}
+		return result;
+
+	}
+	
 	/**
-	 * Takes values from View fields and puts them in a ContentValues hash table.
-	 * @return The hash table.
+	 * Retrieves values from a ContentValues has table and puts them in the View.
+	 * @param contentValues stores <key, value> pairs
 	 */
-	private void putContentToView(ContentValues contentValues) {
+	private void displayContentInView(ContentValues contentValues) {
 		EditText eText = (EditText) findViewById(R.id.nameText);
 		eText.setText(contentValues.getAsString(getString(R.string.nameDB)));
 		eText = (EditText) findViewById(R.id.descriptionText);
@@ -290,8 +401,16 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 		tView.setText(contentValues.getAsString(getString(R.string.longitudeDB)));
 		tView = (TextView) findViewById(R.id.latitudeText);
 		tView.setText(contentValues.getAsString(getString(R.string.latitudeDB)));
+		
+		ImageView iv = (ImageView) findViewById(R.id.photo);
+		Uri iUri = Uri.parse(contentValues.getAsString(getString(R.string.imageUriDB)));
+		iv.setImageURI(iUri);
 	}
 
+	/**
+	 * Handles the barcode reader button click. 
+	 * @param v is the View where the click occured.
+	 */
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.idBarcodeButton:
@@ -303,14 +422,19 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 
 
 	/**
-	 * This call-back method is invoked when one of the Activities started
-	 *  from FindActivity, such as the BARCODE_READER or the CAMERA, finishes.
-	 *  It handles the results of the Activities.
+	 * Invoked when one of the Activities started
+	 *  from FindActivity menu, such as the BARCODE_READER or the CAMERA, finishes.
+	 *  It handles the results of the Activities. RESULT_OK == -1, RESULT_CANCELED = 0
+	 *  @param requestCode is the code that launched the sub-activity
+	 *  @param resultCode specifies whether the sub-activity was successful or not
+	 *  @param data is an Intent storing whatever data is passed back by the sub-activity
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (resultCode != RESULT_OK)
+		Log.i(TAG, "Result code = " + resultCode);
+
+		if (resultCode == RESULT_CANCELED)
 			return;
 		switch (requestCode) {
 		case BARCODE_READER:
@@ -318,54 +442,115 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 			EditText eText = (EditText) findViewById(R.id.idText);
 			eText.setText(value);
 			break;
-		case CAMERA_ACTIVITY:
-			if (mState == STATE_INSERT) { // this saves to the database so that we have the row Id
-				ContentValues content = getContentFromView();
-				mFind = new Find(this);
-				mFind.insertToDB(content);
-				mState = STATE_EDIT;
-			}
-			ImageUtils.saveImageFromCamera(this,mFind.getId(),data); //save Image to MediaStore
-			showImages();
+		case CAMERA_ACTIVITY: 
+			int rowId = data.getExtras().getInt("rowId");
+			Log.i(TAG, "RowId from camera = " + rowId);
+			mTempImage = (Bitmap) data.getExtras().get("data");
+			Log.i(TAG, "bitmap = " + mTempImage.toString());
+			displayImageInView(mTempImage);
 			break;
 		}
 	}
-	
-	/**
-	 * Queries for images for this Find and shows at the bottom.
-	 *  The images are identified by BUCKET_ID='posit' AND 
-	 *  BUCKET_DISPLAY_NAME='posit##'
-	 */
-	private void showImages() {
-		// Select just those images associated with this find.
-		 String imageId = ImageColumns.BUCKET_ID + "=\"posit\" " 
-		 	+ " AND "
-			+ ImageColumns.BUCKET_DISPLAY_NAME+"=\"posit|"
-			+ mRowId + "\""
-			;
-		 
-//		 Utils.showToast(this, "This image = " + imageId);
 
-		 if (mCursor==null) {
-			 Log.i(TAG, "Building new imagesQuery");
-
-			 mCursor = managedQuery (MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        		new String[]{ BaseColumns._ID, ImageColumns.BUCKET_ID},
-        		ImageColumns.BUCKET_ID+"=\"posit\" AND "
-        		+ImageColumns.BUCKET_DISPLAY_NAME+"=\"posit|"+mRowId+"\"", null,null);
-
-
-		 }else {
-			 mCursor.requery();
-		 }
-		 
-		 if (mCursor != null) { 
-			 mGallery.setAdapter(new ImageAdapter(mCursor,this));
-			 mGallery.setOnItemClickListener(this);
-		 } else 
-			 Utils.showToast(this, "No images to display.");
+	private void displayImageInView(Bitmap bm) {
+		
+		if (bm == null) {
+			Utils.showToast(this,"Camera cancelled");
+		}
+		ImageView iv = (ImageView) findViewById(R.id.photo);
+		iv.setImageBitmap(bm);
 	}
 	
+	/**
+	 * Saves the camera image and associated bitmap to Media storage and
+	 *  save's their respective Uri's in aFind, which will save them to Db.
+	 * @param aFind  the current Find we are creating or editing
+	 * @param bm the bitmap from the camera
+	 */
+	private void saveCameraImageAndUri(Find aFind, Bitmap bm) {
+		if (bm == null) {
+			Log.i(TAG, "No camera images to save ...exiting ");
+			return;
+		}
+		
+		ContentValues values = new ContentValues();
+		values.put(MediaColumns.TITLE, "posit image");
+		values.put(ImageColumns.BUCKET_DISPLAY_NAME,"posit");
+//		values.put(ImageColumns.BUCKET_ID, "posit|" + rowId);
+		values.put(ImageColumns.IS_PRIVATE, 0);
+		values.put(MediaColumns.MIME_TYPE, "image/jpeg");
+		mImageUri = getContentResolver()
+			.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+		Log.i(TAG, "Saved image uri = " + mImageUri.toString());
+		OutputStream outstream;
+		try {
+			outstream = getContentResolver().openOutputStream(mImageUri);
+			bm.compress(Bitmap.CompressFormat.JPEG, 70, outstream);
+			outstream.close();
+		} catch (Exception e) {
+			Log.i(TAG, "Exception during image save " + e.getMessage());
+		}
+		
+		// Now create a thumbnail and save it
+		int width = bm.getWidth();
+		int height = bm.getHeight();
+		int newWidth = THUMBNAIL_TARGET_SIZE;
+		int newHeight = THUMBNAIL_TARGET_SIZE;
+		
+		float scaleWidth = ((float)newWidth)/width;
+		float scaleHeight = ((float)newHeight)/height;
+		
+		Matrix matrix = new Matrix();
+		matrix.setScale(scaleWidth, scaleHeight);
+		Bitmap thumbnailImage = Bitmap.createBitmap(bm, 0, 0,width,height,matrix,true);
+				
+		int imageId = Integer.parseInt(mImageUri.toString()
+				.substring(Media.EXTERNAL_CONTENT_URI.toString().length()+1));	
+
+		Log.i(TAG, "imageId from camera = " + imageId);
+
+		values = new ContentValues(4);
+		values.put(Images.Thumbnails.KIND, Images.Thumbnails.MINI_KIND);
+        values.put(Images.Thumbnails.IMAGE_ID, imageId);
+        values.put(Images.Thumbnails.HEIGHT, height);
+        values.put(Images.Thumbnails.WIDTH, width);
+        mThumbnailUri = getContentResolver()
+        	.insert(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, values);
+		Log.i(TAG, "Saved thumbnail uri = " + mThumbnailUri.toString());
+
+		try {
+			outstream = getContentResolver().openOutputStream(mThumbnailUri);
+			thumbnailImage.compress(Bitmap.CompressFormat.JPEG, 70, outstream);
+			outstream.close();
+		} catch (Exception e) {
+			Log.i(TAG, "Exception during thumbnail save " + e.getMessage());
+		}
+
+		// Save the Uri's
+		aFind.setImageUri(mImageUri);
+		aFind.setThumbnailUri(mThumbnailUri);
+	}
+	
+	/**
+	 * Queries for images for this Find and shows them in a Gallery at the bottom of the View.
+	 *  @param id is the rowId of the find
+	 */
+	private void displayGallery(long id) {
+
+		// Select just those images associated with this find.
+		mCursor = mFind.getImages();  // Returns the Uris of the images from the Posit Db
+		Uri uri;
+		if (mCursor != null) { 
+			mCursor.moveToFirst();
+ 			ImageAdapter adapter = new ImageAdapter(mCursor, this);
+			Log.i(TAG, "displayGallery(), adapter = " + adapter.getCount());
+
+			mGallery.setAdapter(adapter);
+			mGallery.setOnItemClickListener(this);
+		} else 
+			Utils.showToast(this, "No images to display.");
+	}
+
 	/**
 	 * To detect the user clicking on the displayed images. We would like it to 
 	 *  display just those images associated with that Find, but it currently 
@@ -376,9 +561,8 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 		try {
 			//
 			mCursor.move(position);
-			long id = mCursor.getLong(mCursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns._ID));
-			//create the Uri for the Image 
-			Uri uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id+"");
+      		String s = mCursor.getString(mCursor.getColumnIndexOrThrow(getString(R.string.imageUriDB)));
+      		Uri uri = Uri.parse(s);
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setData(uri);
 			startActivity(intent);
@@ -390,7 +574,8 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 	
 	
 	/**
-	 * Gets the current date and time from the Calendar Instance
+	 * Returns the current date and time from the Calendar Instance
+	 * @return a string representing the current time stamp.
 	 */
 	private String getDateText() {
 		Calendar c = Calendar.getInstance();
@@ -400,65 +585,64 @@ public class FindActivity extends Activity implements OnClickListener, OnItemCli
 		return dateString;
 	}
 	
-	private void startReceivingLocationUpdates() {
-		if (mLocationManager != null) {
-			try {
-				mLocationManager.requestLocationUpdates(
-						LocationManager.NETWORK_PROVIDER, 1000, 0F,
-						mLocationListeners[1]);
-			} catch (java.lang.SecurityException ex) {
-				// ok
-			} catch (IllegalArgumentException ex) {
-				if (Config.LOGD) {
-					Log.d(TAG, "provider does not exist " + ex.getMessage());
-				}
-			}
-			try {
-				mLocationManager.requestLocationUpdates(
-						LocationManager.GPS_PROVIDER, 1000, 0F,
-						mLocationListeners[0]);
-			} catch (java.lang.SecurityException ex) {
-				// ok
-			} catch (IllegalArgumentException ex) {
-				if (Config.LOGD) {
-					Log.d(TAG, "provider does not exist " + ex.getMessage());
-				}
-			}
-		}
+    /* ***************   Location Listener Interface Methods **********     */
+    
+	/**
+	 * Invoked by the location service when phone's location changes.
+	 */
+    public void onLocationChanged(Location newLocation) {
+		setCurrentGpsLocation(newLocation);  	
 	}
-
-	private void stopReceivingLocationUpdates() {
-		if (mLocationManager != null) {
-			for (int i = 0; i < mLocationListeners.length; i++) {
-				try {
-					mLocationManager.removeUpdates(mLocationListeners[i]);
-				} catch (Exception ex) {
-					// ok
-				}
-			}
-		}
+	/**
+	 * Resets the GPS location whenever the provider is enabled.
+	 */
+    public void onProviderEnabled(String provider) {
+		setCurrentGpsLocation(null);  	
+	}
+	/**
+	 * Resets the GPS location whenever the provider is disabled.
+	 */
+    public void onProviderDisabled(String provider) {
+//		Log.i(TAG, provider + " disabled");
+		setCurrentGpsLocation(null);  	
+	}
+	/**
+	 * Resets the GPS location whenever the provider status changes. We
+	 * don't care about the details.
+	 */
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+			setCurrentGpsLocation(null);  	
 	}
 
 	/**
-	 * This method scans the LocationListeners trying to determine the 
-	 *  phone's location. This can be simulated on the emulator in DDMS 
-	 *  perspective (in Eclipse) by setting a <long,lat> in the Emulator's
-	 *  Location Control.
-	 * @return
-	 */	
-	private Location getCurrentLocation() {
-		Location l = null;
-
-		// go in best to worst order
-		for (int i = 0; i < mLocationListeners.length; i++) {
-			l = mLocationListeners[i].current();
-			if (l != null)
-				break;
+	 * Sends a message to the update handler with either the current location or 
+	 *  the last known location. 
+	 * @param location is either null or the current location
+	 */
+	private void setCurrentGpsLocation(Location location) {
+		String bestProvider = "";
+		if (location == null) {
+			mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+			List<String> providers = mLocationManager.getProviders(ENABLED_ONLY);
+			Log.i(TAG, "Enabled providers = " + providers.toString());
+			bestProvider = mLocationManager.getBestProvider(new Criteria(),ENABLED_ONLY);
+			if (bestProvider != null && bestProvider.length() != 0) {
+				mLocationManager.requestLocationUpdates(
+						bestProvider, 30000, 0, this);	 // Every 30000 millisecs	
+				location = mLocationManager.getLastKnownLocation(bestProvider);				
+			}	
 		}
+		Log.i(TAG, "Best provider = |" + bestProvider + "|");
 
-		return l;
+		try {
+			mLongitude = location.getLongitude();
+			mLatitude = location.getLatitude();
+			Message msg = Message.obtain();
+			msg.what = UPDATE_LOCATION;
+			FindActivity.this.updateHandler.sendMessage(msg);
+		} catch (NullPointerException e) {
+			//	Avoid crashing Phone when no service is available.
+		}
 	}
-
-
-	
+    
 }

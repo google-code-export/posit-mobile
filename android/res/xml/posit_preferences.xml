@@ -2,6 +2,12 @@
 xmlns:android="http://schemas.android.com/apk/res/android">
 <PreferenceCategory android:title="@string/general">
 <CheckBoxPreference
+	android:key="SYNC_ON_OFF"
+	android:title="@string/synchronization_on_off"
+	android:summary="@string/synchronization_on_off_detail"
+	android:defaultValue="true"  
+   />
+<CheckBoxPreference
 	android:key="NOTIFY_START_STOP"
 	android:title="@string/notify_start_stop"
 	android:summary="@string/notify_start_stop_detail"
