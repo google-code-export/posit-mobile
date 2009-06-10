@@ -104,7 +104,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
         + KEY_SYNCED + " integer default 0, "
         + KEY_REVISION + " integer default 1, "
         + KEY_IMAGE_URI + " text, "
-        + KEY_THUMBNAIL_URI + " text "
+       // + KEY_THUMBNAIL_URI + " text "
         + ");";
     
     private static final String CREATE_IMAGES_TABLE = "CREATE TABLE "
