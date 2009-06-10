@@ -403,8 +403,11 @@ public class FindActivity extends Activity
 		tView.setText(contentValues.getAsString(getString(R.string.latitudeDB)));
 		
 		ImageView iv = (ImageView) findViewById(R.id.photo);
-		Uri iUri = Uri.parse(contentValues.getAsString(getString(R.string.imageUriDB)));
-		iv.setImageURI(iUri);
+		String strUri = contentValues.getAsString(getString(R.string.imageUriDB));
+		if (strUri != null) {
+			Uri iUri = Uri.parse(strUri);
+			iv.setImageURI(iUri);
+		}
 	}
 
 	/**
