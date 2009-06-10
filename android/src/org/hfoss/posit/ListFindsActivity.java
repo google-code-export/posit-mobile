@@ -220,13 +220,16 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					.getColumnIndexOrThrow(MyDBHelper.KEY_ID));
 			MyDBHelper myDbHelper = new MyDBHelper(this);
 			ContentValues values = myDbHelper.getImages(rowId);
-			if (values != null) {
-				Uri iUri = Uri.parse(values.getAsString(getString(R.string.imageUriDB)));
-				Log.i(TAG,"Image URI = " + iUri.toString());
-				ImageView iv = (ImageView) view;
+			if (values != null && values.containsKey(getString(R.string.imageUriDB))) {
+				String strUri = values.getAsString(getString(R.string.imageUriDB));
+				if (strUri != null) {
+					Uri iUri = Uri.parse(strUri);
+					Log.i(TAG,"Image URI = " + iUri.toString());
+					ImageView iv = (ImageView) view;
 
-				iv.setImageURI(iUri);
-				iv.setScaleType(ImageView.ScaleType.FIT_XY);
+					iv.setImageURI(iUri);
+					iv.setScaleType(ImageView.ScaleType.FIT_XY);
+				}
 			}
 			return true;
 			
