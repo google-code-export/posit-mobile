@@ -48,12 +48,7 @@
 					android:layout_width="fill_parent" android:padding="10dip" android:maxLines="6" android:scrollbars="vertical"
 					android:fadingEdge="vertical" android:scrollbarStyle="insideOverlay" android:layout_height="fill_parent"/>
 			</LinearLayout>
-			
-			<ImageView android:id="@+id/photo"  
-			android:adjustViewBounds="true"
-		    android:layout_width="100px"
-            android:layout_height="100px" />
-			
+		
 			<Gallery android:id="@+id/picturesTaken" 
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"/>
@@ -63,3 +58,11 @@
 	</ScrollView>
 
 </LinearLayout>
+
+<!--  This was in here to help debug the 'Take Picture' feature
+ 			
+			<ImageView android:id="@+id/photo"  
+			android:adjustViewBounds="true"
+		    android:layout_width="100px"
+            android:layout_height="100px" />
+		-->	

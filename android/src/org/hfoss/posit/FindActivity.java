@@ -320,8 +320,8 @@ public class FindActivity extends Activity
 		case R.id.camera_menu_item:
 			intent = new Intent("android.media.action.IMAGE_CAPTURE");
 			mTempImage = null;
-			ImageView iv = (ImageView) findViewById(R.id.photo); // Hide the previous image if any
-			iv.setImageBitmap(null);
+//			ImageView iv = (ImageView) findViewById(R.id.photo); // Hide the previous image if any
+//			iv.setImageBitmap(null);
 			intent.putExtra("rowId",mRowId);
 			startActivityForResult(intent, CAMERA_ACTIVITY);
 			break;
@@ -401,13 +401,14 @@ public class FindActivity extends Activity
 		tView.setText(contentValues.getAsString(getString(R.string.longitudeDB)));
 		tView = (TextView) findViewById(R.id.latitudeText);
 		tView.setText(contentValues.getAsString(getString(R.string.latitudeDB)));
-		
-		ImageView iv = (ImageView) findViewById(R.id.photo);
-		String strUri = contentValues.getAsString(getString(R.string.imageUriDB));
-		if (strUri != null) {
-			Uri iUri = Uri.parse(strUri);
-			iv.setImageURI(iUri);
-		}
+
+		// Displays an image in the add_find View (in addition to the Gallery)
+//		ImageView iv = (ImageView) findViewById(R.id.photo);
+//		String strUri = contentValues.getAsString(getString(R.string.imageUriDB));
+//		if (strUri != null) {
+//			Uri iUri = Uri.parse(strUri);
+//			iv.setImageURI(iUri);
+//		}
 	}
 
 	/**
@@ -460,8 +461,8 @@ public class FindActivity extends Activity
 		if (bm == null) {
 			Utils.showToast(this,"Camera cancelled");
 		}
-		ImageView iv = (ImageView) findViewById(R.id.photo);
-		iv.setImageBitmap(bm);
+//		ImageView iv = (ImageView) findViewById(R.id.photo);
+//		iv.setImageBitmap(bm);
 	}
 	
 	/**
