@@ -103,7 +103,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
         + KEY_SID + " integer, "
         + KEY_SYNCED + " integer default 0, "
         + KEY_REVISION + " integer default 1, "
-        + KEY_IMAGE_URI + " text, "
+        + KEY_IMAGE_URI + " text "
        // + KEY_THUMBNAIL_URI + " text "
         + ");";
     
