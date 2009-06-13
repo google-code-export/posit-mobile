@@ -43,7 +43,6 @@ public class MapFindsActivity extends MapActivity {
 	private static final String TAG = "MapFindsActivity";
 	private MapView mMapView;
 	private MapController mapController;
-	private ZoomControls mZoom;
 	private LinearLayout linearLayout;
 	private List<Overlay> mapOverlays;
 	private Drawable drawable;
@@ -123,8 +122,7 @@ public class MapFindsActivity extends MapActivity {
 		setContentView(R.layout.map_finds);
         linearLayout = (LinearLayout) findViewById(R.id.zoomview);
 		mMapView = (MapView) findViewById(R.id.mapFinds);
-        mZoom = (ZoomControls) mMapView.getZoomControls();
-        linearLayout.addView(mZoom);
+        mMapView.setBuiltInZoomControls(true);  // SDK 1.5
         mapOverlays = mMapView.getOverlays();
         mapOverlays.add(mapLayoutItems(mCursor));	
 		mapController = mMapView.getController();
@@ -133,7 +131,6 @@ public class MapFindsActivity extends MapActivity {
 	private  MyItemizedOverlay mapLayoutItems(Cursor c) {
 		int latitude = 0;
 		int longitude = 0;
-		int itemId = 0;
         drawable = this.getResources().getDrawable(R.drawable.androidmarker);
     	MyItemizedOverlay mPoints = new MyItemizedOverlay(drawable, this);
 		c.moveToFirst();

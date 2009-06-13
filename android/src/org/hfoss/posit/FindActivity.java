@@ -140,7 +140,7 @@ public class FindActivity extends Activity
 		mState = STATE_INSERT;
 		TextView tView = (TextView) findViewById(R.id.timeText);
 		tView.setText(getDateText());
-//		initializeLocationAndStartGpsThread();
+		initializeLocationAndStartGpsThread();
 	}
 	
 	/**
