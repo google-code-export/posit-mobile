@@ -105,6 +105,6 @@ $(document).ready(function() {
 
 <?php
 
-include "includes/pagefooter.php";
+include "includes/pagefooter.php";//
 
 ?>
