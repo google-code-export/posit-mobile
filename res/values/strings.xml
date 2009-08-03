@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="all_white">#FFFFFF</color>
+    <color name="red">#FF0000</color>
+    
+    <string name="hello">Hello World, LeapingAndroid!</string>
+    <string name="app_name">Leaping Androids Puzzle</string>
+    
+    <string name="setup_menu_item">Set up</string>
+    <string name="help_menu_item">Instructions</string>
+    <string name="reset_menu_item">Restart</string>
+
+	<string name="congratulations">Way to go!</string>
+	<string name="dialog_ok">Ok</string>
+
+    <string name="instructions">
+    Goal: Swap the green and red Androids by clicking on an Android to move it 
+    into the empty space or to jump.
+  	\nRules: (1) Androids can only move in one direction.
+  	(2) Androids can jump at most 1 other Android.
+  	\n\nUse the restart menu if you get stuck.
+  	\n\nGood luck!
+    </string>
+    
+</resources>

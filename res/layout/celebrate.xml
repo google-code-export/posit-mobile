@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+   
+<GridView xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/gameovergridview"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+    android:numColumns="1"
+    android:verticalSpacing="2dp"
+    android:horizontalSpacing="2dp"
+    android:columnWidth="90dp"
+    android:stretchMode="columnWidth"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentTop="true"
+/>
+
+<ImageView android:id="@+id/simple_anim"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:gravity="center"
+     android:layout_centerHorizontal="true"
+/>   
+          
+
+<TextView  
+    android:id="@+id/waytogo"
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content" 
+    android:text="@string/congratulations"
+    android:layout_below="@id/simple_anim"
+    android:layout_alignParentRight="true"
+    
+/>
+
+</RelativeLayout>
+
+<!--  
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="center_vertical"
+    android:layout_toRightOf="@id/gridview">
+</LinearLayout>
+-->
+
+<!--   
+<ImageView  
+    android:id="@+id/celebrate"
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content" 
+    android:src="@drawable/happyfrog"
+    android:layout_alignParentRight="true"
+    /> 
+ -->
+
+
