@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item 
+		android:id="@+id/settings_menu_item" 
+		android:icon="@android:drawable/ic_menu_preferences"
+		android:title="@string/settings"></item>
+	<item 
+		android:id="@+id/about_menu_item" 
+		android:title="@string/aboutItem"
+		android:icon="@drawable/about"></item>
+	<item 
+		android:id="@+id/projects_menu_item" 
+		android:icon="@drawable/list_projects_icon"
+		android:title="@string/projects"></item>
+	<item android:id="@+id/rwg_start_activity" android:title="Start RWG Test Activity"></item>
+	<item android:id="@+id/rwg_start" android:title="Start RWG"></item>
+	<item android:id="@+id/rwg_end" android:title="Stop RWG"></item>
+	<item android:id="@+id/track_menu_item" android:title="@string/trackItem" android:icon="@drawable/radar"></item>
+	<item android:id="@+id/native_activity" android:title="@string/nativeActivity"></item>
+</menu>
