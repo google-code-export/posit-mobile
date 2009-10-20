@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item 
+		android:title="@string/delete_audio_clips" 
+		android:id="@+id/delete_all_audio_clips"
+		android:icon="@android:drawable/ic_menu_delete" />
+</menu>

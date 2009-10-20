@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<group android:id="@+id/Delete" >
+		<item 
+			android:id="@+id/confirm_delete_video_audio" 
+			android:title="@string/alert_dialog_ok"></item>
+		<item 
+			android:id="@+id/cancel_delete_video_audio" 
+			android:title="@string/alert_dialog_cancel"></item>
+	</group>
+
+</menu>
