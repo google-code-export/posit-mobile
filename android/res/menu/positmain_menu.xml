@@ -1,5 +1,0 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:id="@+id/new_find_menu_item" android:title="@string/new_find" android:icon="@drawable/new_find_icon"></item>
-<item android:id="@+id/list_find_menu_item" android:title="@string/list_find" android:icon="@drawable/list_finds_icon"></item>
-<item android:title="@string/settings" android:id="@+id/settings_menu_item" android:icon="@android:drawable/ic_menu_preferences"></item>
-</menu>
