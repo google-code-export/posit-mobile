@@ -1,0 +1,25 @@
+another try at commit
+
+--This line, and those below, will be ignored--
+
+M    src/org/hfoss/posit/R.java
+M    src/org/hfoss/posit/DBHelper.java
+A    src/org/hfoss/posit/util/DataPoint.java
+M    src/org/hfoss/posit/util/StaticOverlay.java
+M    src/org/hfoss/posit/MapperNew.java
+M    bin/hfoss-posit-ram.apk
+M    bin/org/hfoss/posit/MapperNew$MyIntentReceiver.class
+M    bin/org/hfoss/posit/R$id.class
+M    bin/org/hfoss/posit/Mapper.class
+M    bin/org/hfoss/posit/R$style.class
+M    bin/org/hfoss/posit/R$string.class
+M    bin/org/hfoss/posit/R$drawable.class
+M    bin/org/hfoss/posit/DBHelper.class
+M    bin/org/hfoss/posit/MapperNew.class
+M    bin/org/hfoss/posit/R$layout.class
+M    bin/org/hfoss/posit/PositMain.class
+M    bin/org/hfoss/posit/util/StaticOverlay.class
+M    bin/resources.ap_
+D    bin/classes.dex
+AM   res/drawable/flag.png
+M    svn-commit.tmp

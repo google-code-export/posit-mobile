@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.hfoss.summer09.cc"
+	android:versionCode="1"
+	android:versionName="1.0">
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />  
+    <uses-permission android:name="android.permission.CAMERA"></uses-permission>
+	<uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <application android:icon="@drawable/map_icon" android:label="@string/app_name">
+    	<uses-library android:name="com.google.android.maps" />
+		
+	<!-- Main GUI Module -->
+		
+		<activity android:name=".AppMain"         
+			android:label="@string/app_name">
+            <intent-filter>
+            	<action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    <!-- Audio Capture Module -->
+        
+        <activity android:name=".AudioCapture"
+        	android:launchMode="singleTop">
+           	<intent-filter>
+           		<action android:name="com.hfoss.summer09.cc.AUDIO_APP" />
+           			<category android:name="android.intent.category.DEFAULT" />
+        	</intent-filter>
+        </activity>
+         
+    <!-- View Info ,Module -->
+         
+         <activity android:name=".ViewInfoApp"
+         	android:launchMode="singleTop">
+           	<intent-filter>
+      	     	<action android:name="com.hfoss.summer09.cc.VIEW_INFO" />
+ 	      		<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        
+        <activity android:name=".ListFinds"
+        	android:launchMode="singleTop">
+        	<intent-filter>
+        		<action android:name="com.hfoss.summer09.cc.SHOW_FINDS" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        	</intent-filter>
+        </activity>
+        
+    <!-- About Module -->
+        
+          <activity android:name=".AboutApp"
+          	android:launchMode="singleTop">
+           	<intent-filter>
+           		<action android:name="com.hfoss.summer09.cc.VIEW_INFO" />
+               	<category android:name="android.intent.category.DEFAULT" />
+        	</intent-filter>
+         </activity>
+        
+    <!-- GPS: Maps Modules -->
+        
+         <activity android:name=".Maps"
+         	android:launchMode="singleTop">
+           	<intent-filter>
+           		<action android:name="com.hfoss.summer09.cc.MAPS" />
+           		<category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+         <activity android:name=".StartGpsApp"
+        	android:launchMode="singleTop">
+           	<intent-filter>
+           		<action android:name="com.hfoss.summer09.cc.SET" />
+               	<category android:name="android.intent.category.DEFAULT" /> 
+            </intent-filter>
+        </activity>
+	
+	<!-- Camera: Image Capture Modules -->
+	
+		<activity android:name=".StartCameraApp"
+			android:launchMode="singleTop">
+			<intent-filter>
+				<action android:name="com.hfoss.summer09.cc.START_CAMERA_APP" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity>
+        
+        <activity android:name=".CameraApp"
+        	android:launchMode="singleTop" android:screenOrientation="landscape" android:theme="@android:style/Theme.NoTitleBar">
+        	<intent-filter>
+        		<action android:name="com.hfoss.summer09.cc.START_CAMERA" />
+               	<category android:name="android.intent.category.DEFAULT" />
+          	</intent-filter>
+       	</activity>
+        
+        <activity android:name=".SavePictureInfo" android:launchMode="singleTop" android:screenOrientation="landscape">
+−			<intent-filter>
+				<action android:name="com.hfoss.summer09.cc.SAVE_FIND"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+      	
+   	<!-- Video Capture Module -->
+      	
+      	<activity android:name=".VideoCapture"
+      		android:label="@string/app_name"
+      		android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.VIDEO_APP" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+   
+  	</application>
+
+    <uses-sdk android:minSdkVersion="3" />
+</manifest> 

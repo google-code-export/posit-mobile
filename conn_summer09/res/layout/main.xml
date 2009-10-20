@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/tabhost"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+		
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity = "center_horizontal">
+		
+		<TabWidget android:id="@android:id/tabs"
+			android:layout_width="fill_parent" 
+            android:layout_height="68dip"
+            android:paddingLeft="1dip"
+            android:paddingRight="1dip"
+            android:paddingTop="4dip"/>
+		
+			<FrameLayout android:id="@android:id/tabcontent"
+			   	android:layout_width="fill_parent"
+           		android:layout_height="0dip"
+            	android:layout_weight="1">
+
+			<TextView android:id="@+id/locate_me" android:layout_width="fill_parent"
+				android:layout_height="fill_parent" android:textSize="20sp"  />
+	
+			
+			<TextView android:id="@+id/picture_take"
+				android:layout_width="fill_parent" android:layout_height="fill_parent" />
+			
+			<TextView android:id="@+id/info_view" android:layout_width="fill_parent"
+				android:layout_height="fill_parent" />
+		
+			<TextView android:textSize="20sp" android:id="@+id/about_app"
+				android:layout_width="fill_parent" android:layout_height="fill_parent" />
+				
+		</FrameLayout>
+	</LinearLayout>
+</TabHost>

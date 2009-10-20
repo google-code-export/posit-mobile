@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme" parent="android:Theme">
+    </style>
+<style name="Theme.Transparent">
+        <item name="android:windowBackground">@drawable/transparent_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorForeground">#000</item>
+        <!-- <item name="android:windowFrame">@drawable/box</item>-->
+        
+        <item name="android:windowIsFloating">true</item>
+    </style>
+ 
+    
+    </resources>

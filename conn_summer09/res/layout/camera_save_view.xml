@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+  
+    android:orientation="vertical"
+    android:fillViewport="true"
+    android:background="?android:attr/listDivider">
+    
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+       	android:orientation="vertical">
+       	
+        <LinearLayout android:id="@+id/banner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dip"
+            android:gravity="center_vertical"
+            android:baselineAligned="false" >
+            
+            <!-- IMAGE PREVIEW: LEFT CORNER -->
+           <FrameLayout
+                android:layout_width="76dip"
+                android:layout_height="76dip"
+                android:layout_marginTop="4dip"
+                android:layout_marginLeft="6dip"
+                android:layout_marginBottom="6dip"
+                android:layout_marginRight="2dip"
+            >
+             	<ImageView android:id="@+id/recent_picture"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/ic_menu_add_picture"
+                    android:scaleType="center"
+                    android:background="@drawable/btn_contact_picture"
+                />
+            </FrameLayout>
+           
+	<!-- PICTURE NAME TEXT ENTRY -->
+            
+            <EditText android:id="@+id/pic_name"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="?android:attr/scrollbarSize"
+                android:gravity="center_vertical"
+                android:inputType="textPersonName|textCapWords"
+                android:hint="@string/ghostData_picture_name"
+                android:nextFocusDown="@id/data"
+            />
+        </LinearLayout>
+        
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dip"
+            android:gravity="center_vertical"
+            android:baselineAligned="false"
+            >
+            <!-- PICTURE INFO TEXT -->
+            <TextView android:id="@+id/emptyText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/picture_info"
+            android:textSize="20sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingLeft="10dip"
+            android:paddingRight="10dip"
+            android:paddingTop="10dip"
+            android:lineSpacingMultiplier="0.92"
+        />
+        </LinearLayout>
+        <LinearLayout
+        	android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dip"
+            android:gravity="center_vertical"
+            android:baselineAligned="false"
+            >
+    	 <EditText android:id="@+id/pic_description"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="?android:attr/scrollbarSize"
+                android:gravity="center_vertical"
+                android:inputType="textPersonName|textCapWords"
+                android:hint="@string/ghostData_description"
+                android:nextFocusDown="@id/data"
+            />
+        </LinearLayout>
+
+  
+	
+	<!-- AUDIO TAG BUTTON-->
+	
+		<LinearLayout
+		       android:layout_width="fill_parent"
+        		android:layout_height="wrap_content"
+       			 android:orientation="horizontal"
+       			 >
+            <Button android:id="@+id/audioButton"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/audio_tag"
+               >
+    		</Button>
+    			
+     
+        
+        	<!-- VIDEO TAG BUTTON-->
+
+            <Button android:id="@+id/videoButton"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginRight ="4dip"
+                
+                android:text="@string/video_tag">
+                
+    	</Button>
+			
+     </LinearLayout>
+                
+        <!-- CONTACT INFORMATION TEXT -->
+          <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dip"
+            android:gravity="center_vertical"
+            android:baselineAligned="false"
+            >
+            <TextView android:id="@+id/emptyText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/contact_info"
+            android:textSize="20sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingLeft="10dip"
+            android:paddingRight="10dip"
+            android:paddingTop="10dip"
+            android:lineSpacingMultiplier="0.92"
+        />
+        </LinearLayout>
+        
+        <LinearLayout
+        	android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dip"
+            android:gravity="center_vertical"
+            android:baselineAligned="false"
+            >
+    	 <EditText android:id="@+id/contact_name"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="?android:attr/scrollbarSize"
+                android:gravity="center_vertical"
+                android:inputType="textPersonName|textCapWords"
+                android:hint="@string/ghostData_name"
+                android:nextFocusDown="@id/data"
+            />
+        </LinearLayout>
+              
+        <LinearLayout
+        	android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dip"
+            android:gravity="center_vertical"
+            android:baselineAligned="false"
+            >
+    	 <EditText android:id="@+id/contact_number"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="?android:attr/scrollbarSize"
+                android:gravity="center_vertical"
+                android:inputType="textPersonName|textCapWords"
+                android:hint="@string/ghostData_number"
+                android:nextFocusDown="@id/data"
+            />
+        </LinearLayout>
+   
+        <LinearLayout
+		       android:layout_width="fill_parent"
+        		android:layout_height="wrap_content"
+       			 android:orientation="horizontal"
+       			 >
+       
+        <EditText android:id="@+id/contact_email"
+                android:layout_width="fill_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="?android:attr/scrollbarSize"
+                android:gravity="center_vertical"
+                android:inputType="textPersonName|textCapWords"
+                android:hint="@string/ghostData_email"
+                android:nextFocusDown="@id/data"
+            />
+            </LinearLayout>
+    
+
+ 
+<!-- BUTTONS SAVE AND NOT SAVE -->
+         <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            style="@android:style/ButtonBar"
+        	>
+            <Button android:id="@+id/saveButton"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/menu_done"
+            />
+
+            <Button android:id="@+id/discardButton"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/menu_doNotSave"
+            />
+                  
+            
+          </LinearLayout>
+    </LinearLayout>
+</ScrollView>

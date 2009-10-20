@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<project version="5.5">
+	<project_entity ID="debugger">
+		<connectionInfo use_defaults="true" tempFilesLocation="/home/compaq" debug_mode="local" serverHost="http://Server_Address/" port="10000"/>
+		<breakpoints/>
+		<watches/>
+	</project_entity>
+	<project_entity ID="SourceControl">
+		<encodingStyle value="CVS"/>
+	</project_entity>
+	<project_entity ID="project_roots">
+		<vfile name="/home/jwala/posit-android"/>
+	</project_entity>
+	<project_entity ID="bookmarks"/>
+	<project_entity ID="javaBridge" JRE_Name="1.5.0_06"/>
+	<project_entity ID="Subversion">
+		<svnCmdArguments>
+			<SubversionCommand commandType="update"/>
+			<SubversionCommand commandType="commit"/>
+			<SubversionCommand commandType="add"/>
+			<SubversionCommand commandType="status"/>
+			<SubversionCommand commandType="diff"/>
+			<SubversionCommand commandType="delete"/>
+			<SubversionCommand commandType="revert"/>
+			<SubversionCommand commandType="resolve"/>
+		</svnCmdArguments>
+	</project_entity>
+	<project_entity ID="editor_component" selectedEditor="7">
+		<openEditors>
+			<editor fileName="/home/jwala/posit-android/index.php" caretPosition="0" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/includes/bootstrap.php" caretPosition="0" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/project_build.php" caretPosition="2549" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/finds.php" caretPosition="342" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/includes/posit_communication.php" caretPosition="1548" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/includes/utils.php" caretPosition="0" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/registerdevice.php" caretPosition="976" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/finds_browse.php" caretPosition="67" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/project_fields.php" caretPosition="1871" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/includes/pageheader.php" caretPosition="234" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/css/flexigrid.css" caretPosition="12072" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/css/style.css" caretPosition="544" clone="false" encoding="default"/>
+			<editor fileName="/home/jwala/posit-android/includes/vars.php" caretPosition="424" clone="false" encoding="default"/>
+		</openEditors>
+	</project_entity>
+	<project_entity ID="CVS">
+		<lastArguments>
+			<CVSCommand commandType="update"/>
+			<CVSCommand commandType="commit"/>
+			<CVSCommand commandType="add"/>
+			<CVSCommand commandType="status"/>
+			<CVSCommand commandType="diff"/>
+		</lastArguments>
+	</project_entity>
+</project>

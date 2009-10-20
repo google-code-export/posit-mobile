@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+	<string name = "picture_info">Picture Info</string>
+	<string name = "start">Start</string>
+	<string name = "start_gps">This will launch the maps module.</string>
+	<string name = "start_picture1">Camera</string>
+	<string name = "start_about">About</string>
+	<string name = "start_view">View Info</string>
+	
+	<string name = "view_info">View Information [place holder]</string>
+	<string name = "about_info">This is where we are going to provide info about this application</string>
+	
+	<string name = "contact_info">Contact Info</string>
+    <string name = "app_name">UNKNOWN</string>
+    <string name = "locate">Locate Me</string>
+    <string name = "picture">Take a Photograph</string>
+    <string name = "info">View Info</string>
+    <string name = "about">About</string>
+   	<string name = "ghostData_phonetic_name">Phonetic Name</string>
+    <string name = "ghostData_picture_name">Picture Name</string>
+    <string name = "ghostData_description">Picture Description</string>
+    <string name = "ghostData_number">Enter Number</string>
+    <string name = "ghostData_name">Enter Name</string>
+    <string name = "ghostData_email">Enter Email</string>
+    <string name = "menu_done">Submit</string>
+    <string name = "menu_doNotSave">Cancel</string>
+   	<string name = "label_phonetic_name">Photo Name</string>
+   	
+   	<string name = "audio_tag">Tag with Audio</string>
+   	<string name = "video_tag">Tag with Video</string>
+   	
+   	<string name = "bar">Bar</string>
+   	
+   	<!-- MAIN MENU: TAB CONTENT -->
+   	<string name = "about_this_app">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sollicitudin accumsan nisi mollis suscipit. Quisque imperdiet, arcu eget ultrices suscipit.</string>
+    
+   	<string name = "gps">This is a Google Maps-style module. Use it to find your location, follow yourself on the map, and [eventually] view all of your submitted finds. Press <font fgcolor="#ffffffff"><b>start</b></font> to begin."</string>
+    
+   	<string name = "camera_app">Press <font fgcolor="#ffffffff"><b>start</b></font> to launch the camera. Take a picture, tag it with information, and potentially an audio and/or a video recording, then submit it to the server.</string>
+   
+   <string name = "view_info_app">View Information is a list of all finds located in the phone's database.</string>
+   <string name = "save_button">Work Being Saved</string>
+   <string name = "cancel_button">Canceled</string>
+   <string name = "video_tag_button">Video Tag</string>
+   <string name = "audio_tag_button">Audio Tag</string>
+   
+    <string name="my_loc">My Location</string>
+    <string name="add_mark">Add Marker</string>
+    
+    <string name="finding_pos">Please wait while we try to find your location. The Alliance has momentarily commandeered use of our satellites.</string>
+	<string name="no_pos_avail">Sorry, but no GPS position is currently available.</string>
+	
+	<string name="sm_mt_title">Change\nMap View</string>
+	<string name="sm_mt_sat">Satellite</string>
+	<string name="sm_mt_map">Map</string>
+	<string name="sm_mt_tra">Traffic</string>
+	
+	<string name="max_duration">The video has reached its 1-minute limit!</string>
+	<string name="max_filesize">You have very little disk space. The recording will stop now.</string>
+	
+	<string name="play_video">Play Video</string>
+	<string name="play_audio">Play Audio</string>
+	<string name="empty_list">Sorry, but there are currently no views available.</string>
+	
+</resources>

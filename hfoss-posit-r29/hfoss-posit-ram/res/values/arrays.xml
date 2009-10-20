@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<resources>
+	<array name="types">
+		<item>dog</item>
+		<item>cat</item>
+		<item>Siamese cat</item>
+		<item>Tiger</item>
+		<item>Leopard</item>
+	</array>
+	<array name="bird_types">
+		<item>Red Tail Hawk</item>
+		<item>Barn Owl</item>
+		<item>Bald Eagle</item>
+	</array>
+	
+	<array name ="observation_types">
+		<item>Observation</item>
+		<item>Telemetry</item>
+		<item>Radio</item>
+		</array>
+</resources>

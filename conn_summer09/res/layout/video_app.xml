@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+android:id="@+id/general"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:orientation="horizontal"
+xmlns:android="http://schemas.android.com/apk/res/android">
+
+	    <SurfaceView
+	    android:id="@+id/camera_preview"     
+	    android:layout_width="fill_parent" 
+	    android:layout_height="fill_parent" 
+	    
+	     />
+	     
+	    <RelativeLayout 
+	    xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+         >
+			    <ImageButton
+		         android:id="@+id/shutter_button"
+		         android:layout_width="wrap_content"
+		         android:layout_height="wrap_content"
+		         android:src="@drawable/ic_camera_indicator_video"
+		         android:background="@drawable/ic_btn_camera_background"
+		         android:clickable="true"
+		         android:focusable="true"
+		         android:layout_alignParentRight="true"
+		         android:layout_alignParentTop="true"
+		         android:layout_marginRight="5dip"
+		         android:layout_marginTop="5dip"
+		         android:scaleType="center" 
+		         />
+		
+		  		<TextView 
+		  		android:text="RECORDING" 
+		  		android:id="@+id/recording" 
+		  		android:layout_width="wrap_content" 
+		  		android:layout_height="wrap_content"
+		  		android:layout_alignParentTop="true"
+				android:layout_alignParentLeft="true"
+				/>
+		   
+			    <Button 
+			    android:text="Review" 
+			    android:id="@+id/reviewbutton" 
+			    android:layout_width="wrap_content" 
+			    android:layout_height="wrap_content"
+			    android:textSize="20sp"
+			    android:padding="20px"
+				android:layout_marginTop="20px"
+				android:layout_marginBottom="20px"
+				android:layout_marginLeft="20px"
+			    android:layout_alignParentBottom="true"
+				android:layout_alignParentLeft="true"
+			    	/>		
+				<Button 
+				android:text="Save" 
+				android:id="@+id/savebutton" 
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:textSize="20sp"
+				android:padding="20px"
+				android:layout_marginTop="20px"
+				android:layout_marginBottom="20px"
+				android:layout_marginLeft="20px"
+				android:layout_alignParentBottom="true"
+				android:layout_toRightOf="@+id/reviewbutton"
+					/>
+				<Button 
+				android:text="Go Back" 
+				android:id="@+id/gobackbutton" 
+				android:padding="20px"
+				android:textSize="20sp"
+				android:layout_marginTop="20px"
+				android:layout_marginBottom="20px"
+				android:layout_marginLeft="20px"
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:layout_alignParentBottom="true"
+				android:layout_toRightOf="@+id/savebutton"				
+					/>
+				<Button 
+				android:text="Cancel" 
+				android:id="@+id/cancelbutton" 
+				android:padding="20px"
+				android:textSize="20sp"
+				android:layout_marginTop="20px"
+				android:layout_marginBottom="20px"
+				android:layout_marginLeft="20px"
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:layout_alignParentBottom="true"
+				android:layout_toRightOf="@+id/gobackbutton"				
+					/>					
+					
+			</RelativeLayout>
+</merge>

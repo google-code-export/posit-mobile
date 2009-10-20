@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<resources>
+
+    <style name="MinusButton">
+        <item name="android:background">@drawable/btn_circle</item>
+        <item name="android:src">@drawable/ic_btn_round_minus</item>
+    </style>
+
+    <style name="PlusButton">
+        <item name="android:background">@drawable/btn_circle</item>
+        <item name="android:src">@drawable/ic_btn_round_plus</item>
+    </style>
+
+    <style name="MoreButton">
+        <item name="android:background">@drawable/ic_text_dot</item>
+        <item name="android:src">@drawable/ic_menu_mylocation</item>
+    </style>
+
+    <style name="TallTitleBarTheme" parent="android:Theme.NoTitleBar">
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+</resources>

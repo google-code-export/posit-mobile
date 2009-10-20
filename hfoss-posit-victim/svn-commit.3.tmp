@@ -1,0 +1,18 @@
+Commit
+--This line, and those below, will be ignored--
+
+M    AndroidManifest.xml
+A    src/org/hfoss/posit/ListFinds.java
+M    src/org/hfoss/posit/CameraNew.java
+M    src/org/hfoss/posit/PositMain.java
+A    src/org/hfoss/posit/PictureDB.java
+M    src/org/hfoss/posit/Mapper.java
+A    src/org/hfoss/posit/DBHelper.java
+M    src/org/hfoss/posit/NewFindSci.java
+M    src/org/hfoss/posit/NewFind.java
+A    src/org/hfoss/posit/PictureViewer.java
+A    src/org/hfoss/posit/util/ImageAdapter.java
+M    bin/hfoss-posit-ram.apk
+M    bin/resources.ap_
+M    bin/classes.dex
+A    res/layout/image_gallery.xml

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- 														 -->
+<!-- 			Created by Phil Fritzsche					 -->
+<!-- This is an XML file used in the com.hfoss.maps package. -->
+<!-- 														 -->
+
+<merge
+	android:id="@+id/widget0"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android" >
+
+	<com.google.android.maps.MapView
+		android:id="@+id/map_view" 
+        android:layout_width="fill_parent"
+       	android:layout_height="fill_parent" 
+		android:enabled="true" 
+		android:clickable="true"             
+		android:apiKey="0H0l-DlodUAoXA1jaSLgMLCzXQwu7kAUU-6HZSQ"/>
+			
+	<AbsoluteLayout
+		android:id="@+id/abs_layout"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		xmlns:android="http://schemas.android.com/apk/res/android" >
+			
+		<ImageButton
+			android:id="@+id/b_gps_follow_u"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:background="@drawable/icon_gps_unpressed"
+			android:layout_x="0px"
+			android:layout_y="382px"
+			android:padding="0px" />
+			
+	</AbsoluteLayout>
+	
+</merge>
