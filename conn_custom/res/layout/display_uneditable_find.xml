@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/widget41"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<TextView android:id="@+id/latLabel_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="@string/latitude"
+		android:layout_alignParentTop="true" android:layout_alignParentLeft="true"
+		android:textStyle="bold" android:textSize="18sp">
+	</TextView>
+	<TextView android:id="@+id/latText_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="" android:textSize="18sp"
+		android:layout_alignParentTop="true" android:layout_toRightOf="@+id/latLabel_ue">
+	</TextView>
+
+
+	<TextView android:id="@+id/longLabel_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="@string/longitude"
+		android:layout_below="@+id/latLabel_ue" android:layout_alignParentLeft="true"
+		android:textStyle="bold" android:textSize="18sp">
+	</TextView>
+	<TextView android:id="@+id/longText_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="" android:textSize="18sp"
+		android:layout_toRightOf="@+id/longLabel_ue">
+	</TextView>
+
+
+	<TextView android:id="@+id/date_time_label_ue"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
+		android:text="@string/date_time_label" android:layout_below="@+id/longLabel_ue"
+		android:layout_alignParentLeft="true" android:textStyle="bold" 
+		android:textSize="18sp" >
+	</TextView>
+	<TextView android:id="@+id/date_time_text_ue"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
+		android:text="@string/not_available" android:layout_below="@+id/longText_ue"
+		android:layout_toRightOf="@+id/date_time_label_ue" android:textSize="18sp">
+	</TextView>
+
+
+	<TextView android:id="@+id/idLabel_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="@string/idLabel"
+		android:layout_below="@+id/date_time_label_ue" android:layout_alignParentLeft="true"
+		android:textStyle="bold" android:textSize="18sp">
+	</TextView>
+	<TextView android:id="@+id/idText_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="" android:textSize="18sp"
+		android:layout_alignTop="@+id/idLabel_ue" android:layout_toRightOf="@+id/idLabel_ue">
+	</TextView>
+
+
+	<TextView android:id="@+id/nameLabel_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="@string/nameLabel"
+		android:layout_below="@+id/idLabel_ue" android:layout_alignParentLeft="true"
+		android:textStyle="bold" android:textSize="18sp">
+	</TextView>
+	<TextView android:id="@+id/nameText_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="" android:textSize="18sp"
+		android:layout_alignTop="@+id/nameLabel_ue" android:layout_toRightOf="@+id/nameLabel_ue">
+	</TextView>
+
+
+	<TextView android:id="@+id/descLabel_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="@string/description_label"
+		android:layout_below="@+id/nameLabel_ue" android:textStyle="bold" 
+		android:layout_alignParentLeft="true" android:textSize="18sp">
+	</TextView>
+	<TextView android:id="@+id/descText_ue" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:text="" android:textSize="18sp"
+		android:layout_alignTop="@+id/descLabel_ue" android:layout_toRightOf="@+id/descLabel_ue">
+	</TextView>
+
+
+	<Gallery android:id="@+id/picturesTaken" android:src="@drawable/about"
+		android:layout_width="fill_parent" android:layout_height="wrap_content" 
+		android:layout_below="@+id/descLabel_ue" />
+
+	<Button android:id="@+id/view_video" android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:text="@string/view_video" android:layout_below="@+id/picturesTaken" />
+
+	<Button android:id="@+id/view_audio" android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:text="@string/review_audio" android:layout_below="@+id/view_video" />
+		
+</RelativeLayout>

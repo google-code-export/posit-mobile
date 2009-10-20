@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+		
+	<item
+		android:title="@string/delete_videos"
+		android:id="@+id/delete_all_videos"
+		android:icon="@android:drawable/ic_menu_delete" />
+		
+</menu>
