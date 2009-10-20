@@ -1,0 +1,41 @@
+options:
+  type: MyISAM
+  collate: utf8_unicode_ci
+  charset: utf8
+
+device:
+  columns:
+    imei: {type: string(128), notnull: true, unique: true}
+    name: {type: string(128), notnull: false}
+    auth_key: {type: string(128), notnull: true, unique: true}
+    registered_date: {type: timestamp, notnull: true}
+
+project:
+  columns:
+    title: {type: string(128), notnull: true}
+    description: {type: object, notnull: false}
+    created_date: {type: timestamp, notnull: true}
+    updated_date: {type: timestamp, notnull: true}
+
+find:
+  columns:
+    device_id: {type: integer, notnull: true}
+    project_id: {type: integer, notnull: true}
+    description: {type: object, notnull: true}
+    created_date: {type: timestamp, notnull: true}
+    updated_date: {type: timestamp, notnull: true}
+    longtitude: {type: double, notnull: false}
+    latitude: {type: double, notnull: false}
+  relations:
+    Project:
+      foreignAlias: Finds
+      local: project_id
+      foreign: id
+      type: one
+      foreignType: many
+    Device:
+      foreignAlias: Finds
+      local: device_id
+      foreign: id
+      type: one
+      foreignType: many

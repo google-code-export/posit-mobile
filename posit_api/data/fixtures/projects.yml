@@ -1,0 +1,12 @@
+project:
+  alpha:
+    title: alpha
+    #description: some_description
+    created_date: '2009-06-23 03:38:15'
+    updated_date: '2009-06-23 03:38:15'
+
+  beta:
+    title: beta
+    #description: some_description
+    created_date: '2009-06-23 03:38:15'
+    updated_date: '2009-06-23 03:38:15'
