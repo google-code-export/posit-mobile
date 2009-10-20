@@ -1,0 +1,9 @@
+org.hfoss.posit
+org.hfoss.posit.util
+org.hfoss.posit.util.location
+org.hfoss.posit.util.media
+org.hfoss.posit.util.weather
+org.hfoss.webServices
+org.kobjects.base64
+org.kxmlrpc
+org.kxmlrpc.util
