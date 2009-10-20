@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout 
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:background="#000000"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical">
+
+	<TextView
+		android:id="@+id/phoneNotRegistered" 
+		android:text="@string/notRegistered"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:visibility="visible"/>
+	<TextView 
+		android:id="@+id/phoneRegistered"
+		android:text="@string/registered"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:visibility="gone" />
+	<TextView 
+		android:id="@+id/serverAddress"
+		android:layout_below="@id/phoneRegistered"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:visibility="gone"/>
+	<Button 
+		android:id="@+id/registerButton" 
+		android:layout_width="150dp" 
+		android:layout_height="100dp" 
+		android:layout_centerVertical="true"
+		android:layout_centerHorizontal="true"
+		android:text="Register Device" />
+	<Button 
+		android:id="@+id/sandboxButton" 
+		android:layout_width="150dp" 
+		android:layout_height="50dp" 
+		android:layout_below="@+id/registerButton"
+		android:layout_centerHorizontal="true"
+		android:text="Join Sandbox" />
+	<TextView
+		android:id="@+id/barcodeReaderError"
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:textColor="#ff0000"
+		android:text="@string/barcodeReaderError"
+		android:layout_above="@id/registerButton"/>
+</RelativeLayout>
