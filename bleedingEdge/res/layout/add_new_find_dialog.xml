@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent">
+	<ScrollView android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:orientation="vertical" android:scrollbars="vertical|horizontal"
+			android:layout_marginBottom="30dp">
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content">
+
+				<TextView android:id="@+id/nameLabel" android:layout_width="80sp"
+					android:layout_height="wrap_content" android:text="@string/nameLabel" />
+				<EditText android:id="@+id/nameText" android:layout_width="fill_parent"
+					android:layout_height="wrap_content" />
+			</LinearLayout>
+
+			<RelativeLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content">
+
+				<TextView android:id="@+id/identifierLabel"
+					android:layout_width="80sp" android:layout_height="wrap_content"
+					android:text="@string/identifierLabel" />
+				<EditText android:id="@+id/identifierText"
+					android:layout_width="120sp" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/identifierLabel" />
+				<!--
+					<TextView android:id = "@+id/taggedLabel"
+					android:layout_width="30sp" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/identifierText"
+					android:text="@string/taggedLabel" />
+				-->
+				<CheckBox android:id="@+id/taggedCheckBox"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/identifierText" android:text="@string/taggedLabel" />
+			</RelativeLayout>
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="horizontal">
+				<TextView android:layout_width="80sp"
+					android:layout_height="wrap_content" android:text="@string/ageLabel" />
+				<EditText android:id="@+id/ageText" android:layout_width="80sp"
+					android:layout_height="wrap_content" />
+
+			</LinearLayout>
+			<RadioGroup android:layout_width="fill_parent"
+				android:layout_height="fill_parent" android:orientation="horizontal"
+				android:id="@+id/sexRadioGroup">
+				<RadioButton android:id="@+id/maleRadioButton"
+					android:layout_width="50sp" android:layout_height="fill_parent"
+					android:text="M" />
+				<RadioButton android:id="@+id/femaleRadioButton"
+					android:layout_width="50sp" android:layout_height="fill_parent"
+					android:text="F" />
+			</RadioGroup>
+			
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="vertical">
+
+				<TextView android:id="@+id/descriptionLabel"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:text="@string/descriptionLabel" />
+				<EditText android:id="@+id/descriptionText"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:padding="10dip" android:maxLines="6" android:scrollbars="vertical"
+					android:fadingEdge="vertical" />
+			</LinearLayout>
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="horizontal"
+				android:background="@drawable/yellow"
+				android:layout_alignParentBottom="true">
+				<!--
+					<ImageButton android:id="@+id/mapButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content" android:text="@string/map"
+					android:src="@drawable/maps" android:gravity ="left" />
+				--><!--
+				<ImageButton android:padding="10sp" android:id="@+id/cameraButton"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:src="@drawable/camera_icon_32x32" />
+				--><ImageButton android:padding="10sp" android:id="@+id/saveButton"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:src="@drawable/add" />
+				<ImageButton android:padding="10sp" android:id="@+id/viewGalleryButton"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:src="@drawable/gallery" 
+					android:visible="false" />
+			</LinearLayout>
+		</LinearLayout>
+	</ScrollView>
+
+</LinearLayout>

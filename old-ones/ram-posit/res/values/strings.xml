@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">POSIT</string>
+    <string name="menu_about">About POSIT</string>  
+    <string name="button_picture">Take Picture</string>
+    <string name="button_map">Show Map</string>  
+    <string name="menu_newfind">New Find</string>
+    <string name="menu_listfinds">List Finds</string>
+    <string name="menu_camera">Take Picture</string>
+    <string name="menu_delete">Delete Entry</string>
+    <string name="map_overlay_own_name">Me</string>
+    <string name="preferences">Preferences</string>
+    <string name="untitled">Untitled</string>
+    <string name="saving_to_disk">Saving to Disk</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="confirm">Save to DB</string>
+    <string name="label_victim">Victim Number</string>
+    
+    <string name="about">Welcome to POSIT! 
+    \nPositional Open Search and Identification Tool
+    \n\n@author Prasanna Gautam
+    \n@author T. de Lanerolle
+    \n@author R. Morelli
+    \n\nThe Humanitarian FOSS Project
+    \nTrinity College
+    \n\nhttp://www.hfoss.org
+    </string>
+    
+</resources>

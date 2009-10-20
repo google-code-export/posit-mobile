@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_marginBottom="2dp"
+android:layout_marginLeft="2dp"
+android:orientation="vertical"
+>
+<RelativeLayout
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal">
+
+<ImageView android:id="@+id/find_image"
+            android:src="@drawable/about"
+            android:adjustViewBounds="true"
+            android:layout_width="50px"
+            android:layout_height="50px" />
+<TextView android:id="@+id/name_id"  
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+	android:textSize="25dp"
+	android:layout_alignTop = "@id/find_image"
+	android:layout_alignParentTop="true" android:layout_toRightOf="@id/find_image"/>
+<TextView android:id="@+id/status"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:layout_alignTop = "@id/name_id"
+	android:layout_alignParentRight="true"
+	/>
+</RelativeLayout>
+
+<TextView android:id="@+id/description_id"  
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+	android:layout_below="@id/name_id"
+	android:textSize="13dp"
+	android:layout_marginLeft="3dp"
+	android:layout_marginRight="3dp"
+	android:layout_marginBottom="3dp"
+	android:maxLines="2"
+	/>
+
+</LinearLayout>

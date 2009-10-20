@@ -1,0 +1,12 @@
+<PreferenceScreen
+xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceCategory android:title="@string/communication">
+<EditTextPreference  
+   android:key="APP_KEY"  
+   android:title="@string/application_key"  
+   android:summary="@string/enter_application_key"  
+   android:dialogTitle="@string/enter_application_key_detail"
+   android:defaultValue="xxx"  
+   />  
+</PreferenceCategory>  
+</PreferenceScreen>

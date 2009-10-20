@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+   
+<RelativeLayout
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:orientation="vertical"
+>
+
+
+
+<TextView
+android:id="@+id/label1"
+android:layout_width="80sp"
+android:layout_height="wrap_content"
+android:text="Number" />
+
+<EditText
+android:id="@+id/row_id"
+android:editable="true"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignTop="@id/label1"
+android:layout_toRight="@id/label1"
+android:text="1" />
+
+   <TextView
+   		android:id="@+id/labelSpinner"
+        android:layout_width="80sp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/row_id"
+        android:text="Type"
+    />
+
+    <Spinner android:id="@+id/spinner1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/labelSpinner"
+        android:layout_toRight="@id/labelSpinner"
+        android:drawSelectorOnTop="true"
+    />
+
+<TextView
+android:id="@+id/latitude_text"
+android:layout_width="80sp"
+android:layout_height="wrap_content"
+android:layout_below="@id/spinner1"
+android:text="@string/latitude" />
+
+<EditText
+android:id="@+id/latitude"
+android:editable="true"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:layout_below="@id/row_id"
+android:layout_alignTop="@id/latitude_text"
+android:layout_toRight="@id/latitude_text"
+android:text="" />
+<TextView
+android:id="@+id/longitude_text"
+android:layout_width="80sp"
+android:layout_height="wrap_content"
+android:text="@string/longitude"  
+android:layout_below="@id/latitude"
+/>
+<EditText
+android:id="@+id/longitude"
+android:editable="true"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:layout_below="@id/latitude"
+android:layout_alignTop="@id/longitude_text"
+android:layout_toRight="@id/longitude_text"
+android:text="" />
+
+
+<Button android:id="@+id/mapit"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_below="@id/longitude"
+android:text="@string/button_map" />
+
+<Button android:id= "@+id/takepic"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignTop="@id/mapit"
+android:layout_toRight="@id/mapit"
+android:text="@string/button_picture" />
+
+<Button android:id="@+id/confirm" 
+android:text="@string/confirm"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content" 
+android:layout_alignTop="@id/mapit"
+android:layout_toRight="@id/takepic"
+android:layout_below="@id/longitude"
+/> 
+
+ <EditText
+android:id="@+id/description"
+android:editable="true"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:layout_below="@id/mapit"
+android:text="Description" 
+
+/>
+
+</RelativeLayout>

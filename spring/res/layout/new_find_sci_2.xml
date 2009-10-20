@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent">
+	<ScrollView android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:orientation="vertical" android:scrollbars="vertical|horizontal"
+			android:layout_marginBottom="30dp">
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content">
+
+				<TextView android:id="@+id/nameLabel" android:layout_width="80sp"
+					android:layout_height="wrap_content" android:text="@string/nameLabel" />
+				<EditText android:id="@+id/nameText" android:layout_width="fill_parent"
+					android:layout_height="wrap_content" />
+			</LinearLayout>
+
+			<RelativeLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content">
+
+				<TextView android:id="@+id/identifierLabel"
+					android:layout_width="80sp" android:layout_height="wrap_content"
+					android:text="@string/identifierLabel" />
+				<EditText android:id="@+id/identifierText"
+					android:layout_width="120sp" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/identifierLabel" />
+				<!--
+					<TextView android:id = "@+id/taggedLabel"
+					android:layout_width="30sp" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/identifierText"
+					android:text="@string/taggedLabel" />
+				-->
+				<CheckBox android:id="@+id/taggedCheckBox"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/identifierText" android:text="@string/taggedLabel" />
+			</RelativeLayout>
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="horizontal">
+				<TextView android:layout_width="80sp"
+					android:layout_height="wrap_content" android:text="@string/ageLabel" />
+				<EditText android:id="@+id/ageText" android:layout_width="80sp"
+					android:layout_height="wrap_content" />
+
+			</LinearLayout>
+			<RadioGroup android:layout_width="fill_parent"
+				android:layout_height="fill_parent" android:orientation="horizontal"
+				android:id="@+id/sexRadioGroup">
+				<RadioButton android:id="@+id/maleRadioButton"
+					android:layout_width="50sp" android:layout_height="fill_parent"
+					android:text="M" />
+				<RadioButton android:id="@+id/femaleRadioButton"
+					android:layout_width="50sp" android:layout_height="fill_parent"
+					android:text="F" />
+			</RadioGroup>
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:background="@drawable/shape_1"
+				android:orientation="vertical">
+				<TableLayout android:id="@+id/contents_new_find"
+					android:layout_width="fill_parent" android:layout_height="48sp"
+					android:orientation="vertical" android:stretchColumns="0,1">
+					<TableRow android:layout_width="fill_parent"
+						android:layout_height="24sp">
+						<LinearLayout android:id="@+id/linear_layout_1"
+							android:layout_width="fill_parent" android:layout_height="24sp">
+							<TextView android:id="@+id/latitudeLabel" android:text="@string/latitude"
+								android:layout_width="wrap_content" android:layout_height="fill_parent" />
+							<TextView android:id="@+id/latitudeText"
+								android:layout_width="wrap_content" android:layout_height="fill_parent"
+								android:maxLength="10" android:maxLines="1" />
+						</LinearLayout>
+						<LinearLayout android:layout_width="fill_parent"
+							android:layout_height="24sp">
+							<TextView android:id="@+id/longitudeLabel" android:text="@string/longitude"
+								android:layout_width="wrap_content" android:layout_height="fill_parent"
+								android:paddingRight="2sp" />
+							<TextView android:id="@+id/longitudeText"
+								android:layout_width="wrap_content" android:layout_height="fill_parent"
+								android:maxLength="10" android:maxLines="1" />
+						</LinearLayout>
+					</TableRow>
+					<TableRow android:layout_width="fill_parent"
+						android:layout_height="24sp">
+						<LinearLayout android:layout_width="fill_parent"
+							android:layout_height="24sp">
+
+							<TextView android:id="@+id/dateLabel"
+								android:layout_width="wrap_content" android:layout_height="wrap_content"
+								android:text="Date:" />
+							<TextView android:id="@+id/dateText"
+								android:layout_width="fill_parent" android:layout_height="wrap_content" />
+						</LinearLayout>
+						<LinearLayout android:layout_width="fill_parent"
+							android:layout_height="24sp">
+							<TextView android:id="@+id/numberLabel"
+								android:layout_width="wrap_content" android:layout_height="wrap_content"
+								android:text="@string/idLabel" />
+							<TextView android:id="@+id/numberText"
+								android:layout_width="fill_parent" android:layout_height="wrap_content" />
+						</LinearLayout>
+					</TableRow>
+				</TableLayout>
+				<LinearLayout android:layout_width="fill_parent"
+					android:layout_height="wrap_content" android:orientation="vertical"
+					android:id="@+id/multipleInstancefillLayout">
+					<TextView android:layout_width="fill_parent"
+						android:layout_height="wrap_content" android:textSize="11sp"
+						android:id="@+id/instancesName" />
+					<LinearLayout android:layout_width="fill_parent"
+						android:layout_height="wrap_content" android:orientation="vertical">
+
+						<LinearLayout android:layout_width="fill_parent"
+							android:layout_height="wrap_content" android:orientation="horizontal">
+							<TextView android:id="@+id/instanceLabel"
+								android:layout_width="80dp" android:layout_height="wrap_content"
+								android:text="@string/instanceLabel" />
+
+							<Spinner android:id="@+id/nameSpinner"
+								android:layout_width="180dp" android:layout_height="wrap_content"
+								android:drawSelectorOnTop="true" android:layout_toRightOf="@id/instanceLabel" />
+							<Button android:id="@+id/addInstanceButton"
+								android:layout_width="fill_parent" android:layout_height="wrap_content"
+								android:layout_gravity="right" android:text="@string/addLabel" />
+						</LinearLayout>
+
+						<LinearLayout android:id="@+id/observationTypeLayout"
+							android:layout_width="fill_parent" android:layout_height="wrap_content"
+							android:orientation="horizontal">
+
+							<TextView android:layout_width="80sp"
+								android:layout_height="wrap_content" android:text="@string/observationTypeLabel" />
+							<Spinner android:id="@+id/observationTypeSpinner"
+								android:layout_width="fill_parent" android:layout_height="wrap_content"
+								android:drawSelectorOnTop="true" />
+
+
+						</LinearLayout>
+						<TextView android:layout_width="fill_parent"
+							android:layout_height="wrap_content" android:text="@string/descriptionLabel" />
+						<EditText android:id="@+id/instanceDescriptionText"
+							android:layout_width="fill_parent" android:layout_height="fill_parent"
+							android:padding="10dip" android:scrollbars="vertical"
+							android:fadingEdge="vertical" />
+					</LinearLayout>
+					<TextView android:text="@string/weatherLabel"
+						android:layout_width="80sp" android:layout_height="wrap_content" />
+					<ImageView android:id="@+id/weatherImage"
+						android:layout_width="wrap_content" android:layout_height="wrap_content" />
+					<TextView android:id="@+id/weatherText"
+						android:layout_width="fill_parent" android:layout_height="wrap_content" />
+				</LinearLayout>
+			</LinearLayout>
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="vertical">
+
+				<TextView android:id="@+id/descriptionLabel"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:text="@string/descriptionLabel" />
+				<EditText android:id="@+id/descriptionText"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:padding="10dip" android:maxLines="6" android:scrollbars="vertical"
+					android:fadingEdge="vertical" />
+			</LinearLayout>
+			<RelativeLayout android:layout_width="fill_parent"
+				android:layout_height="wrap_content" android:orientation="horizontal"
+				android:background="@drawable/yellow"
+				android:layout_alignParentBottom="true">
+				<!--
+					<ImageButton android:id="@+id/mapButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content" android:text="@string/map"
+					android:src="@drawable/maps" android:gravity ="left" />
+				-->
+				<ImageButton android:padding="10sp" android:id="@+id/cameraButton"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:layout_toRightOf="@id/mapButton" android:src="@drawable/camera_icon_32x32" />
+				<ImageButton android:padding="10sp" android:id="@+id/saveButton"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:src="@drawable/add" android:layout_toRightOf="@id/cameraButton" />
+				<ImageButton android:padding="10sp" android:id="@+id/viewGalleryButton"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:src="@drawable/gallery" android:layout_toRightOf="@id/saveButton"
+					android:visible="false" />
+			</RelativeLayout>
+		</LinearLayout>
+	</ScrollView>
+
+</LinearLayout>

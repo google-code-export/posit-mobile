@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme" parent="android:Theme">
+    </style>
+<style name="Theme.Transparent">
+        <item name="android:windowBackground">@drawable/transparent_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorForeground">#000</item>
+        <!-- <item name="android:windowFrame">@drawable/box</item>-->
+        
+        <item name="android:windowIsFloating">true</item>
+    </style>
+ 
+    <style name="Theme.Translucent">
+        <item name="android:windowBackground">@drawable/translucent_background_cream</item>
+        <item name="android:windowNoTitle">false</item>
+        <item name="android:colorForeground">#ffffff</item>
+         <!--<item name="android:windowFrame">@drawable/shape_1</item>-->
+         <item name="android:windowIsFloating">false</item>
+    </style>
+    </resources>

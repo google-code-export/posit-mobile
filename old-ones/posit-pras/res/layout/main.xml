@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/RelLayout"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:background="#ffffff"
+xmlns:android="http://schemas.android.com/apk/res/android"
+>
+<ImageView
+android:id="@+id/Logo"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignParentTop="true"
+android:layout_centerHorizontal="true"
+android:src="@drawable/posit"
+>
+</ImageView>
+<Button
+android:id="@+id/NewFind"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="New Find"
+android:layout_alignParentBottom="true"
+android:layout_alignParentLeft="true"
+>
+</Button>
+<Button
+android:id="@+id/ListFinds"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="List Finds"
+android:layout_alignParentBottom="true"
+android:layout_alignParentRight="true"
+>
+</Button>
+</RelativeLayout>

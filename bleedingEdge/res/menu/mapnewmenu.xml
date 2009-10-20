@@ -1,0 +1,4 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"><item android:visible="true" android:enabled="true" android:title="@string/menu_newfind" android:icon="@drawable/ic_menu_add" android:id="@+id/newFind"></item>
+
+<item android:title="Map Mode" android:id="@+id/mapMode" android:icon="@drawable/ic_menu_mapmode"></item><item android:visible="true" android:enabled="true" android:title="@string/menu_camera" android:id="@+id/takePicture" android:icon="@drawable/ic_menu_camera"></item>
+</menu>

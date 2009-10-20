@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="wrap_content"
+	android:orientation="vertical">
+	<LinearLayout android:id="@+id/nameSectionSighting"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:orientation="horizontal">
+		<Spinner android:id="@+id/nameSpinnerSighting" android:layout_width="fill_parent"
+			android:layout_height="wrap_content" android:drawSelectorOnTop="true" />
+		<Button android:id="@+id/viewRecordButtonSighting"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:text="@string/viewLabel" />
+	</LinearLayout>
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:orientation="vertical"
+		android:scrollbars="vertical|horizontal">
+		<TableLayout android:id="@+id/contents_new_sighting"
+			android:layout_width="fill_parent" android:layout_height="48sp"
+			android:orientation="vertical" android:stretchColumns="0,1">
+			<TableRow android:layout_width="fill_parent"
+				android:layout_height="24sp">
+				<LinearLayout 
+					android:layout_width="fill_parent" android:layout_height="24sp">
+					<TextView android:id="@+id/latitudeLabelSighting" android:text="@string/latitude"
+						android:layout_width="wrap_content" android:layout_height="fill_parent" />
+					<TextView android:id="@+id/latitudeTextSighting"
+						android:layout_width="wrap_content" android:layout_height="fill_parent"
+						android:maxLength="10" android:maxLines="1" />
+				</LinearLayout>
+				<LinearLayout android:layout_width="fill_parent"
+					android:layout_height="24sp">
+					<TextView android:id="@+id/longitudeLabelSighting" android:text="@string/longitude"
+						android:layout_width="wrap_content" android:layout_height="fill_parent"
+						android:paddingRight="2sp" />
+					<TextView android:id="@+id/longitudeTextSighting"
+						android:layout_width="wrap_content" android:layout_height="fill_parent"
+						android:maxLength="10" android:maxLines="1" />
+				</LinearLayout>
+			</TableRow>
+			<TableRow android:layout_width="fill_parent"
+				android:layout_height="24sp">
+				<LinearLayout android:layout_width="fill_parent"
+					android:layout_height="24sp">
+					<TextView android:id="@+id/dateLabelSighting"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"
+						android:text="Date:" />
+					<TextView android:id="@+id/dateTextSighting" android:layout_width="fill_parent"
+						android:layout_height="wrap_content" />
+				</LinearLayout>
+				<LinearLayout android:layout_width="fill_parent"
+					android:layout_height="24sp">
+					<TextView android:id="@+id/numberLabelSighting"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"
+						android:text="@string/blankLabel" />
+					<TextView android:id="@+id/numberTextSighting"
+						android:layout_width="fill_parent" android:layout_height="wrap_content" />
+				</LinearLayout>
+			</TableRow>
+		</TableLayout>
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+			<TextView android:layout_width="80sp" android:layout_height="wrap_content"
+				android:text="@string/observationTypeLabel" />
+			<Spinner android:id="@+id/observationTypeSpinner"
+				android:layout_width="fill_parent" android:layout_height="wrap_content" />
+		</LinearLayout>
+		<TextView android:text="@string/weatherLabel"
+			android:layout_width="80sp" android:layout_height="wrap_content" />
+		<ImageView android:id="@+id/weatherImage"
+			android:layout_width="wrap_content" android:layout_height="wrap_content" />
+		<TextView android:id="@+id/weatherText" android:layout_width="fill_parent"
+			android:layout_height="wrap_content" />
+		<LinearLayout android:paddingTop="10sp"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:orientation="horizontal">
+			<ImageButton android:id="@+id/mapSightingButton"
+				android:layout_width="wrap_content" android:layout_height="wrap_content"
+				android:text="@string/map" android:src="@drawable/maps"
+				android:gravity="left" />
+			<ImageButton android:padding="10sp" android:id="@+id/cameraSightingButton"
+				android:layout_width="wrap_content" android:layout_height="wrap_content"
+				 android:src="@drawable/camera_icon_32x32"
+				android:gravity="center" />
+			<ImageButton android:padding="10sp" android:id="@+id/saveSightingButton"
+				android:layout_width="wrap_content" android:layout_height="wrap_content"
+				android:src="@drawable/add"  />
+			<ImageButton android:padding="10sp" android:id="@+id/viewGallerySightingButton"
+				android:layout_width="wrap_content" android:layout_height="wrap_content"
+				android:src="@drawable/gallery" 
+				android:visible="false" />
+		</LinearLayout>
+	</LinearLayout>
+</LinearLayout>

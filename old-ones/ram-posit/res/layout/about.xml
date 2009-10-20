@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+<EditText  
+    android:id="@+id/about"
+    android:background="#00FFd0"
+    android:textColor="#ff0000"
+    android:editable="false"
+    android:textAlign="center"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:layout_weight="1"
+    android:text="@string/about"
+    />
+</LinearLayout>

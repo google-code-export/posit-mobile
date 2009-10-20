@@ -1,0 +1,15 @@
+Added some bug fixes.
+--This line, and those below, will be ignored--
+
+M    src/org/hfoss/posit/ListFinds.java
+M    src/org/hfoss/posit/PositMain.java
+M    src/org/hfoss/posit/Mapper.java
+M    src/org/hfoss/posit/DBHelper.java
+M    src/org/hfoss/posit/NewFind.java
+M    src/org/hfoss/posit/ListFind.java
+M    bin/resources.ap_
+M    bin/classes.dex
+M    res/values/strings.xml
+M    res/layout/main.xml
+M    res/layout/newfindmap.xml
+M    res/layout/list_row.xml

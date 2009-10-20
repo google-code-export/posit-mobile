@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+android:layout_width="100px"
+android:layout_height="100px"
+xmlns:android="http://schemas.android.com/apk/res/android"
+>
+<ImageView android:id="@+id/camera"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignParentBottom="true"
+android:src = "@drawable/camera_icon_32x32"
+ />
+<ImageView android:id="@+id/save"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignParentBottom="true"
+android:layout_alignParentRight = "true"
+android:src = "@drawable/save"
+ /> 
+<ImageView android:id="@+id/new_entry"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:src = "@drawable/new_entry"
+android:paddingTop= "10px"
+/>
+
+<ImageView android:id="@+id/record"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:src = "@drawable/record"
+android:layout_alignParentRight = "true"
+android:paddingTop= "10px"
+/>
+
+
+<!-- needs to be at the bottom to avoid anything else overwriting it -->
+<ImageView android:id="@+id/dialog_close_cross"
+android:layout_width="10px"
+android:layout_height="10px"
+android:src="@drawable/close"
+android:layout_alignParentRight="true"
+/>
+<!-- android:layout_alignParentTop="true" -->
+
+
+</RelativeLayout>

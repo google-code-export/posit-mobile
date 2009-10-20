@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:background="#ffffff"
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:orientation="vertical"
+>
+<ImageView
+android:id="@+id/Logo"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignParentTop="true"
+android:layout_centerHorizontal="true"
+android:src="@drawable/posit"
+/>
+<LinearLayout
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:gravity="center"
+android:orientation="vertical"
+>
+<TextView
+android:id="@+id/applicationTypeLabel"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="14sp"
+android:textColor="#000000"
+android:text="Type: "
+/>
+<TextView
+android:id="@+id/customizedByLabel"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="14sp"
+android:textColor="#000000"
+android:text="Customized By: R. Morelli"
+/>
+<TextView
+android:id="@+id/customizedByLabel"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="13sp"
+android:textColor="#000000"
+android:text="Created By: Prasanna Gautam"
+/>
+</LinearLayout>
+</LinearLayout>

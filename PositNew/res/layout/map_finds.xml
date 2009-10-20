@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="fill_parent"
+     android:layout_height="fill_parent">
+
+          <com.google.android.maps.MapView
+          android:id="@+id/mapFinds"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent"
+          android:enabled="true"
+          android:clickable="true"
+          android:apiKey="0jDofiyQNYc7eQi-rd0X6WM9re_SV0FgcYow6lg"/>
+          
+           <LinearLayout android:id="@+id/map_zoom"
+		  android:layout_width="wrap_content"
+     	  android:layout_height="wrap_content"
+     	  android:layout_alignParentBottom="true" android:layout_centerHorizontal="true"/>
+     		/>
+</RelativeLayout>

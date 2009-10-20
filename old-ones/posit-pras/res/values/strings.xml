@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">POSIT</string>
+    <string name="map_overlay_own_name">Me</string>
+    <string name="preferences">Preferences</string>
+    <string name="untitled">Untitled</string>
+    <string name="saving_to_disk">Saving to Disk</string>
+</resources>
