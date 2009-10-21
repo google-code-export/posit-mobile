@@ -1,0 +1,30 @@
+Version 0.5 Alpha
+
+	Features:
+		Application automatically selects the sandbox project
+		Project names are selected using barcodes
+		Better synchronization
+		Barcode scanner application (zxing) can be installed from application
+		Coverage Tracker
+		Image Syncing
+		Finds Syncing
+		RWG implementation (only on rooted phones with some special attributes)
+	
+	Notes:
+		Audio,Video syncing was too buggy to include in this release
+		This is extended version of the one sent to the Google Android Developer Challenge 2
+	
+	Known Problems:
+		The RWG implementation isn't stable yet.
+		
+	Developers (no particular order):
+		Prasanna Gautam
+		Christopher Fei
+		Antonio Alcorn
+		Qianqian Lin
+		Gong Chen
+		Phil Fritzche
+		James Jackson
+		Knah Pham
+	
+
