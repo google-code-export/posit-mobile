@@ -133,6 +133,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private static final int UPDATE_LOCATION = 2;
 	private static final int CONFIRM_EXIT=3;
 	private static final int NON_NUMERIC_ID = 4;
+	private static final int TOO_BIG_ID = 5;
 
 	private static final boolean ENABLED_ONLY = true;
 
@@ -181,13 +182,21 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		mLongitudeTextView = (TextView)findViewById(R.id.longitudeText);
 
 		mGallery = (Gallery)findViewById(R.id.picturesTaken);
+
 		Button scanButton = (Button)findViewById(R.id.idBarcodeButton);
 		scanButton.setOnClickListener(this);
 		TextView barcodeError = (TextView)findViewById(R.id.barcodeReaderError);
+		Button barcodeDownload = (Button)findViewById(R.id.barcodeDownloadButton);
+		TextView barcodeRestart = (TextView)findViewById(R.id.barcodeReaderRestart);
+		barcodeDownload.setOnClickListener(this);
 		barcodeError.setVisibility(TextView.GONE);
+		barcodeDownload.setVisibility(Button.GONE);
+		barcodeRestart.setVisibility(TextView.GONE);
 		if(!isIntentAvailable(this,"com.google.zxing.client.android.SCAN")) {
 			scanButton.setClickable(false);
 			barcodeError.setVisibility(TextView.VISIBLE);
+			barcodeDownload.setVisibility(Button.VISIBLE);
+			barcodeRestart.setVisibility(TextView.VISIBLE);
 		}
 		if (action.equals(Intent.ACTION_EDIT)) {
 			doEditAction();
@@ -234,10 +243,16 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * Inserts a new Find. A TextView handles all the data entry. For new
 	 * Finds, both a time stamp and GPS location are fixed.  
 	 */
-	private void doInsertAction() {
+	public void doInsertAction() {
 		mState = STATE_INSERT;
 		TextView tView = (TextView) findViewById(R.id.timeText);
 		tView.setText(getDateText());
+		TextView idView = (TextView) findViewById(R.id.idText);
+		idView.setText("");
+		TextView nameView = (TextView) findViewById(R.id.nameText);
+		nameView.setText("");
+		TextView descView = (TextView) findViewById(R.id.descriptionText);
+		descView.setText("");
 		initializeLocationAndStartGpsThread();
 	}
 
@@ -306,11 +321,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		super.onResume();
 	}
 
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onResume()
-	 */
+	
 	@Override
-	protected void onPause(){
+	protected void  onPause(){
 		super.onPause();
 		//finishActivity(ListFindsActivity.FIND_FROM_LIST);
 	}	
@@ -423,6 +436,16 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					//do nothing
 				}
 			}).create();
+		case TOO_BIG_ID:
+			return new AlertDialog.Builder(this)
+			.setIcon(R.drawable.alert_dialog_icon)
+			.setTitle("ID must be less than 9 digits")
+			.setPositiveButton(R.string.alert_dialog_ok, 
+					new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					//do nothing
+				}
+			}).create();
 
 		default:
 			return null;
@@ -517,7 +540,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 			if (mState == STATE_INSERT) { //if this is a new find
 				mFind = new Find(this);
+				Log.i("","NUM PICS = "+mTempBitmaps.size());
 				saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
+				mTempBitmaps.clear();
+				Log.i("","NUM PICS = "+mTempBitmaps.size());
 				List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
 
 				if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
@@ -525,6 +551,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				} else {
 					Utils.showToast(this, R.string.save_failed);
 				}
+				onCreate(null);
 				TabMain.moveTab(1);
 			} else { 
 				if (mFind.updateToDB(contentValues)) {
@@ -544,6 +571,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			if (mState == STATE_EDIT) {
 				displayContentInView(mFind.getContent());
 			} else {
+				mTempBitmaps.clear();
 				onCreate(null);
 			}
 			break;	
@@ -618,6 +646,11 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		value = eText.getText().toString();
 		try {
 			result.put(getString(R.string.idDB), Long.parseLong(value));
+			if(value.length() >= 10) {
+				showDialog(TOO_BIG_ID);
+				result.put(getString(R.string.idDB), 0);
+
+			}
 		} catch (NumberFormatException e) {
 			// If user entered non-numeric ID, show an error
 			Utils.showToast(this, "Error: ID must be numeric");
@@ -666,6 +699,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			}
 			values.add(result);
 		}
+		mNewImageUris.clear();
+		mNewImageThumbnailUris.clear();
 		return values;
 	}
 
@@ -700,17 +735,23 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * @param v is the View where the click occurred.
 	 */
 	public void onClick(View v) {
+		Intent intent;
 		switch (v.getId()) {
 
 		case R.id.idBarcodeButton:
-			Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+			intent = new Intent("com.google.zxing.client.android.SCAN");
 			try {
 				startActivityForResult(intent, BARCODE_READER);
 			} catch(ActivityNotFoundException e) {
 				Log.e(TAG, e.toString());
 			}
 			break;
+		case R.id.barcodeDownloadButton:
+			intent = new Intent(Intent.ACTION_VIEW);
+			intent.setData(Uri.parse("market://search?q=pname:com.google.zxing.client.android"));
+			startActivity(intent);
 		}
+			
 	}
 
 	/**
@@ -740,6 +781,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				scannedId = Long.parseLong(value);
 			} catch(NumberFormatException e) {
 				showDialog(NON_NUMERIC_ID);
+			}
+			if(scannedId >= 1000000000) {
+				showDialog(TOO_BIG_ID);
+				break;
 			}
 			if(scannedId != null) {
 				Cursor cursor = dBHelper.getFindsWithIdentifier(scannedId);

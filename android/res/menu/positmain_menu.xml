@@ -15,5 +15,5 @@
 	<item android:id="@+id/rwg_start" android:title="Start RWG"></item>
 	<item android:id="@+id/rwg_end" android:title="Stop RWG"></item>
 	<item android:id="@+id/track_menu_item" android:title="@string/trackItem" android:icon="@drawable/radar"></item>
-	<item android:id="@+id/native_activity" android:title="@string/nativeActivity"></item>
+	<!-- <item android:id="@+id/native_activity" android:title="@string/nativeActivity"></item>-->
 </menu>
