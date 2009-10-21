@@ -70,10 +70,10 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
-		Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
+		//Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
 		
 		mDbHelper = new MyDBHelper(this);
-		fillData();
+		//fillData();
 		mDbHelper.close();
 	}
 
@@ -89,7 +89,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
-		Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
+		//Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
 		
 		fillData();
 	}
@@ -146,8 +146,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			new SimpleCursorAdapter(this, R.layout.list_row, mCursor, columns, views);
 		adapter.setViewBinder(this);
 		setListAdapter(adapter); 
-
-		mDbHelper.close();
+		stopManagingCursor(mCursor);
 	}
 
 

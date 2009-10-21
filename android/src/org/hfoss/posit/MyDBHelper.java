@@ -478,7 +478,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public Cursor fetchAllFinds(int project_id) {
 		mDb = getReadableDatabase(); // Either open or create the DB.
 		Cursor c = mDb.query(FIND_TABLE_NAME,null, PROJECT_ID +"="+project_id, null, null, null, null);
-		Log.i("CURSOR","count = "+c.getCount());
+		//Log.i("CURSOR","count = "+c.getCount());
+		c.getCount(); //This has to be here for some reason. Bug in Android?
 		mDb.close();
 		return c;
 	}
