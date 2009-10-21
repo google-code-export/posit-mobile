@@ -1,0 +1,41 @@
+======================================README===================================
+
+
+About
+====
+
+Portable Open Search and Identification Tool (POSIT) is a Humanitarian Free and
+Open Source Software project (http://www.hfoss.org) , to use the Google Android 
+phone as a platform for mobile disaster management applications. POSIT (Portable 
+Open Search and Identification Tool) is an extensible and configurable Android 
+prototype currently running on the G1 phone provided by T-Mobile. It is configured 
+to serve as a portable search and rescue tool, using the phone's GPS, camera, 
+database, and touchscreen interface to collect and save data about disaster victims
+ and transmit the data periodically to a remote server using either an Internet or 
+ cellular protocol. POSIT demonstrates that the free and open Android platform is 
+ an accessible platform for rapid application development of disaster management 
+ applications on mobile phones.
+
+The project uses Google Android platform to build location based instances for further 
+information check http://posit.hfoss.org/
+
+
+Users
+=====
+
+Users are encouraged to use the compiled .apk files that can be downloaded from 
+http://code.google.com/p/posit-mobile/downloads/list
+If any problems are encountered, the issue tracker for the project will be the place to report
+http://code.google.com/p/posit-mobile/issues/list
+
+
+Developers
+==========
+
+Developers are encouraged to join the mailing list at 
+http://groups.google.com/group/posit-group
+The documentation is available at 
+http://twiki.hfoss.org/bin/view/POSIT/WebHome
+Patches must be sent to the group email as of now.
+
+
