@@ -162,9 +162,9 @@ public class PositMain extends Activity {
 			stopService(new Intent(this,RWGService.class));
 			Utils.showToast(this, "RWG Service Stopped");
 			break;
-		case R.id.native_activity:
-			startActivity(new Intent(this,NativeActivity.class));
-			break;
+		//case R.id.native_activity:
+		//	startActivity(new Intent(this,NativeActivity.class));
+		//	break;
 		}
 		
 		return true;

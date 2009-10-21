@@ -55,7 +55,7 @@ import android.widget.Toast;
  * @author Qianqian Lin
  */
 public class Utils {
-	public static boolean debug = true;
+	public static boolean debug = false;
 	/**
 	 * This is for showing the Toast on screen for notifications
 	 * 

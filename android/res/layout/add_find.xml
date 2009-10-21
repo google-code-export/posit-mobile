@@ -126,6 +126,19 @@
 					android:textColor="#ff0000"
 					android:text="@string/barcodeReaderError"
 					android:layout_below="@+id/descriptionText" />
+				<Button android:id="@+id/barcodeDownloadButton"
+					android:layout_width="120dp" 
+					android:layout_height="wrap_content" 
+					android:text="Download" 
+					android:layout_below="@id/barcodeReaderError"/>
+				<TextView 
+					android:id="@+id/barcodeReaderRestart"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textColor="#ff0000"
+					android:text="Please restart POSIT after installation."
+					android:textSize="29px"
+					android:layout_below="@+id/barcodeDownloadButton" />
 			</RelativeLayout>
 
 			<Gallery 
