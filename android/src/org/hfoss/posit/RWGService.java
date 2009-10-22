@@ -2,9 +2,10 @@ package org.hfoss.posit;
 
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Scanner;
+
+import org.hfoss.third.CoreTask;
 
 import android.app.Service;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.util.Log;
 public class RWGService extends Service {
 
 	private Process mProcess;
+	private CoreTask mCoreTask;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -28,6 +30,7 @@ public class RWGService extends Service {
 		super.onCreate();
 		try {
 			Log.i("RWGService", "onCreate()");
+			mCoreTask = new CoreTask();
 			runRWG();
 		}
 		catch(Exception e) {
@@ -52,6 +55,8 @@ public class RWGService extends Service {
 		Log.i("RWGService", "runRWG()");
         DataOutputStream os = null;
         
+        
+        
         /*
          * We need to run rwgexec as root, so we get a su shell.
          * The pipes need to be in the current working directory when rwgexec is
@@ -59,12 +64,14 @@ public class RWGService extends Service {
          */
         
 		try {
+			mCoreTask.killProcessRunning("./rwgexec");
 			mProcess = Runtime.getRuntime().exec("su");
 	        os = new DataOutputStream(mProcess.getOutputStream());
 	        os.writeBytes("cd data/rwg"+"\n");
 	        os.writeBytes("chmod 777 rwgexec"+"\n");
 	        os.writeBytes("./rwgexec -t -g "+ groupSize+ " -h 99 -l 3600 -i tiwlan0 > trace.txt"+"\n");
 	        os.close();
+	        Log.i("RWGService", "tried to open rwg");
 		} catch (Exception e) {
 			Log.d("RWG", "Unexpected error - Here is what I know: "+e.getMessage());
 		}
@@ -72,12 +79,16 @@ public class RWGService extends Service {
 	
 	private void endRWG() {
 		try {
+			/*int pid2;
+			Log.i("pid = ",(pid2=mCoreTask.isProcessRunning("./rwgexec"))+"");
 			File f = new File("/data/rwg/pid");
 			Scanner sc = new Scanner(f);
 			String pid = sc.next();
+			Log.i("equal",(Integer.parseInt(pid)==pid2)+"");
 			Runtime.getRuntime().exec("kill -9 "+pid);
 			sc.close();
-			f.delete();
+			f.delete();*/
+			mCoreTask.killProcessRunning("./rwgexec");
 	        this.getSystemService(Context.WIFI_SERVICE);
 			Log.i("RWGService","Stopped WiFi Service");
 		}

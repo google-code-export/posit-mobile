@@ -30,10 +30,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import android.R;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -245,4 +247,17 @@ public class Utils {
 		    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 		    return sdf.format(cal.getTime());
 		  }
+	  
+	  public static void showNetworkErrorDialog(Context context) {
+		  new AlertDialog.Builder(context)
+	        .setTitle("Network Error")
+	        .setMessage("To access or change projects, connect to Wifi or a data network.")
+	        .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int whichButton) {
+	                //        Log.d(MSG_TAG, "Close pressed");
+	                        //this.application.finish();
+	                }
+	        })
+	        .show();
+	  }
 }

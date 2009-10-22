@@ -26,5 +26,13 @@
 			android:textColor="#ffffff"
 			android:text="Crisis Management Tool"
 			android:layout_marginBottom="15dp"/>
+		<TextView
+			android:id="@+id/version"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textSize="25sp"
+			android:textColor="#ffffff"
+			android:text="Version 0.5.0r alpha"
+			android:layout_marginBottom="10dp"/>
 	</LinearLayout>
 </LinearLayout>
