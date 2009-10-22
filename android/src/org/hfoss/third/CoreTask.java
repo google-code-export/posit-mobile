@@ -200,21 +200,24 @@ public class CoreTask {
 		return natEnabled;
     }
 */    
-    public boolean isProcessRunning(String processName) throws Exception {
-        boolean running = false;
+    public int killProcessRunning(String processName) throws Exception {
+        int pid = -1;
     	Process process = null;
 		process = Runtime.getRuntime().exec("ps");
         BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null;
         while ((line = in.readLine()) != null) {
             if (line.contains(processName)) {
-            	running = true;
-            	break;
+            	Log.i("LINE",line);
+            	line = line.substring(line.indexOf(' '));
+            	line = line.trim();
+            	pid = Integer.parseInt(line.substring(0,line.indexOf(' ')));
+            	Runtime.getRuntime().exec("kill -9 "+pid);
             }
         }
         in.close();
         process.waitFor();
-		return running;
+		return pid;
     }
 
     public boolean hasRootPermission() {

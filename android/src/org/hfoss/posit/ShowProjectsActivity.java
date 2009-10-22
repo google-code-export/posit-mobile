@@ -65,10 +65,10 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.list_projects);
-
 		comm = new Communicator(this);
-		list = comm.getProjects();
 		
+		try{
+		list = comm.getProjects();
 		mRadio = (RadioGroup) findViewById(R.id.projectsList);
 		Iterator<HashMap<String, Object>> it = list.iterator();
 		
@@ -80,6 +80,13 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 			button.setText((String)(it.next().get("name")));
 			mRadio.addView(button);
 		}
+		}catch(Exception e){
+			finish();
+			Utils.showNetworkErrorDialog(this);
+			
+		}
+		
+		
 	}
 
 	/**

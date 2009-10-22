@@ -60,9 +60,9 @@ public class SyncThread extends Thread {
 	}
 
 	public void run() {
-		try {
 			Communicator comm = new Communicator(mContext);
 			Log.i(TAG, "Getting remote finds...");
+			try{
 			mRemoteFindsList =  comm.getAllRemoteFinds();  // Get all server SIDs
 			
 			Log.i(TAG, "Sending new finds to server...");
@@ -74,11 +74,10 @@ public class SyncThread extends Thread {
 
 			//getUpdatedFindsFromServer(comm, mRemoteFindsList);
 			//putUpdatedFindsToServer(comm, mRemoteFindsList);
-		}catch (NullPointerException e) {
-			Log.e(TAG, e.getMessage()+":75");
-			e.printStackTrace();
-		}
-		mHandler.sendEmptyMessage(DONE);
+
+			mHandler.sendEmptyMessage(DONE);
+			}
+			catch(Exception e){ Log.i("SyncThread","No network"); }
 	}
 
 	/**

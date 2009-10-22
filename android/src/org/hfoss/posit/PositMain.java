@@ -137,9 +137,9 @@ public class PositMain extends Activity {
 			startActivity(new Intent(this, ShowProjectsActivity.class));
 			break;
 			
-		case R.id.rwg_start_activity:
+		/*case R.id.rwg_start_activity:
 			startActivity(new Intent(this, AdhocClientActivity.class));
-			break;
+			break;*/
 		case R.id.track_menu_item:
 			startActivity(new Intent(this, TrackerActivity.class));
 			break;
@@ -154,8 +154,9 @@ public class PositMain extends Activity {
 	        edit.commit();
 	        break;
 		case R.id.rwg_end:
-
-			mAdhocClient.end();
+			
+			if(mAdhocClient!=null)
+				mAdhocClient.end();
 
 	        edit.putBoolean("IS_ADHOC", false);
 	        edit.commit();
