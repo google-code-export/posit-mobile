@@ -49,6 +49,8 @@ public class AdhocClient {
 	private Thread netStartUpThread;
 	private Thread netHandleIncomingThread;
 	
+	private Intent rwgService = null;
+	
 	// Need handler for callbacks to the UI thread
     final Handler messHandler = new Handler();
     // Create runnable for posting
@@ -282,8 +284,15 @@ public class AdhocClient {
     	 statusHandler.post(statusUpdate);
     	 
     	 Log.i("NETWORK START THREAD", "starting rwgexec");
-    	 Intent rwg = new Intent(mContext,RWGService.class);
-    	 mContext.startService(rwg);
+    	 if (!RWGService.isRunning())
+			{
+		        rwgService = new Intent(mContext, RWGService.class);
+		        rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		        RWGService.setActivity((PositMain)mContext);
+				
+				mContext.startService(rwgService);
+			      
+			}
     	 try{
     	    	Thread.sleep(2000);
     	    	}catch(Exception e){
@@ -462,6 +471,13 @@ public class AdhocClient {
 		netStartUpThread.interrupt();
 		netHandleIncomingThread.interrupt();
 		ret = false;
+		if (rwgService == null)
+			rwgService = new Intent(mContext, RWGService.class);
+		
+		
+		 RWGService.setActivity((PositMain)mContext);
+		
+		mContext.stopService(rwgService);
 	}   
 }
 
