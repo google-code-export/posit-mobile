@@ -160,7 +160,7 @@ public class PositMain extends Activity {
 
 	        edit.putBoolean("IS_ADHOC", false);
 	        edit.commit();
-			stopService(new Intent(this,RWGService.class));
+			//stopService(new Intent(this,RWGService.class));
 			Utils.showToast(this, "RWG Service Stopped");
 			break;
 		//case R.id.native_activity:

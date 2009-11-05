@@ -40,12 +40,20 @@ public class TabMain extends TabActivity implements TabHost.OnTabChangeListener{
 	public static final String TAB_MAIN = "tab_main";
 	public static final String TAB_MAPS_GPS = "tab_maps_gps";
 	
+	/**
+	 * This is the onCreate() for the Tab interface
+	 * We initialize the tabs here
+	 */
+	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		setContentView(R.layout.tab_main);
 		initTabs();
 	}
 	
+	/**
+	 * Calls a setup method for each of the tabs
+	 */
 	private void initTabs() {
 		mTabHost = getTabHost();
 		mTabHost.setOnTabChangedListener(this);
@@ -58,6 +66,9 @@ public class TabMain extends TabActivity implements TabHost.OnTabChangeListener{
 		this.setDefaultTab(0);
 	}
 	
+	/**
+	 * Sets up the main tab. This displays PositMain
+	 */
 	private void setupMainTab() {
 			// Force the class since overriding tab entries doesn't work
 		Intent intent = new Intent();
@@ -67,6 +78,9 @@ public class TabMain extends TabActivity implements TabHost.OnTabChangeListener{
 			.setContent(intent));
 	}
 	
+	/**
+	 * Sets up the List Finds tab.  This displays ListFindsActivity
+	 */
 	private void setupViewFindsTab() {
 		// Force the class since overriding tab entries doesn't work
 		Intent intent = new Intent();
@@ -76,6 +90,9 @@ public class TabMain extends TabActivity implements TabHost.OnTabChangeListener{
 			.setContent(intent));
 	}
 	
+	/**
+	 * Sets up the Add Find tab.  This displays FindActivity.
+	 */
 	private void setupAddFindTab() {
 		// Force the class since overriding tab entries doesn't work
 		Intent intent = new Intent();
@@ -86,10 +103,20 @@ public class TabMain extends TabActivity implements TabHost.OnTabChangeListener{
 			.setContent(intent));
 	}
 	
+	/**
+	 * Changes which tab appears on the device.
+	 * Main => tab=0
+	 * List Finds => tab=1
+	 * Add Find => tab=2
+	 * @param tab is the index of the tab to which we change
+	 */
 	public static void moveTab(int tab) {
 		mTabHost.setCurrentTab(tab);
 	}
 	
+	/**
+	 * This isn't currently used. It was used at one point for experimentation.
+	 */
 	public void onTabChanged(String tabId) {
 		// Because we're using Activities as our tab children, we trigger
 		// onWindowFocusChanged() to let them know when they're active.  This may
