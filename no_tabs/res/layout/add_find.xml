@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent">
+	
+	<ScrollView 
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		
+		<LinearLayout 
+			xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:orientation="vertical" android:scrollbars="vertical|horizontal"
+			android:layout_marginBottom="30dp">
+
+				<TableLayout 
+					android:id="@+id/contents_new_find" 
+					android:layout_width="fill_parent" 
+					android:layout_height="48sp" android:orientation="vertical" 
+					android:stretchColumns="0,1">
+					
+					<TableRow 
+						android:layout_width="fill_parent" 
+						android:layout_height="24sp">
+						
+						<LinearLayout 
+							android:id="@+id/linear_layout_1" 
+							android:layout_width="fill_parent" 
+							android:layout_height="24sp">
+							
+							<TextView 
+								android:id="@+id/latitudeLabel" 
+								android:text="@string/latitude" 
+								android:layout_width="wrap_content" 
+								android:layout_height="fill_parent" />
+							<TextView 
+								android:id="@+id/latitudeText" 
+								android:layout_width="wrap_content" 
+								android:layout_height="fill_parent" 
+								android:maxLength="10" 
+								android:maxLines="1" />
+						</LinearLayout>
+						
+						<LinearLayout 
+							android:layout_width="fill_parent" 
+							android:layout_height="24sp">
+							
+							<TextView 
+								android:id="@+id/longitudeLabel" 
+								android:text="@string/longitude" 
+								android:layout_width="wrap_content" 
+								android:layout_height="fill_parent" 
+								android:paddingRight="2sp" />
+							<TextView 
+								android:id="@+id/longitudeText" 
+								android:layout_width="wrap_content" 
+								android:layout_height="fill_parent" 
+								android:maxLength="10" 
+								android:maxLines="1" />
+						</LinearLayout>
+					</TableRow>
+					
+					<TableRow 
+						android:layout_width="fill_parent" 
+						android:layout_height="24sp">
+						
+							<TextView 
+								android:id="@+id/timeLabel" 
+								android:layout_width="wrap_content" 
+								android:layout_height="wrap_content" 
+								android:text="@string/date_time_label" 
+								android:paddingRight="2dp"/>
+							<TextView 
+								android:id="@+id/timeText" 
+								android:layout_width="fill_parent" 
+								android:layout_height="wrap_content" />
+					</TableRow>
+				</TableLayout>
+
+			<RelativeLayout 
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content" 
+				android:orientation="vertical">
+
+				<TextView 
+					android:id="@+id/idLabel" 
+					android:layout_width="20sp" 
+					android:layout_height="wrap_content" 
+					android:text="@string/idLabel" />
+				<Button 
+					android:id="@+id/idBarcodeButton" 
+					android:layout_width="120dp" 
+					android:layout_height="wrap_content" 
+					android:text="@string/barcodeText" 
+					android:layout_toRightOf="@id/idLabel"/>
+				<EditText 
+					android:id="@+id/idText" 
+					android:freezesText="true" 
+					android:layout_width="fill_parent" 
+					android:layout_height="wrap_content" 
+					android:layout_toRightOf="@id/idBarcodeButton"/>
+				
+			
+				<EditText android:id="@+id/nameText"
+					android:freezesText="true"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:hint="@string/ghostData_name"
+					android:layout_below="@+id/idText" />
+			
+				<EditText 
+					android:id="@+id/descriptionText"
+					android:layout_width="fill_parent" 
+					android:padding="10dip" 
+					android:maxLines="6" 
+					android:scrollbars="vertical"
+					android:fadingEdge="vertical" 
+					android:scrollbarStyle="insideOverlay" 
+					android:layout_height="fill_parent" 
+					android:hint="@string/ghostData_description"
+					android:layout_below="@+id/nameText"/>
+				<TextView 
+					android:id="@+id/barcodeReaderError"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textColor="#ff0000"
+					android:text="@string/barcodeReaderError"
+					android:layout_below="@+id/descriptionText" />
+				<Button android:id="@+id/barcodeDownloadButton"
+					android:layout_width="120dp" 
+					android:layout_height="wrap_content" 
+					android:text="Download" 
+					android:layout_below="@id/barcodeReaderError"/>
+				<TextView 
+					android:id="@+id/barcodeReaderRestart"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"
+					android:textColor="#ff0000"
+					android:text="Please restart POSIT after installation."
+					android:textSize="29px"
+					android:layout_below="@+id/barcodeDownloadButton" />
+			</RelativeLayout>
+
+			<Gallery 
+				android:id="@+id/picturesTaken" 
+				android:src="@drawable/about"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"/>
+				
+		</LinearLayout>
+
+	</ScrollView>
+
+</LinearLayout>

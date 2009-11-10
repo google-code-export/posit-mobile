@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/maps_start_screen"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent" >
+    
+	<TextView
+		android:id="@+id/emptyText"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/gps"
+		android:textSize="20sp"
+		android:textColor="?android:attr/textColorSecondary"
+		android:paddingLeft="10dip"
+		android:paddingRight="10dip"
+		android:paddingTop="10dip"
+		android:lineSpacingMultiplier="0.92" />
+     
+     <Button
+     	android:id="@+id/start_gps"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:text="@string/start" />
+            
+</RelativeLayout>
