@@ -46,5 +46,12 @@
 			android:layout_height="wrap_content"
 			android:text="Add Find"
 			/>
+		<Button
+			android:id="@+id/rwgButton"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Start RWG"
+			android:visibility="gone"
+			/>
 	</LinearLayout>
 </LinearLayout>

@@ -45,10 +45,14 @@ import android.widget.Button;
 /**
  * @author rmorelli
  */
-public class PositMain extends Activity implements OnClickListener{
+public class PositMain extends Activity implements OnClickListener, RWGConstants{
+	
 	private static final int confirm_exit=0;
 	public static AdhocClient mAdhocClient;
 	public static WifiManager wifiManager;
+	
+	private Intent rwgService = null;
+	
 	/**
 	 * Called when the application is first created.  If there is no wireless or data connection, starts the 
 	 * AdhocClient to work in ad hoc mode.  Also, if this is the first time that the application is run, 
@@ -59,6 +63,7 @@ public class PositMain extends Activity implements OnClickListener{
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		
 		final Button addFindButton = (Button)findViewById(R.id.addFindButton);
 		addFindButton.setOnClickListener(this);
 		
@@ -66,13 +71,19 @@ public class PositMain extends Activity implements OnClickListener{
 		Log.i("TAG",listFindButton.getText()+"");
 		listFindButton.setOnClickListener(this);
 		
+		final Button rwgButton = (Button)findViewById(R.id.rwgButton);
+		rwgButton.setOnClickListener(this);
+		
 		//if (!Utils.isConnected(this)) 
 		//	startActivity(new Intent(this, AdhocClientActivity.class));
 		//else 
 		if(savedInstanceState==null)
 			checkPhoneRegistrationAndInitialSync();
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		
 		Utils.showToast(this, "Current Project: "+sp.getString("PROJECT_NAME", ""));
+		
+		setUIState();
 	}
 
 	/*@Override
@@ -235,6 +246,9 @@ public class PositMain extends Activity implements OnClickListener{
 	public void onClick(View view) {
 		Log.i("WOOO","CLICK");
 		Intent intent = new Intent();
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor edit = sp.edit();
+		
 		switch(view.getId()) {
 		case R.id.addFindButton :
 			
@@ -247,7 +261,57 @@ public class PositMain extends Activity implements OnClickListener{
 			intent.setClass(this, ListFindsActivity.class);
 			startActivity(intent);
 			break;
-		}
-		
+		case R.id.rwgButton :
+			//if Tor binary is not running, then start the service up
+			if (!RWGService.isRunning())
+			{
+		        /*rwgService = new Intent(this, RWGService.class);
+		        rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		        RWGService.setActivity(this);
+				
+				startService(rwgService);*/
+				
+				wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
+				mAdhocClient = new AdhocClient(this);
+				
+		        
+		        edit.putBoolean("IS_ADHOC", true);
+		        edit.commit();
+			      
+			}
+			else
+			{
+				
+				if(mAdhocClient!=null)
+					mAdhocClient.end();
+
+		        edit.putBoolean("IS_ADHOC", false);
+		        edit.commit();
+				//stopService(new Intent(this,RWGService.class));
+				Utils.showToast(this, "RWG Service Stopped");
+				
+			}
+			
+			//update the UI
+		     setUIState();
+		     break;
+		}	
 	}
+	
+	public void setUIState ()
+    {
+		Button btnStart = (Button)findViewById(R.id.rwgButton);
+    	
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		
+    	if (RWGService.isRunning() || !sp.getBoolean("IS_ADHOC", false))
+    	{
+    		btnStart.setText("Stop Tor");
+    	}
+    	else
+    	{
+    		btnStart.setText("Start Tor");
+
+    	}
+    }
 }

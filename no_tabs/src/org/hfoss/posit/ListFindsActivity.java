@@ -20,24 +20,26 @@
 
 package org.hfoss.posit;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -221,9 +223,56 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			mDbHelper.close();
 			showDialog(CONFIRM_DELETE_DIALOG);
 			break;
-
+		
+		case R.id.georss:
+			generateGeoRSS();
+			break;
+			
 		}
 		return true;
+	}
+	
+	public void generateGeoRSS() {
+		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);
+		startManagingCursor(mCursor);
+
+		
+		try{
+			FileOutputStream fout = new FileOutputStream("/data/rss/data.xml");
+			PrintStream out = new PrintStream(fout);
+			out.println("<feed xmlns=\"http://www.w3.org/2005/Atom\"");
+			out.println("xmlns:georss=\"http://www.georss.org/georss\"");
+			out.println("xmlns:gml=\"http://www.opengis.net/gml\">");
+			mCursor.moveToFirst();
+			while(!mCursor.isAfterLast()) {
+				out.println("<entry>");
+				out.println("<title>"+
+					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_NAME))+
+					"</title>");
+				out.println("<description>"+
+					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_DESCRIPTION))+
+					"</description>");
+				out.println("<georss:where>");
+				out.println("<gml:Point>");
+				out.println("<gml:pos>"+
+					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE))+" "+
+					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE))+
+					"</gml:pos>");
+				out.println("</gml:Point>");
+				out.println("</georss:where>");
+				out.println("<datetime>"+
+						mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_TIME))+
+						"</datetime>");
+				out.println("</entry>");
+				mCursor.moveToNext();
+			}
+			out.println("</feed>");
+			out.close();
+		}
+		catch(IOException e){e.printStackTrace();}
+		finally{
+			Utils.showToast(this, "GeoRSS created!");
+		}
 	}
 
 	/**
@@ -312,6 +361,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					if (mDbHelper.deleteAllFinds()) {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
+						finish();
 					} else {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.delete_failed);
