@@ -48,7 +48,7 @@ public class SyncActivity extends Activity {
 	 * This method starts the synchronization thread which handles the sync action.
 	 */
 	private void syncFinds() {
-		mProgressDialog = ProgressDialog.show(this, "Synchronizing", "Please wait.", true,false);
+		mProgressDialog = ProgressDialog.show(this, "Synchronizing", "Please wait.", true,true);
 		Thread syncThread = new SyncThread(this, new Handler() {
 			public void handleMessage(Message msg) {
 				if (msg.what==SyncThread.DONE) {

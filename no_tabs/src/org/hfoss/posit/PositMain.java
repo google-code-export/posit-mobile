@@ -65,14 +65,22 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		setContentView(R.layout.main);
 		
 		final Button addFindButton = (Button)findViewById(R.id.addFindButton);
+		if(addFindButton!=null)
 		addFindButton.setOnClickListener(this);
 		
 		final Button listFindButton = (Button)findViewById(R.id.listFindButton);
+		if(listFindButton!=null) {
 		Log.i("TAG",listFindButton.getText()+"");
 		listFindButton.setOnClickListener(this);
+		}
 		
 		final Button rwgButton = (Button)findViewById(R.id.rwgButton);
+		if(rwgButton!=null)
 		rwgButton.setOnClickListener(this);
+		
+		final Button sahanaButton = (Button)findViewById(R.id.sahanaSMS);
+		if(sahanaButton!=null)
+		sahanaButton.setOnClickListener(this);
 		
 		//if (!Utils.isConnected(this)) 
 		//	startActivity(new Intent(this, AdhocClientActivity.class));
@@ -295,6 +303,10 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			//update the UI
 		     setUIState();
 		     break;
+		case R.id.sahanaSMS:
+			intent.setClass(this, SahanaSMSActivity.class);
+			startActivity(intent);
+			break;
 		}	
 	}
 	

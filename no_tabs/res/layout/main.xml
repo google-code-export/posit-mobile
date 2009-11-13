@@ -53,5 +53,11 @@
 			android:text="Start RWG"
 			android:visibility="gone"
 			/>
+		<Button
+			android:id="@+id/sahanaSMS"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Sahana SMS Module"
+			/>
 	</LinearLayout>
 </LinearLayout>
