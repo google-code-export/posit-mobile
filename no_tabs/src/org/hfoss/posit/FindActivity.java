@@ -1060,7 +1060,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			mLatitude = location.getLatitude();
 			Message msg = Message.obtain();
 			msg.what = UPDATE_LOCATION;
-			FindActivity.this.updateHandler.sendMessage(msg);
+			this.updateHandler.sendMessage(msg);
 		} catch (NullPointerException e) {
 			if(Utils.debug)
 				Log.e(TAG, e.toString());

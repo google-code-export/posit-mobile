@@ -16,6 +16,7 @@
 	<uses-permission android:name="android.permission.ACCESS_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_GPS" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.permission.SEND_SMS"></uses-permission>
 	<!-- 
 	<uses-permission android:name="android.permission.ACCESS_LOCATION"></uses-permission>
 	<uses-permission android:name="android.permission.ACCESS_GPS" /> 
@@ -45,6 +46,7 @@
 		<activity android:name=".AdhocClientActivity" />
 		<activity android:name=".TrackerActivity"/>
 		<activity android:name=".NativeActivity"/>
+		<activity android:name=".SahanaSMSActivity"/>
 		<service android:name=".RWGService" />
 	</application>
 </manifest>
