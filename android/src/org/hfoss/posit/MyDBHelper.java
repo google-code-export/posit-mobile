@@ -86,21 +86,21 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
 
 	public static final String[] list_row_data = { 
-		COLUMN_IDENTIFIER,
 		COLUMN_NAME,
 		COLUMN_DESCRIPTION,
 		COLUMN_LATITUDE,
 		COLUMN_LONGITUDE,
-		COLUMN_SYNCED
+		COLUMN_SYNCED,
+		COLUMN_IDENTIFIER
 	};
 
 	public static final int[] list_row_views = {
-		R.id.find_image, 
 		R.id.name_id, 
 		R.id.description_id,
 		R.id.latitude_id,
 		R.id.longitude_id,
-		R.id.status
+		R.id.status,
+		R.id.num_photos
 	};
 
 	/**
@@ -355,7 +355,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	}
 
 	public Cursor getImagesCursor(long id) {
-		mDb = getReadableDatabase(); 
+		mDb = getReadableDatabase();
+		Log.i("id = ",id+"");
 		String[] columns = {COLUMN_IMAGE_URI, COLUMN_FIND_ID};
 		String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;

@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-import org.hfoss.posit.PositMain;
-import org.hfoss.posit.Utils;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -107,13 +104,17 @@ public class RWGService extends Service implements RWGConstants {
 	    		if (binaryExists)
 	    		{
 	    			Utils.showToast(ACTIVITY, "Tor binary installed!");
+	    			Log.i(TAG,"Binary installed!");
 	    		}
 	    		else
 	    		{
 	    			Utils.showToast(ACTIVITY, "Tor binary install FAILED!");
+	    			Log.i(TAG,"Binary install failed.");
 	    			return;
 	    		}
 			}
+			else
+				Log.i(TAG,"Binary already exists");
 			
 			Log.i(TAG,"Setting permission on Tor binary");
 			doCommand(SHELL_CMD_CHMOD, CHMOD_EXE_VALUE + ' ' + RWG_BINARY_INSTALL_PATH);

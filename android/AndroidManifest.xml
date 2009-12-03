@@ -16,6 +16,7 @@
 	<uses-permission android:name="android.permission.ACCESS_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_GPS" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.permission.SEND_SMS"></uses-permission>
 	<!-- 
 	<uses-permission android:name="android.permission.ACCESS_LOCATION"></uses-permission>
 	<uses-permission android:name="android.permission.ACCESS_GPS" /> 
@@ -25,7 +26,7 @@
 	-->
 	<application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
 		<uses-library android:name="com.google.android.maps" />	
-		<activity android:name=".TabMain" android:label="@string/app_name" >
+		<activity android:name=".PositMain" android:label="@string/app_name" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -36,7 +37,7 @@
 		<activity android:name=".ImageViewActivity" />
 		<activity android:name=".ListFindsActivity" />
 		<activity android:name=".MapFindsActivity" />
-		<activity android:name=".PositMain" />
+		<!-- <activity android:name=".PositMain" /> -->
 		<activity android:name=".ServerRegistrationActivity" />
 		<activity android:name=".SettingsActivity" />	
 		<activity android:name=".ShowProjectsActivity" />
@@ -45,6 +46,7 @@
 		<activity android:name=".AdhocClientActivity" />
 		<activity android:name=".TrackerActivity"/>
 		<activity android:name=".NativeActivity"/>
+		<activity android:name=".SahanaSMSActivity"/>
 		<service android:name=".RWGService" />
 	</application>
 </manifest>
