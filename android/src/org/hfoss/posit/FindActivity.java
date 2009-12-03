@@ -354,7 +354,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					finish();
 					//Intent intent = new Intent(FindActivity.this, ListFindsActivity.class);
 					//startActivity(intent);
-					TabMain.moveTab(1);
+					//TabMain.moveTab(1);
 				}
 			}
 			)
@@ -392,20 +392,20 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 								Utils.showToast(FindActivity.this, R.string.save_failed);
 							}
 						}
-						//finish();
+						finish();
 						//Intent in = new Intent(this, ListFindsActivity.class); //redirect to list finds
 						//startActivity(in);
-						if(mState==STATE_INSERT)
+						/*if(mState==STATE_INSERT)
 							TabMain.moveTab(1);
 						else if(mState==STATE_EDIT)
-							finish();
+							finish();*/
 					}
 				}
 			}).setNeutralButton(R.string.closing, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
-					if(mState==STATE_INSERT)
+					/*if(mState==STATE_INSERT)
 						TabMain.moveTab(1);
-					else if(mState==STATE_EDIT)
+					else if(mState==STATE_EDIT)*/
 						finish();
 				}
 			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
@@ -529,30 +529,41 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		switch (item.getItemId()) {
 
 		case R.id.save_find_menu_item:
-			ContentValues contentValues = retrieveContentFromView();	
+			long start;
+			Log.i("start",(start=System.currentTimeMillis())+"");
+			ContentValues contentValues = retrieveContentFromView();
+			Log.i("after retrive", (System.currentTimeMillis()-start)+"");
 			if (IS_ADHOC)
 				sendAdhocFind(contentValues);
+			Log.i("after adhoc check", (System.currentTimeMillis()-start)+"");
 			
 			// Don't save to database if ID is zero.
 			// This indicates a non-numeric or invalid ID				
 			if(contentValues.getAsInteger(getString(R.string.idDB)) == 0)
 				return false;
+			Log.i("after nonnumeric check", (System.currentTimeMillis()-start)+"");
 
 			if (mState == STATE_INSERT) { //if this is a new find
+				Log.i("enter insert block", (System.currentTimeMillis()-start)+"");
 				mFind = new Find(this);
+				Log.i("create new find", (System.currentTimeMillis()-start)+"");
 				Log.i("","NUM PICS = "+mTempBitmaps.size());
 				saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
+				Log.i("after saveCameraImageAndUri", (System.currentTimeMillis()-start)+"");
 				mTempBitmaps.clear();
 				Log.i("","NUM PICS = "+mTempBitmaps.size());
 				List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
-
+				Log.i("after retriveImages", (System.currentTimeMillis()-start)+"");
 				if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
+					Log.i("after insert", (System.currentTimeMillis()-start)+"");
 					Utils.showToast(this, R.string.saved_to_database);
 				} else {
 					Utils.showToast(this, R.string.save_failed);
 				}
-				onCreate(null);
-				TabMain.moveTab(1);
+				Log.i("about to finish", (System.currentTimeMillis()-start)+"");
+				finish();
+				//onCreate(null);
+				//TabMain.moveTab(1);
 			} else { 
 				if (mFind.updateToDB(contentValues)) {
 					Utils.showToast(this, R.string.saved_to_database);
@@ -908,14 +919,15 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private void displayGallery(long id) {
 		if (id != 0) { //for existing finds
 			// Select just those images associated with this find.
-			if (mFind.hasImages()) {
+			if ((mCursor=mFind.getImages()).getCount()>0) {
 				finishActivity(FindActivity.IMAGE_VIEW);
-				mCursor = mFind.getImages();  // Returns the Uris of the images from the Posit Db
+				//mCursor = mFind.getImages();  // Returns the Uris of the images from the Posit Db
 				mCursor.moveToFirst();
 				ImageAdapter adapter = new ImageAdapter(mCursor, this);
 				mGallery.setAdapter(adapter);
 				mGallery.setOnItemClickListener(this);
 			} else {
+				mCursor=null;
 				Utils.showToast(this, "No images to display.");
 			}
 		} else { //for new finds
@@ -1048,7 +1060,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			mLatitude = location.getLatitude();
 			Message msg = Message.obtain();
 			msg.what = UPDATE_LOCATION;
-			FindActivity.this.updateHandler.sendMessage(msg);
+			this.updateHandler.sendMessage(msg);
 		} catch (NullPointerException e) {
 			if(Utils.debug)
 				Log.e(TAG, e.toString());

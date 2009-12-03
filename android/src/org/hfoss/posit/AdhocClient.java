@@ -93,7 +93,7 @@ public class AdhocClient {
 		 * The Adhoc client needs several binaries installed to run. We check each time.
 		 */
     	mContext = c;
-    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Random-Walk Gossip-Based Manycast", true,false);
+    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Random-Walk Gossip-Based Manycast", true,true);
 		coretask = new CoreTask();
 		coretask.setPath(mContext.getApplicationContext().getFilesDir().getParent());
 		this.checkDirs();
@@ -287,7 +287,7 @@ public class AdhocClient {
     	 if (!RWGService.isRunning())
 			{
 		        rwgService = new Intent(mContext, RWGService.class);
-		        rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		        //rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		        RWGService.setActivity((PositMain)mContext);
 				
 				mContext.startService(rwgService);
@@ -315,6 +315,8 @@ public class AdhocClient {
     	 *  we read from the output pipe and write to the input pipe.
     	 */
     	// open Output Pipe
+    	if(RWGService.isRunning()) {
+    		Log.i("ADHOC_CLIENT","It's running!");
 		try{
 			Log.i("ADHOCCLIENT", "DOING INPUT PIPE");
 			FileOutputStream fos = new FileOutputStream("/data/rwg/input");
@@ -328,7 +330,7 @@ public class AdhocClient {
 		}catch(Exception e2){
 			Log.i("ADHOCCLIENT", e2.toString());
 			System.out.println(e2.getClass().toString());
-		}
+		}}
     	 
     	try{
     		 FileInputStream fis = new FileInputStream("/data/rwg/output");

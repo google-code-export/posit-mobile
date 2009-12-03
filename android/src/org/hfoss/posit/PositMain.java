@@ -33,18 +33,26 @@ import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 /**
  * @author rmorelli
  */
-public class PositMain extends Activity {
+public class PositMain extends Activity implements OnClickListener, RWGConstants{
+	
 	private static final int confirm_exit=0;
 	public static AdhocClient mAdhocClient;
 	public static WifiManager wifiManager;
+	
+	private Intent rwgService = null;
+	
 	/**
 	 * Called when the application is first created.  If there is no wireless or data connection, starts the 
 	 * AdhocClient to work in ad hoc mode.  Also, if this is the first time that the application is run, 
@@ -55,16 +63,38 @@ public class PositMain extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		
+		final Button addFindButton = (Button)findViewById(R.id.addFindButton);
+		if(addFindButton!=null)
+		addFindButton.setOnClickListener(this);
+		
+		final Button listFindButton = (Button)findViewById(R.id.listFindButton);
+		if(listFindButton!=null) {
+		Log.i("TAG",listFindButton.getText()+"");
+		listFindButton.setOnClickListener(this);
+		}
+		
+		final Button rwgButton = (Button)findViewById(R.id.rwgButton);
+		if(rwgButton!=null)
+		rwgButton.setOnClickListener(this);
+		
+		final Button sahanaButton = (Button)findViewById(R.id.sahanaSMS);
+		if(sahanaButton!=null)
+		sahanaButton.setOnClickListener(this);
+		
 		//if (!Utils.isConnected(this)) 
 		//	startActivity(new Intent(this, AdhocClientActivity.class));
 		//else 
 		if(savedInstanceState==null)
 			checkPhoneRegistrationAndInitialSync();
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		
 		Utils.showToast(this, "Current Project: "+sp.getString("PROJECT_NAME", ""));
+		
+		setUIState();
 	}
 
-	@Override
+	/*@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		outState.putBoolean("notFirst", true);
 		super.onSaveInstanceState(outState);
@@ -85,7 +115,7 @@ public class PositMain extends Activity {
 	@Override
 	protected void onPause(){
 		super.onPause();
-	}	
+	}	*/
 
 	/**
      * The phone is registered if it has an authentication key that matches one of
@@ -180,6 +210,7 @@ public class PositMain extends Activity {
 			showDialog(confirm_exit);
 			return true;
 		}
+		Log.i("code", keyCode+"");
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -203,7 +234,6 @@ public class PositMain extends Activity {
 				}
 			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
-					setContentView(R.layout.main);
 					/* User clicked Cancel so do nothing */
 				}
 			}).create();
@@ -219,4 +249,81 @@ public class PositMain extends Activity {
 		// Intent svc = new Intent(this, SyncService.class);
 		// stopService(svc);
 	}
+	
+	
+	public void onClick(View view) {
+		Log.i("WOOO","CLICK");
+		Intent intent = new Intent();
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor edit = sp.edit();
+		
+		switch(view.getId()) {
+		case R.id.addFindButton :
+			
+			intent.setClass(this, FindActivity.class);
+			intent.setAction(Intent.ACTION_INSERT);
+			startActivity(intent);
+			break;
+		case R.id.listFindButton :
+
+			intent.setClass(this, ListFindsActivity.class);
+			startActivity(intent);
+			break;
+		case R.id.rwgButton :
+			//if Tor binary is not running, then start the service up
+			if (!RWGService.isRunning())
+			{
+		        /*rwgService = new Intent(this, RWGService.class);
+		        rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		        RWGService.setActivity(this);
+				
+				startService(rwgService);*/
+				
+				wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
+				mAdhocClient = new AdhocClient(this);
+				
+		        
+		        edit.putBoolean("IS_ADHOC", true);
+		        edit.commit();
+			      
+			}
+			else
+			{
+				
+				if(mAdhocClient!=null)
+					mAdhocClient.end();
+
+		        edit.putBoolean("IS_ADHOC", false);
+		        edit.commit();
+				//stopService(new Intent(this,RWGService.class));
+				Utils.showToast(this, "RWG Service Stopped");
+				
+			}
+			
+			//update the UI
+		     setUIState();
+		     break;
+		case R.id.sahanaSMS:
+			intent.setClass(this, SahanaSMSActivity.class);
+			startActivity(intent);
+			break;
+		}	
+	}
+	
+	public void setUIState ()
+    {
+		Button btnStart = (Button)findViewById(R.id.rwgButton);
+    	
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		
+    	if (RWGService.isRunning() || !sp.getBoolean("IS_ADHOC", false))
+    	{
+    		btnStart.setText("Stop Tor");
+    	}
+    	else
+    	{
+    		btnStart.setText("Start Tor");
+
+    	}
+    }
 }

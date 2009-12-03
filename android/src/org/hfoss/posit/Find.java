@@ -40,7 +40,7 @@ public class Find {
 
 	private MyDBHelper mDbHelper;  // Handles all the DB actions
 	private long mId;  	         // The Find's rowID (should be changed to DB ID)
-	private Cursor images = null;
+	public Cursor images = null;
 	private Context mContext;
 
 	/**

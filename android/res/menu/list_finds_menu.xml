@@ -15,4 +15,8 @@
 		android:id="@+id/delete_finds_selected" 
 		android:title="@string/delete_selected"
 		android:icon="@android:drawable/ic_menu_gallery"></item>
+	<item
+		android:id="@+id/georss"
+		android:title="Generate GeoRSS">
+	</item>
 </menu>

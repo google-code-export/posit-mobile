@@ -20,24 +20,26 @@
 
 package org.hfoss.posit;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -74,7 +76,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		
 		mDbHelper = new MyDBHelper(this);
 		//fillData();
-		mDbHelper.close();
+		//mDbHelper.close();
 	}
 
 	/** 
@@ -221,9 +223,56 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			mDbHelper.close();
 			showDialog(CONFIRM_DELETE_DIALOG);
 			break;
-
+		
+		case R.id.georss:
+			generateGeoRSS();
+			break;
+			
 		}
 		return true;
+	}
+	
+	public void generateGeoRSS() {
+		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);
+		startManagingCursor(mCursor);
+
+		
+		try{
+			FileOutputStream fout = new FileOutputStream("/data/rss/data.xml");
+			PrintStream out = new PrintStream(fout);
+			out.println("<feed xmlns=\"http://www.w3.org/2005/Atom\"");
+			out.println("xmlns:georss=\"http://www.georss.org/georss\"");
+			out.println("xmlns:gml=\"http://www.opengis.net/gml\">");
+			mCursor.moveToFirst();
+			while(!mCursor.isAfterLast()) {
+				out.println("<entry>");
+				out.println("<title>"+
+					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_NAME))+
+					"</title>");
+				out.println("<description>"+
+					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_DESCRIPTION))+
+					"</description>");
+				out.println("<georss:where>");
+				out.println("<gml:Point>");
+				out.println("<gml:pos>"+
+					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE))+" "+
+					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE))+
+					"</gml:pos>");
+				out.println("</gml:Point>");
+				out.println("</georss:where>");
+				out.println("<datetime>"+
+						mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_TIME))+
+						"</datetime>");
+				out.println("</entry>");
+				mCursor.moveToNext();
+			}
+			out.println("</feed>");
+			out.close();
+		}
+		catch(IOException e){e.printStackTrace();}
+		finally{
+			Utils.showToast(this, "GeoRSS created!");
+		}
 	}
 
 	/**
@@ -233,8 +282,11 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 * SimpleCursorAdapter will attempt to handle the binding on its own.
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+		TextView tv = (TextView) view;
+		int id = cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER);
+		Log.i("list id = ",id+"");
 		switch (view.getId()) {
-		case R.id.find_image:
+		/*case R.id.find_image:
 
 			int rowId = cursor.getInt(cursor
 					.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER));
@@ -245,7 +297,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 				String strUri = values.getAsString(getString(R.string.imageUriDB));
 				if (strUri != null) {
 					Uri iUri = Uri.parse(strUri);
-					iv.setImageURI(iUri);
+					//iv.setImageURI(iUri);
 					iv.setScaleType(ImageView.ScaleType.FIT_XY);
 				} else {
 					iv.setImageResource(R.drawable.person_icon);
@@ -255,19 +307,28 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 				iv.setImageResource(R.drawable.person_icon);
 				iv.setScaleType(ImageView.ScaleType.FIT_XY);
 			}
+			return true;*/
+		case R.id.latitude_id:
+			String lat = cursor.getString(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE));
+			tv.setText("Location: "+lat);
 			return true;
-
+		case R.id.longitude_id:
+			String lon = cursor.getString(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE));
+			tv.setText(", "+lon);
+			return true;
 		case R.id.status:
 			int status = cursor.getInt(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_SYNCED));
-			TextView tv = (TextView) view;
 			tv.setText(status==1?"Synced  ":"Not synced  ");
 			return true;
-			
+		case R.id.num_photos:
+			int count = mDbHelper.getImagesCursor(cursor.getInt(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER))).getCount();
+			tv.setText(count+" photos  ");
+			return true;
 		default:
 			return false;
 		}
 	}
-	@Override
+	/*@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 
 		if(keyCode==KeyEvent.KEYCODE_BACK){
@@ -275,7 +336,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
-	}
+	}*/
 	
 
 
@@ -300,6 +361,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					if (mDbHelper.deleteAllFinds()) {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
+						finish();
 					} else {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.delete_failed);
@@ -308,8 +370,8 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					//finish();
 					//Intent intent = new Intent(ListFindsActivity.this, ListFindsActivity.class);
 					//startActivity(intent);
-					TabMain.moveTab(0);
-					TabMain.moveTab(1);
+					//TabMain.moveTab(0);
+					//TabMain.moveTab(1);
 				}
 			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
