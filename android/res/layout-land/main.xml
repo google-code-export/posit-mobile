@@ -12,19 +12,5 @@
 		android:layout_alignParentTop="true"
 		android:layout_centerHorizontal="true"
 		android:src="@drawable/posit"/>
-	<LinearLayout
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:gravity="center"
-		android:orientation="vertical">
-		
-		<TextView
-			android:id="@+id/applicationTypeLabel"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:textSize="25sp"
-			android:textColor="#ffffff"
-			android:text="Crisis Management Tool"
-			android:layout_marginBottom="15dp"	/>
-	</LinearLayout>
+	<include android:layout_width="fill_parent" layout="@layout/main_notabs_buttons"/>
 </LinearLayout>
