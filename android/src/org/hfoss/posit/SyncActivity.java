@@ -55,8 +55,13 @@ public class SyncActivity extends Activity {
 					mProgressDialog.dismiss();
 					finish();
 				}
+				if (msg.what==SyncThread.NONETWORK)
+					Utils.showToast(mProgressDialog.getContext(), "Sync Error:No Network Available");
+					mProgressDialog.dismiss();
+					finish();
 			}
 		});
 		syncThread.start();
+		
 	}
 }

@@ -47,6 +47,8 @@ public class SyncThread extends Thread {
 
 	private static final String TAG = "SyncThread";
 	public static final int DONE = 0;
+	public static final int NONETWORK = 1;
+	public volatile boolean shutdownRequested = false;
 	private static final int THUMBNAIL_TARGET_SIZE = 320;
 	private Handler mHandler;
 	private Context mContext;
@@ -60,6 +62,7 @@ public class SyncThread extends Thread {
 	}
 
 	public void run() {
+		while(!shutdownRequested){
 			Communicator comm = new Communicator(mContext);
 			Log.i(TAG, "Getting remote finds...");
 			try{
@@ -77,7 +80,12 @@ public class SyncThread extends Thread {
 
 			mHandler.sendEmptyMessage(DONE);
 			}
-			catch(Exception e){ Log.i("SyncThread","No network"); }
+			catch(Exception e){ 
+				Log.i("SyncThread","No network"); 
+				mHandler.sendEmptyMessage(NONETWORK);
+				shutdownRequested = true;
+				}
+		}
 	}
 
 	/**
