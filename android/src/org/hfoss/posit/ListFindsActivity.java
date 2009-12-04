@@ -201,13 +201,13 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		switch (item.getItemId()) {
 
 		case R.id.sync_finds_menu_item: 
-			/*
+			
 			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 			boolean syncIsOn = sp.getBoolean("SYNC_ON_OFF", true);
 			if (!syncIsOn) {
 				Utils.showToast(this, "Synchronization is turned off.");
 				break;
-			}*/
+			}
 			intent = new Intent(this, SyncActivity.class);
 			intent.setAction(Intent.ACTION_SYNC);
 			startActivity(intent);
