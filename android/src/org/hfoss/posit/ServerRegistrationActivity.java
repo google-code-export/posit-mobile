@@ -66,7 +66,6 @@ public class ServerRegistrationActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.registration);
-		
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String server = sp.getString("SERVER_ADDRESS", null);
 		
@@ -94,9 +93,14 @@ public class ServerRegistrationActivity extends Activity {
 		}
 		registerButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+        		if(!Utils.isNetworkAvailable(registerButton.getContext())){
+        			Utils.showToast(registerButton.getContext(), "Registration Error:No Network Available");
+        		}
+        		else{
             	if (ServerRegistrationActivity.isIntentAvailable(
             			ServerRegistrationActivity.this,"com.google.zxing.client.android.SCAN"))
         		{
+            		
         			Intent intent = new Intent("com.google.zxing.client.android.SCAN");
         			try{
         				startActivityForResult(intent, BARCODE_READER);
@@ -106,6 +110,7 @@ public class ServerRegistrationActivity extends Activity {
         					Log.i(TAG, e.toString());
         			}
         		}
+            }
             }
         });
 	/*	
@@ -153,10 +158,7 @@ public class ServerRegistrationActivity extends Activity {
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		if(false);
-		
+		super.onActivityResult(requestCode, resultCode, data);		
 		if (resultCode == RESULT_CANCELED)
 			return;
 		switch (requestCode) {
@@ -169,12 +171,12 @@ public class ServerRegistrationActivity extends Activity {
 				String authKey = object.getString("authKey");
 				if(Utils.debug)
 					Log.i(TAG, "server= "+server+", authKey= "+authKey);
-				
 				TelephonyManager manager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
 				String imei = manager.getDeviceId();
-				
-				Communicator communicator = new Communicator(this);
+				Communicator communicator = new Communicator(this);				
+				try{
 				boolean registered = communicator.registerDevice(server, authKey, imei);
+				
 				if (registered == true) {
 					SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 					Editor spEditor = sp.edit();
@@ -183,6 +185,10 @@ public class ServerRegistrationActivity extends Activity {
 					spEditor.putString("AUTHKEY", authKey);
 					spEditor.commit();
 				}
+				} catch(NullPointerException e){
+					Utils.showToast(this, "Registration Error");
+				}
+				
 				SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 				int projectId = sp.getInt("PROJECT_ID", 0);
 				if (projectId == 0) {

@@ -16,6 +16,7 @@ import java.util.ListIterator;
 
 import org.hfoss.posit.Find;
 import org.hfoss.posit.MyDBHelper;
+import org.hfoss.posit.PositMain;
 import org.hfoss.posit.Utils;
 import org.hfoss.third.Base64Coder;
 
@@ -25,6 +26,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -47,15 +50,15 @@ public class SyncThread extends Thread {
 
 	private static final String TAG = "SyncThread";
 	public static final int DONE = 0;
-	public static final int NONETWORK = 1;
+	public static final int NONETWORK = 2;
 	public volatile boolean shutdownRequested = false;
 	private static final int THUMBNAIL_TARGET_SIZE = 320;
+	public static final int SYNCERROR = 1;
 	private Handler mHandler;
 	private Context mContext;
 	private List<HashMap<String, Object>> mRemoteFindsList;
 	private List<Uri> mNewImageUris = new LinkedList<Uri>();
 	private List<Uri> mNewImageThumbnailUris = new LinkedList<Uri>();
-
 	public SyncThread(Context context, Handler handler) {
 		mHandler = handler;
 		mContext = context;
@@ -63,9 +66,10 @@ public class SyncThread extends Thread {
 
 	public void run() {
 		while(!shutdownRequested){
+			try{
 			Communicator comm = new Communicator(mContext);
 			Log.i(TAG, "Getting remote finds...");
-			try{
+
 			mRemoteFindsList =  comm.getAllRemoteFinds();  // Get all server SIDs
 			
 			Log.i(TAG, "Sending new finds to server...");
@@ -80,10 +84,10 @@ public class SyncThread extends Thread {
 
 			mHandler.sendEmptyMessage(DONE);
 			}
-			catch(Exception e){ 
-				Log.i("SyncThread","No network"); 
-				mHandler.sendEmptyMessage(NONETWORK);
-				shutdownRequested = true;
+			catch(Exception e){
+					Log.i("SyncThread","Sync Error"); 
+					mHandler.sendEmptyMessage(SYNCERROR);
+					shutdownRequested = true;	
 				}
 		}
 	}
@@ -93,6 +97,10 @@ public class SyncThread extends Thread {
 	 * @param comm
 	 */
 	private void getNewFindsFromServer(Communicator comm, List<HashMap<String, Object>> remoteFindsList) {
+		if (!Utils.isConnected(mContext)){
+			mHandler.sendEmptyMessage(NONETWORK);
+			return;
+		}
 		if(Utils.debug) {
 			Log.i(TAG, "Remote Finds (SIDs) From Server: " + remoteFindsList.toString());
 			Log.i(TAG, "Remote Finds (SIDs) From Server Size: " + remoteFindsList.size());
@@ -192,6 +200,10 @@ public class SyncThread extends Thread {
 	 * @param comm
 	 */
 	private void putNewFindsToServer(Communicator comm, List<HashMap<String, Object>> remoteFindsList) {
+		if (!Utils.isConnected(mContext)){
+			mHandler.sendEmptyMessage(NONETWORK);
+			return;
+		}
 		MyDBHelper mDBHelper = new MyDBHelper(mContext); 
 		List<Integer> newFindsOnPhone = mDBHelper.getAllNewIds();
 		List<Integer> phoneSIDs = mDBHelper.getUpdatedSIDsFromPhone(remoteFindsList);

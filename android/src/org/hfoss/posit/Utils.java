@@ -42,6 +42,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -57,6 +58,36 @@ import android.widget.Toast;
  * @author Qianqian Lin
  */
 public class Utils {
+	
+	private static final String TAG = "Utils";
+	public static ConnectivityManager conManage;
+/**
+ * Creates a Connectivity Manager for the given context and returns true if a network is available
+ * and false if otherwise.
+ * @param mContext
+ * @return Connectivity Boolean
+ */
+	public static boolean isNetworkAvailable(Context context)
+	{
+		conManage = (ConnectivityManager) context.getSystemService(context.CONNECTIVITY_SERVICE);
+        if (conManage == null) {
+           Log.w(TAG, "couldn't get connectivity manager");
+        } else {
+            NetworkInfo[] info = conManage.getAllNetworkInfo();
+            if (info != null) {
+                for (int i = 0; i < info.length; i++) {
+                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                           Log.v(TAG, "network is available");
+                        return true;
+                    }
+                }
+            }
+        }
+            Log.v(TAG, "network is not available");
+
+        return false; 
+	}
+	
 	public static boolean debug = false;
 	/**
 	 * This is for showing the Toast on screen for notifications
