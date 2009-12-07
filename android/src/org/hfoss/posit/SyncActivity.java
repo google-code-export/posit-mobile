@@ -33,35 +33,50 @@ import android.os.Message;
  * @author rmorelli
  */
 public class SyncActivity extends Activity {
-	
+
 	private ProgressDialog mProgressDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (getIntent().getAction().equals(Intent.ACTION_SYNC)) {
-			syncFinds();
+			{
+				if (!Utils.isNetworkAvailable(this)) {
+					Utils.showToast(this, "Sync Error: No Network Available");
+					finish();
+				} else
+					syncFinds();
+
+			}
 		}
 	}
 
 	/**
-	 * This method starts the synchronization thread which handles the sync action.
+	 * This method starts the synchronization thread which handles the sync
+	 * action.
 	 */
 	private void syncFinds() {
-		mProgressDialog = ProgressDialog.show(this, "Synchronizing", "Please wait.", true,false);
+		mProgressDialog = ProgressDialog.show(this, "Synchronizing",
+				"Please wait.", true, false);
 		Thread syncThread = new SyncThread(this, new Handler() {
 			public void handleMessage(Message msg) {
-				if (msg.what==SyncThread.DONE) {
+				if (msg.what == SyncThread.DONE) {
+					mProgressDialog.dismiss();
+					finish();
+				} else if (msg.what == SyncThread.NONETWORK) {
+					Utils.showToast(mProgressDialog.getContext(),
+							"Sync Error:No Network Available");
+					mProgressDialog.dismiss();
+					finish();
+				} else if (msg.what == SyncThread.SYNCERROR) {
+					Utils.showToast(mProgressDialog.getContext(),
+							"Sync Error: An unknown error has occurred");
 					mProgressDialog.dismiss();
 					finish();
 				}
-				if (msg.what==SyncThread.NONETWORK)
-					Utils.showToast(mProgressDialog.getContext(), "Sync Error:No Network Available");
-					mProgressDialog.dismiss();
-					finish();
 			}
 		});
 		syncThread.start();
-		
+
 	}
 }
