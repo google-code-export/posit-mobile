@@ -20,6 +20,7 @@
 package org.hfoss.posit;
 
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -539,7 +540,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			
 			// Don't save to database if ID is zero.
 			// This indicates a non-numeric or invalid ID				
-			if(contentValues.getAsInteger(getString(R.string.idDB)) == 0)
+			if (contentValues.getAsString(getString(R.string.idDB))==""|| contentValues.getAsString(getString(R.string.idDB))==null)
 				return false;
 			Log.i("after nonnumeric check", (System.currentTimeMillis()-start)+"");
 
@@ -612,7 +613,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		
 		String longitude = contentValues.getAsString(getString(R.string.longitudeDB));
 		String latitude = contentValues.getAsString(getString(R.string.latitudeDB));
-		long findId = contentValues.getAsLong(getString(R.string.idDB));
+//		long findId = contentValues.getAsLong(getString(R.string.idDB));
+		String findId = contentValues.getAsString(getString(R.string.idDB));
 		String name = contentValues.getAsString(getString(R.string.nameDB));
 		String description = contentValues.getAsString(getString(R.string.descriptionDB));
 		
@@ -656,12 +658,13 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		eText = (EditText) findViewById(R.id.idText);
 		value = eText.getText().toString();
 		try {
-			result.put(getString(R.string.idDB), Long.parseLong(value));
-			if(value.length() >= 10) {
-				showDialog(TOO_BIG_ID);
-				result.put(getString(R.string.idDB), 0);
-
-			}
+//			result.put(getString(R.string.idDB), Long.parseLong(value));
+			result.put(getString(R.string.idDB), value);
+//			if(value.length() >= 10) {
+//				showDialog(TOO_BIG_ID);
+//				result.put(getString(R.string.idDB), 0);
+//
+//			}
 		} catch (NumberFormatException e) {
 			// If user entered non-numeric ID, show an error
 			Utils.showToast(this, "Error: ID must be numeric");
@@ -788,22 +791,25 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			String value = data.getStringExtra("SCAN_RESULT");
 			MyDBHelper dBHelper = new MyDBHelper(this);
 			Long scannedId = null;
+			
 			try {
-				scannedId = Long.parseLong(value);
+				scannedId = Long.parseLong(value); // idea is to catch the exception after here if it's not a number
+				Log.i(TAG, "HERE");
+					Cursor cursor = dBHelper.getFindsWithIdentifier(value);
+					Log.i(TAG, cursor.getCount()+"");
+					if (cursor.getCount() == 0) {
+						EditText eText = (EditText) findViewById(R.id.idText);
+						eText.setText(value);
+					} else showDialog(NON_UNIQUE_ID);
+				
 			} catch(NumberFormatException e) {
 				showDialog(NON_NUMERIC_ID);
 			}
-			if(scannedId >= 1000000000) {
-				showDialog(TOO_BIG_ID);
-				break;
-			}
-			if(scannedId != null) {
-				Cursor cursor = dBHelper.getFindsWithIdentifier(scannedId);
-				if (cursor.getCount() == 0) {
-					EditText eText = (EditText) findViewById(R.id.idText);
-					eText.setText(value);
-				} else showDialog(NON_UNIQUE_ID);
-			}
+//			if(scannedId>= 1000000000) {
+//				showDialog(TOO_BIG_ID);
+//				break;
+//			}
+			
 			break;
 
 		case CAMERA_ACTIVITY: //for existing find: saves image to db when user clicks "attach"
