@@ -715,9 +715,10 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		return findsList;
 	}
 
-	public Cursor getFindsWithIdentifier(long value) {
+	public Cursor getFindsWithIdentifier(String value) {
 		mDb = getWritableDatabase();
 		Cursor cursor = mDb.query("finds", null, COLUMN_IDENTIFIER + "=" + value, null, null, null, null);
+		Log.i(TAG, cursor.getCount()+"");
 		mDb.close();
 		return cursor;
 	}
