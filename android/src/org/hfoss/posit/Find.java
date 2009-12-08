@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.hfoss.posit.provider.MyDBHelper;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;

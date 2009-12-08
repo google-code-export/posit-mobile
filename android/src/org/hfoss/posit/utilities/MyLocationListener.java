@@ -6,7 +6,10 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  ******************************************************************************/
 
-package org.hfoss.posit;
+package org.hfoss.posit.utilities;
+
+import org.hfoss.posit.R;
+import org.hfoss.posit.R.id;
 
 import android.app.Activity;
 import android.location.Location;

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.hfoss.posit.utilities.Utils;
 import org.hfoss.posit.web.Communicator;
 
 import android.app.Activity;

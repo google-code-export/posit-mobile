@@ -11,6 +11,7 @@ package org.hfoss.posit;
 import java.util.List;
 import java.util.Random;
 
+import org.hfoss.posit.utilities.Utils;
 import org.hfoss.posit.web.Communicator;
 
 import android.app.Activity;

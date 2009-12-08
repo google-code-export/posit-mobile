@@ -1,12 +1,4 @@
-/*******************************************************************************
- * Copyright (c) 2009 .
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- ******************************************************************************/
-
-package org.hfoss.posit;
+package org.hfoss.posit.adhoc;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -23,6 +15,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hfoss.posit.Find;
+import org.hfoss.posit.PositMain;
+import org.hfoss.posit.R;
+import org.hfoss.posit.R.layout;
+import org.hfoss.posit.R.raw;
+import org.hfoss.posit.R.string;
+import org.hfoss.posit.utilities.Utils;
 import org.hfoss.third.CoreTask;
 import org.json.JSONException;
 import org.json.JSONObject;

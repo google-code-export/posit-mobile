@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.hfoss.posit.Find;
-import org.hfoss.posit.MyDBHelper;
 import org.hfoss.posit.PositMain;
-import org.hfoss.posit.Utils;
+import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.utilities.Utils;
 import org.hfoss.third.Base64Coder;
 
 import android.content.ContentValues;

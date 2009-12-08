@@ -6,9 +6,12 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  ******************************************************************************/
 
-package org.hfoss.posit;
+package org.hfoss.posit.utilities;
 
 import java.util.ArrayList;
+
+import org.hfoss.posit.FindActivity;
+import org.hfoss.posit.provider.MyDBHelper;
 
 import android.content.Context;
 import android.content.Intent;

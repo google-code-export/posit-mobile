@@ -1,4 +1,4 @@
-package org.hfoss.posit;
+package org.hfoss.posit.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;

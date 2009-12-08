@@ -16,7 +16,7 @@ import java.util.List;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.hfoss.posit.Find;
-import org.hfoss.posit.Utils;
+import org.hfoss.posit.utilities.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
