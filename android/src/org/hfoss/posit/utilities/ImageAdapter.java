@@ -6,9 +6,13 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  ******************************************************************************/
 
-package org.hfoss.posit;
+package org.hfoss.posit.utilities;
 
 import java.util.List;
+
+import org.hfoss.posit.R;
+import org.hfoss.posit.R.string;
+import org.hfoss.posit.R.styleable;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -25,7 +29,7 @@ import android.widget.ImageView;
  * Used for putting images in the view
  *
  */
-class ImageAdapter extends BaseAdapter {
+public class ImageAdapter extends BaseAdapter {
     int mGalleryItemBackground;
 	private Context mContext;
 	private Cursor mCursor;

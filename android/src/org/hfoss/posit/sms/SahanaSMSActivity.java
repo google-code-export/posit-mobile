@@ -1,14 +1,11 @@
-/*******************************************************************************
- * Copyright (c) 2009 .
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- ******************************************************************************/
-
-package org.hfoss.posit;
+package org.hfoss.posit.sms;
 
 import java.util.List;
+
+import org.hfoss.posit.R;
+import org.hfoss.posit.R.id;
+import org.hfoss.posit.R.layout;
+import org.hfoss.posit.R.menu;
 
 import android.app.Activity;
 import android.app.PendingIntent;

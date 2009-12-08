@@ -15,6 +15,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.hfoss.posit.adhoc.AdhocClientActivity;
+import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.POSITProvider;
+import org.hfoss.posit.utilities.ImageAdapter;
+import org.hfoss.posit.utilities.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 

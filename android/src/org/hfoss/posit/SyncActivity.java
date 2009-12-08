@@ -8,6 +8,7 @@
 
 package org.hfoss.posit;
 
+import org.hfoss.posit.utilities.Utils;
 import org.hfoss.posit.web.SyncThread;
 
 import android.app.Activity;
