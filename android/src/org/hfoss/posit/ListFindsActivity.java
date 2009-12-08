@@ -33,6 +33,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -135,12 +136,16 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		String[] columns = MyDBHelper.list_row_data;
 		int [] views = MyDBHelper.list_row_views;
 
-		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);		
+		//mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);	
+		
+		Uri allFinds = Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID);
+	    mCursor = managedQuery(allFinds, null, null, null, null);
+	    
 		if (mCursor.getCount() == 0) { // No finds
 			setContentView(R.layout.list_finds);
 			return;
 		}
-		startManagingCursor(mCursor); // NOTE: Can't close DB while managing cursor
+		//startManagingCursor(mCursor); // NOTE: Can't close DB while managing cursor
 
 		// CursorAdapter binds the data in 'columns' to the views in 'views' 
 		// It repeatedly calls ViewBinder.setViewValue() (see below) for each column
@@ -148,7 +153,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			new SimpleCursorAdapter(this, R.layout.list_row, mCursor, columns, views);
 		adapter.setViewBinder(this);
 		setListAdapter(adapter); 
-		stopManagingCursor(mCursor);
+		//stopManagingCursor(mCursor);
 	}
 
 
@@ -284,7 +289,6 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 		TextView tv = (TextView) view;
 		int id = cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER);
-		Log.i("list id = ",id+"");
 		switch (view.getId()) {
 		/*case R.id.find_image:
 

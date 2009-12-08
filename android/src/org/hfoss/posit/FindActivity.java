@@ -20,7 +20,6 @@
 package org.hfoss.posit;
 
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -555,12 +554,13 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				Log.i("","NUM PICS = "+mTempBitmaps.size());
 				List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
 				Log.i("after retriveImages", (System.currentTimeMillis()-start)+"");
-				if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
+				/*if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
 					Log.i("after insert", (System.currentTimeMillis()-start)+"");
 					Utils.showToast(this, R.string.saved_to_database);
 				} else {
 					Utils.showToast(this, R.string.save_failed);
-				}
+				}*/
+				Uri uri = getContentResolver().insert(POSITProvider.FINDS_CONTENT_URI, contentValues);
 				Log.i("about to finish", (System.currentTimeMillis()-start)+"");
 				finish();
 				//onCreate(null);
@@ -658,6 +658,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		eText = (EditText) findViewById(R.id.idText);
 		value = eText.getText().toString();
 		try {
+
 //			result.put(getString(R.string.idDB), Long.parseLong(value));
 			result.put(getString(R.string.idDB), value);
 //			if(value.length() >= 10) {
@@ -665,6 +666,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 //				result.put(getString(R.string.idDB), 0);
 //
 //			}
+
 		} catch (NumberFormatException e) {
 			// If user entered non-numeric ID, show an error
 			Utils.showToast(this, "Error: ID must be numeric");
