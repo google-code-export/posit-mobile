@@ -4,18 +4,6 @@
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Prasanna Gautam - initial API and implementation
- *     Ralph Morelli - Supervisor
- *     Trishan deLanerolle - Director
- *     Antonio Alcorn - Summer 2009 Intern
- *     Gong Chen - Summer 2009 Intern
- *     Chris Fei - Summer 2009 Intern
- *     Phil Fritzsche - Summer 2009 Intern
- *     James Jackson - Summer 2009 Intern
- *     Qianqian Lin - Summer 2009 Intern 
- *     Khanh Pham - Summer 2009 Intern
  ******************************************************************************/
 
 package org.hfoss.posit;
@@ -41,11 +29,6 @@ import android.util.Log;
 /**
  * The class is the interface with the Database. It controls all DB access 
  *  and directly handles all DB queries.
- * @author Prasanna Gautam
- * @author Ralph Morelli
- * @author Phil Fritzsche
- * @author Chris Fei
- * @author Qianqian Lin
  */
 public class MyDBHelper extends SQLiteOpenHelper {
 	/*
