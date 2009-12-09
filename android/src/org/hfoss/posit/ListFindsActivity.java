@@ -216,7 +216,6 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			break;
 			
 		case R.id.delete_finds_menu_item:
-			mDbHelper.close();
 			showDialog(CONFIRM_DELETE_DIALOG);
 			break;
 		
@@ -279,7 +278,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 		TextView tv = (TextView) view;
-		int id = cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER);
+		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER));
 		switch (view.getId()) {
 		/*case R.id.find_image:
 
@@ -316,7 +315,8 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			tv.setText(status==1?"Synced  ":"Not synced  ");
 			return true;
 		case R.id.num_photos:
-			int count = mDbHelper.getImagesCursor(cursor.getInt(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER))).getCount();
+			Uri findPhotos = Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+findIden);
+		    int count = managedQuery(findPhotos, null, null, null, null).getCount();
 			tv.setText(count+" photos  ");
 			return true;
 		default:
@@ -352,7 +352,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					// User clicked OK so do some stuff 
-					MyDBHelper mDbHelper = new MyDBHelper(ListFindsActivity.this);
+					/*MyDBHelper mDbHelper = new MyDBHelper(ListFindsActivity.this);
 					if (mDbHelper.deleteAllFinds()) {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
@@ -361,7 +361,13 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.delete_failed);
 						dialog.cancel();
-					}
+					}*/
+					
+					int count = getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID), null, null);
+					Log.i("PROVIDER", "deleted "+ count);
+					Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
+					setContentView(R.layout.list_finds);
+					
 					//finish();
 					//Intent intent = new Intent(ListFindsActivity.this, ListFindsActivity.class);
 					//startActivity(intent);

@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class POSITProvider extends ContentProvider{
@@ -22,6 +23,8 @@ public class POSITProvider extends ContentProvider{
 	private static final int FINDS = 1;
     private static final int FIND_ID = 2; 
     private static final int FINDS_BY_PROJECT = 3;
+    private static final int PHOTO_FINDID = 4;
+    private static final int PHOTOS_BY_PROJECT = 5;
     
 	private static final UriMatcher uriMatcher;
     static{
@@ -29,6 +32,8 @@ public class POSITProvider extends ContentProvider{
        uriMatcher.addURI(PROVIDER_NAME, "finds", FINDS);
        uriMatcher.addURI(PROVIDER_NAME, "finds_id/#", FIND_ID);
        uriMatcher.addURI(PROVIDER_NAME, "finds_project/#", FINDS_BY_PROJECT);
+       uriMatcher.addURI(PROVIDER_NAME, "photo_findid/#", PHOTO_FINDID);
+       uriMatcher.addURI(PROVIDER_NAME, "photos_project/#", PHOTOS_BY_PROJECT);
     }
     
     private SQLiteDatabase db;
@@ -63,6 +68,7 @@ public class POSITProvider extends ContentProvider{
 	public static final String COLUMN_PHOTO_THUMBNAIL_URI = "imageThumbnailUri";
 	public static final String COLUMN_PHOTO_IDENTIFIER = "photo_identifier";
 	public static final String COLUMN_FIND_ID = "findId";
+
 	
 	private static final String CREATE_FINDS_TABLE = "CREATE TABLE "
 		+ FIND_TABLE_NAME  
@@ -89,7 +95,8 @@ public class POSITProvider extends ContentProvider{
 		+ COLUMN_PHOTO_IDENTIFIER + " integer, "
 		+ COLUMN_FIND_ID + " integer, "      // User Key
 		+ COLUMN_IMAGE_URI + " text, "      // The image's URI
-		+ COLUMN_PHOTO_THUMBNAIL_URI + " text "      // The thumbnail's URI
+		+ COLUMN_PHOTO_THUMBNAIL_URI + " text, "      // The thumbnail's URI
+		+ COLUMN_PROJECT_ID + " integer "
 		+ ");";
 	
 	private static class DatabaseHelper extends SQLiteOpenHelper 
@@ -115,8 +122,54 @@ public class POSITProvider extends ContentProvider{
     }
 
 	@Override
-	public int delete(Uri arg0, String arg1, String[] arg2) {
-		// TODO Auto-generated method stub
+	public int delete(Uri uri, String selection, String[] selectionArgs) {
+		int count = 0;
+		String findId = "";
+		String projId = "";
+		Cursor c = null;
+		
+		switch(uriMatcher.match(uri)) {
+		case FINDS_BY_PROJECT:
+			projId = uri.getPathSegments().get(1);
+			Log.i("PROVIDER", "delete finds from project #"+projId);
+			count = db.delete(FIND_TABLE_NAME, COLUMN_PROJECT_ID + " = " + projId + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""), selectionArgs);
+			delete(Uri.parse("content://org.hfoss.provider.POSIT/photos_project/"+projId),null,null);
+			break;
+		case PHOTOS_BY_PROJECT:
+			projId = uri.getPathSegments().get(1);
+			c = query(Uri.parse("content://org.hfoss.provider.POSIT/photos_project/"+projId),null,null,null,null);
+			//Delete photos from gallery
+			while (c.moveToNext()) {
+				String uriString = c.getString(c.getColumnIndexOrThrow(COLUMN_IMAGE_URI));
+				Uri _uri = Uri.parse(uriString);
+				getContext().getContentResolver().delete(_uri, null, null);
+			}
+			count = db.delete(PHOTO_TABLE_NAME, COLUMN_PROJECT_ID + " = " + projId + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""), selectionArgs);
+			break;
+		case FIND_ID:
+			findId = uri.getPathSegments().get(1);
+			Log.i("PROVIDER", "delete find #"+findId);
+			count = db.delete(FIND_TABLE_NAME, COLUMN_IDENTIFIER + " = " + findId + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""), selectionArgs);
+			delete(Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+findId),null,null);
+			break;
+		case PHOTO_FINDID:
+			findId = uri.getPathSegments().get(1);
+			Log.i("PROVIDER", "delete photos with find #"+findId);
+			c = query(Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+findId),null,null,null,null);
+			//Delete photos from gallery
+			while (c.moveToNext()) {
+				String uriString = c.getString(c.getColumnIndexOrThrow(COLUMN_IMAGE_URI));
+				Uri _uri = Uri.parse(uriString);
+				getContext().getContentResolver().delete(_uri, null, null);
+			}
+			count = db.delete(PHOTO_TABLE_NAME, COLUMN_FIND_ID + " = " + findId + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""), selectionArgs);
+			break;
+		default:
+			throw new IllegalArgumentException("Wrong arg for provider!");
+		}
+			
+			
+		getContext().getContentResolver().notifyChange(uri, null);
 		return 0;
 	}
 
@@ -134,9 +187,20 @@ public class POSITProvider extends ContentProvider{
 		else if (uri.equals(PHOTOS_CONTENT_URI))
 			table = PHOTO_TABLE_NAME;
 		long rowId = db.insert(table, "", values);
+		Uri _uri = null;
 		if(rowId>0) {
-			Uri _uri = ContentUris.withAppendedId(uri, rowId);
-	        getContext().getContentResolver().notifyChange(_uri, null);    
+			if(uri.equals(FINDS_CONTENT_URI)) {
+				Cursor c = query(Uri.parse("content://org.hfoss.provider.POSIT/finds_id/"+rowId),null,null,null,null);
+				c.moveToFirst();
+				String identifier = c.getString(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER));
+				_uri = ContentUris.withAppendedId(uri, Long.parseLong(identifier));
+		        getContext().getContentResolver().notifyChange(_uri, null);
+		        c.close();
+			}
+			else {
+				_uri = ContentUris.withAppendedId(uri, rowId);
+			}
+			getContext().getContentResolver().notifyChange(_uri, null); 
 	        return _uri;
 		}
 		throw new SQLException("Failed to insert row into "+uri);
@@ -153,14 +217,25 @@ public class POSITProvider extends ContentProvider{
 	@Override
 	public Cursor query(Uri uri, String[] projections, String selection, String[] selectionArgs, String sortOrder) {
 		SQLiteQueryBuilder sqlBuilder = new SQLiteQueryBuilder();
-		if(uriMatcher.match(uri) == FINDS_BY_PROJECT) {
+		switch(uriMatcher.match(uri)) {
+		case FINDS_BY_PROJECT:
 			sqlBuilder.setTables(FIND_TABLE_NAME);
-			Log.i("POSITProvider", "project id = "+uri.getPathSegments().get(1));
+			//Log.i("POSITProvider", "project id = "+uri.getPathSegments().get(1));
 			sqlBuilder.appendWhere(COLUMN_PROJECT_ID + " = " + uri.getPathSegments().get(1));
-		}
-		else if(uriMatcher.match(uri) == FIND_ID) {
+			break;
+		case FIND_ID:
 			sqlBuilder.setTables(FIND_TABLE_NAME);
 			sqlBuilder.appendWhere(COLUMN_ID + " = " + uri.getPathSegments().get(1));
+			break;
+		case PHOTO_FINDID:
+			sqlBuilder.setTables(PHOTO_TABLE_NAME);
+			//Log.i("POSITProvider", "query photos with find id = "+uri.getPathSegments().get(1));
+			sqlBuilder.appendWhere(COLUMN_FIND_ID + " = " + uri.getPathSegments().get(1));
+			break;
+		case PHOTOS_BY_PROJECT:
+			sqlBuilder.setTables(PHOTO_TABLE_NAME);
+			sqlBuilder.appendWhere(COLUMN_PROJECT_ID + " = " + uri.getPathSegments().get(1));
+			break;
 		}
 		
 		Cursor c = sqlBuilder.query(db, projections, selection, selectionArgs, null, null, sortOrder);
