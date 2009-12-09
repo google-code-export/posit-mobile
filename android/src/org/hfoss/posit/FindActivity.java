@@ -922,10 +922,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				mGallery.setAdapter(adapter);
 				mGallery.setOnItemClickListener(this);
 			} else {
-				mCursor=null;
 				mCursor.close();
 				Utils.showToast(this, "No images to display.");
 			}
+			
 		} else { //for new finds
 			if (mTempBitmaps.size() > 0) {
 				finishActivity(FindActivity.IMAGE_VIEW);
