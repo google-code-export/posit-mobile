@@ -91,8 +91,7 @@ function webController($path, $request) {
 				break;
 			case 'project.new.do':
 				$name = $request["name"];
-				$description = $request["description"];
-				
+				$description = $name["description"];
 				$dao->newProject($name, $description);
 				header("Location: projects");
 				break;
@@ -103,7 +102,7 @@ function webController($path, $request) {
 				$smarty->assign("project", $project);
 				
 				$finds = $dao->getFinds($id);
-				$smarty->assign("finds", $finds);
+				$smarty->assign("finds", addslashes(json_encode($finds)));
 				$smarty->display("project_mapdisplay.tpl");
 				break;
 			case 'project.display':
@@ -125,6 +124,8 @@ function webController($path, $request) {
 				
 				
 				$smarty->assign("images",$find["images"]);
+				$smarty->assign("videos",$find["videos"]);
+				$smarty->assign("audioClips",$find["audioClips"]);
 				$smarty->assign("project", $project);
 				$smarty->assign("find", $find);
 				$smarty->display("find_display.tpl");
@@ -191,6 +192,28 @@ function webController($path, $request) {
 				echo $data;
 				break;
 	
+			case 'displayVideo':
+				$id=$request["id"];
+				$video=$dao->getVideo($id);
+				$video_name=$video["data_path"];
+				$video_path="uploads/$video_name";
+				$fp_v = fopen($video_path, 'r');
+				$video_data = fread($fp_v, filesize($video_path));
+				header("Content-type: video/3gp");
+				echo $video_data;
+				break;
+				
+			case 'displayAudio':
+				$id=$request["id"];
+				$audio=$dao->getAudio($id);
+				$audio_name=$audio["data_path"];
+				$audio_path="uploads/$audio_name";
+				$fp_v = fopen($audio_path, 'r');
+				$audio_data = fread($fp_v, filesize($audio_path));
+				header("Content-type: audio/3gp");
+				print $audio_data;
+				break;
+				
 			case 'admin':
 				$smarty->display("admin/admin.tpl");
 				break;	

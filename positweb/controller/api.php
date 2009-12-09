@@ -37,7 +37,10 @@ function apiController($path, $request, $files = null) {
 		case 'registerDevice':
 			$imei = $request["imei"];
 			$name = null;
-			$result = $dao->confirmDevice($authKey, $imei, $name);
+			if(strstr($authKey, "sb_"))
+				$result = $dao->addSandboxDevice($authKey, $imei);
+			else
+				$result = $dao->confirmDevice($authKey, $imei, $name);
 			echo json_encode($result);
 			break;
 		case 'getPendingDeviceStatus':
@@ -84,11 +87,39 @@ function apiController($path, $request, $files = null) {
 			$result=$dao->addPictureToFind($request["id"], $request["findId"], $request["mimeType"], $imagedata, $imagethumbdata);
 			echo json_encode($result);
 			break;
+		case 'attachVideo':
+			$video_data = $files['file']['tmp_name'];
+			$video_type = $request["mimeType"];
+			$video_name = str_replace(' ','_',$files["file"]["name"]);
+			move_uploaded_file($video_data, "uploads/$video_name");
+			$result=$dao->addVideoToFind($request['id'], $request["findId"], $video_type, $video_name);
+			return $result;
+			break;
+		case 'attachAudio':
+			$audio_data = $files['file']['tmp_name'];
+			$audio_type = $request["mimeType"];
+			$audio_name = str_replace(' ','_',$files["file"]["name"]);
+			move_uploaded_file($audio_data, "uploads/$audio_name");
+			$result=$dao->addAudioClipToFind($request['id'], $request["findId"], $audio_type, $audio_name);
+			return $result;
+			break;
 		case 'removePicture':
 			$dao->deletePictureFromFind($request["id"]);
 			break;
+		case 'removeVideo':
+			$dao->deleteVideoFromFind($request["id"]);
+			break;
+		case 'removeAudioClip':
+			$dao->deleteAudioClipFromFind($request["id"]);
+			break;
 		case 'deleteAllPictures':
 			$dao->deleteImages($request["findId"]);
+			break;
+		case 'deleteAllVideos':
+			$dao->deleteVideos($request["findId"]);
+			break;
+		case 'deleteAllAudioClips':
+			$dao->deleteAudioClips($request["findId"]);
 			break;
 		case 'getPicture':
 			$picture=$dao->getPicture($request["id"]);
@@ -120,6 +151,28 @@ function apiController($path, $request, $files = null) {
 			if(count($result) > 0)
 				echo json_encode($result);
 			else echo "false";
+			break;
+		case 'getVideo':
+			$video=$dao->getVideo($request["id"]);
+			$video_name=$video["data_path"];
+			$video_path="uploads/$video_name";
+			$fp_v = fopen($video_path, 'r');
+			$video_data = fread($fp_v, filesize($video_path));
+			$videoEncoded=base64_encode($video_data);
+			$clipEncoded = $video;
+			$clipEncoded["data_full"]=$videoEncoded;
+			echo json_encode($clipEncoded);
+			break;
+		case 'getAudio':
+			$audio=$dao->getAudioClip($request["id"]);
+			$audio_name=$audio["data_path"];
+			$audio_path="uploads/$audio_name";
+			$fp_v = fopen($audio_path, 'r');
+			$audio_data = fread($fp_v, filesize($audio_path));
+			$audioEncoded=base64_encode($audio_data);
+			$clipEncoded=$audio;
+			$clipEncoded["data_full"]=$audioEncoded;
+			echo json_encode($clipEncoded);
 			break;
 		case 'searchFinds':
  			$search_value=$request['search_value'];

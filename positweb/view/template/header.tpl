@@ -4,7 +4,7 @@
 		<link rel="stylesheet" href="../res/style/basic.css"/>
 		<script src="../res/js/util.js"></script>
 		<script src="../res/js/jquery-1.3.2.min.js"></script>
-		<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAABY5j6qALx5WVRQKYcVi3PxR8FDJ9NHltQwRz_06jpLbaHME4mRTi_jHnToZG3TIpHZwxjJqOIqzq4g"></script>
+		<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAaWJSFbTOOP7LwuoqYOWKaxR0VQJcDXb7cwsw42dNMXfxq-WZQRQ2-K5DpIlxvXekhiy5guz8Ybaz5A"></script>
 	</head>
 	<body{$body_attributes}>
 		<div id="header">
