@@ -6,7 +6,12 @@ function flashGreen() {
 
 var xmlhttp;
 var foundRegistration = false;
-
+/**
+ * start checking for device registration
+ * @param baseUrl
+ * @param authKey
+ * @return
+ */
 function startCheckingDeviceRegistration(baseUrl, authKey) {
 	xmlhttp=null;
 	if(window.XMLHttpRequest)
@@ -15,7 +20,12 @@ function startCheckingDeviceRegistration(baseUrl, authKey) {
 		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 	setInterval('checkDeviceRegistration(\''+baseUrl+'\', \''+authKey+'\')', 500);
 }
-
+/**
+ * XMLHTTPRequest to check if the device has been verified
+ * @param baseUrl
+ * @param authKey
+ * @return
+ */
 function checkDeviceRegistration(baseUrl, authKey) {
 	if(xmlhttp!=null) {
 		xmlhttp.onreadystatechange=handleRegistrationData();
@@ -25,7 +35,9 @@ function checkDeviceRegistration(baseUrl, authKey) {
 	else
 		alert("Your browser does not support XMLHTTP.");
 }
-
+/**
+ * handles the registrationa and give user feedback
+ */
 function handleRegistrationData() {
 	if(xmlhttp.readyState==4) {
 		if(xmlhttp.status==200) {

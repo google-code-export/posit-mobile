@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * generate authentication key of length 16
+ * @param unknown_type $length
+ * @return unknown_type
+ */
 function genAuthKey($length = 16) {
 	$k = "";
 	$chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";

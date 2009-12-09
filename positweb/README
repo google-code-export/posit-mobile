@@ -1,0 +1,26 @@
+Positweb for the web service for POSIT application.
+
+============== About the Project ===============
+
+Positweb is a php5 application based on a Model-View-Controller architecture. 
+The architecture is like this
+
+3rd
+  - Third party programs positweb depends on
+  - Currently this includes the program for generating qr codes and smarty templating engine 
+controller
+  - For the Controller classes
+cache
+  - For enabling caching for high traffic sites
+model
+  - the DAO objects for working with the database
+view
+  - the templates are here
+util
+  - the authentication, constants, error values, etc. are here
+res
+  - for media like images, javascript, styles
+uploads
+  - folder for uploading files, possibly can change in future releases
+
+Positweb supports the POSIT API and any future extension in the API. The file is in api.php

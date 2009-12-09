@@ -1,6 +1,11 @@
 <?php
 
-
+/**
+ * the main apiController function that outputs json_encoded results
+ * @param $path
+ * @param $request
+ * @param $files
+ */
 function apiController($path, $request, $files = null) {
 
 	global $dao;

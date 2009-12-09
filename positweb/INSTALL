@@ -1,0 +1,19 @@
+====== Installation Info on POSIT ======
+
+Things needed
+
+Apache 2.0+ with mod_rewrite and mod_php5
+MySQL 5.0+
+
+Things to do
+
+- Copy the config.sample.php file as config.php
+- Create the username and password in the mysql database
+- dump the file positweb.sql into the database you create
+
+You need to have cache folder make writeable by the server
+Two ways:
+ chown www-data:www-data cache -R
+ chmod 777 cache -R
+I prefer the first one giving all write access is bad idea
+if you want to change this, do it in controller/main.php
