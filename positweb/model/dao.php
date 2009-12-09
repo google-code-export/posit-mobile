@@ -31,6 +31,9 @@ function dbConnect() {
 	    die();
 	}
 	
+	mysql_connect($host, $user, $pass);
+	mysql_select_db($db_name);
+	
 	return $db;
 }
 
@@ -53,6 +56,24 @@ class DAO {
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
 	
+	function newProject($name, $description) {
+		$name = addslashes($name);
+		$description = addslashes($description);
+		/*$stmt = $this->db->prepare(
+			"INSERT INTO project (name, description) VALUES (:name, :description)"
+		); // or print_r($this->db->errorInfo()) && die();
+		
+		$stmt->bindValue(":name", $name);
+		$stmt->bindValue(":description", $description);
+		
+		print_r($stmt);
+		
+		$stmt->execute();*/
+		
+		$stmt = $this->db->prepare("INSERT INTO project (name) VALUES ('$name')");
+		$stmt->execute();
+	}
+	
 	function getProjects($permissionType = PROJECTS_ALL) {
 		if($permissionType == PROJECTS_OPEN)
 			$whereClause = "where permission_type = 'open'";
@@ -72,24 +93,6 @@ class DAO {
 		return $result;
 	}
 	
-	function newProject($name, $description) {
-		$name = addslashes($name);
-		$description = addslashes($description);
-		/*$stmt = $this->db->prepare(
-			"INSERT INTO project (name, description) VALUES (:name, :description)"
-		); // or print_r($this->db->errorInfo()) && die();
-		
-		$stmt->bindValue(":name", $name);
-		$stmt->bindValue(":description", $description);
-		
-		print_r($stmt);
-		
-		$stmt->execute();*/
-		
-		$stmt = $this->db->prepare("INSERT INTO project (name, description) VALUES ('$name', '$description')");
-		$stmt->execute();
-	}
-	
 	function getUserProjects($userId) {
 		$stmt = $this->db->prepare(
 			"select project_id from user_project 
@@ -106,7 +109,7 @@ class DAO {
 	function getFinds($projectId) {
 		$stmt = $this->db->prepare("select id, name, description, add_time, modify_time,
 			latitude, longitude, revision from find where project_id = :projectId"
-		) or print_r($this->db->errorInfo()) && die();
+		);
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -123,6 +126,29 @@ class DAO {
 			foreach($imageResult as $image) {
 				$find["images"][] = $image["id"];
 			}
+			
+			$stmt = $this->db->prepare("select id from video where find_id = :id");
+			$stmt->bindValue(":id", $find["id"]);
+			$stmt->execute();
+			$videoResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			
+			$find["videos"] = array();
+			
+			foreach($videoResult as $video) {
+				$find["videos"][] = $video["id"];
+			}
+			
+			$stmt = $this->db->prepare("select id from audio where find_id= :id");
+			$stmt->bindValue(":id", $find["id"]);
+			$stmt->execute();
+			$audioResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			
+			$find["audioClips"] = array();
+			
+			foreach($audioResult as $audio) {
+				$find["audioClips"][] = $audio["id"];
+			}
+			
 			$result[] = $find;
 		}
 
@@ -136,9 +162,9 @@ class DAO {
 		$stmt->bindValue(":id", $id);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-		$result= $temp[0];
-		$result["images"] = array();
+		$result = array();
+		$result[0]= $temp[0];
+		$result[0]["images"] = array();
 		
 		$stmt = $this->db->prepare("select id from photo where find_id = :id");
 		$stmt->bindValue(":id", $id);
@@ -146,10 +172,30 @@ class DAO {
 		$imageResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 		foreach($imageResult as $image) {
-			$result["images"][] = $image["id"];
+			$result[0]["images"][] = $image["id"];
+		}
+		
+		$result[0]["audios"] = array();
+		$stmt = $this->db->prepare("select id from audio where find_id = :id");
+		$stmt->bindValue(":id", $id);
+		$stmt->execute();
+		$audioResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+		foreach($audioResult as $audio) {
+			$result[0]["audios"][] = $audio["id"];
 		}
 
-		return $result;
+		$result[0]["videos"] = array();
+		$stmt = $this->db->prepare("select id from video where find_id = :id");
+		$stmt->bindValue(":id", $id);
+		$stmt->execute();
+		$videoResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+		foreach($videoResult as $video) {
+			$result[0]["videos"][] = $video["id"];
+		}
+
+		return $result[0];
 	
 	}
 
@@ -205,6 +251,20 @@ class DAO {
 		return $result;
 	}
 	
+	function getVideo($videoId) {
+		$stmt = $this->db->prepare("select id, find_id, mime_type, data_path from video where id=:id");
+		$stmt->bindValue(':id', $videoId);
+		$stmt->execute();
+		return $stmt->fetch(PDO::FETCH_ASSOC);
+	}
+	
+	function getAudioClip($audioId) {
+		$stmt = $this->db->prepare("select id, find_id, mime_type, data_path from audio where id=:id");
+		$stmt->bindValue(':id', $audioId);
+		$stmt->execute();
+		return $stmt->fetch(PDO::FETCH_ASSOC);
+	}
+	
 	function checkLogin($email, $pass) {
 		$stmt = $this->db->prepare(
 			"SELECT id, first_name, last_name
@@ -249,7 +309,21 @@ class DAO {
 		$stmt->execute();
 		echo "Deletion of image with find_id = ".$findId." successful.";
 	}
-
+	
+	function deleteVideos($findId) {
+		$stmt = $this->db->prepare("delete from video where find_id = :findId");
+		$stmt->bindValue(":findId", $findId);
+		$stmt->execute();
+		echo "Deletion of video with find_id = ".$findId." successful.";
+	}
+	
+	function deleteAudioClips($findId) {
+		$stmt = $this->db->prepare("delete from audio where find_id = :findId");
+		$stmt->bindValue(":findId", $findId);
+		$stmt->execute();
+		echo "Deletion of audio clip with find_id = ".$findId." successful.";
+	}
+	
 	function createFind($id, $projectId, $name, $description, $latitude, $longitude, $revision) {
 		$stmt = $this->db->prepare(
 			"insert into find (id, project_id, name, description, 
@@ -297,10 +371,72 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-
+	
+	function addVideoToFind($id, $findId, $mimeType, $dataPath) {
+		$stmt = $this->db->prepare(
+			"insert into video (id, find_id, mime_type, data_path)
+			VALUES (:id, :findId, :mimeType, :dataPath)"
+		);
+		$stmt->bindValue(":id", $id);
+		$stmt->bindValue(":findId", $findId);
+		$stmt->bindValue(":mimeType", $mimeType);
+		$stmt->bindValue(":dataPath", $dataPath);
+		
+		$stmt->execute();
+		return $stmt->fetch(PDO::FETCH_ASSOC);
+	}
+	
+	function addAudioClipToFind($id, $findId, $mimeType, $dataPath) {
+		$stmt = $this->db->prepare(
+			"insert into audio (id, find_id, mime_type, data_path)
+			VALUES (:id, :findId, :mimeType, :dataPath)"
+		);
+		$stmt->bindValue(":id", $id);
+		$stmt->bindValue(":findId", $findId);
+		$stmt->bindValue(":mimeType", $mimeType);
+		$stmt->bindValue(":dataPath", $dataPath);
+		
+		$stmt->execute();
+		return $stmt->fetch(PDO::FETCH_ASSOC);
+	}
+	
 	function deletePictureFromFind($id) {
 		$stmt = $this->db->prepare(
 			"delete from photo where id = :id"
+		);
+		$stmt->bindValue(":id", $id);
+		$stmt.execute();
+	}
+	
+	function deleteVideoFromFind($id) {
+		$stmt = $this->db->prepare(
+			"select data_path from video where id = :id");
+		$stmt->bindValue(":id", $id);
+		$stmt.execute();
+		$video = $stmt->fetch(PDO::FETCH_ASSOC);
+		$video_path = $video['data_path'];
+		$fh = fopen("uploads/$video_path", 'w') or die("can't open file");
+		fclose($fh);
+		unlink($video_path);
+		$stmt = $this->db->prepare(
+			"delete from video where id = :id"
+		);
+		$stmt->bindValue(":id", $id);
+		$stmt.execute();
+	}
+	
+	function deleteAudioClipFromFind($id) {+
+		$stmt = $this->db->prepare(
+			"select data_path from audio where id = :id");
+		$stmt->bindValue(":id", $id);
+		$stmt.execute();
+		$audio = $stmt->fetch(PDO::FETCH_ASSOC);
+		$audio_path = $audio['data_path'];
+		$fh = fopen("uploads/$audio_path", 'w') or die("can't open file");
+		fclose($fh);
+		unlink($audio_path);
+		$stmt = $this->db->prepare(
+			"delete from audio where id = :id"
 		);
 		$stmt->bindValue(":id", $id);
 		$stmt.execute();
@@ -377,15 +513,20 @@ class DAO {
 		$stmt->execute();
 		
 		if($existingDevice = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$stmt = $this->db->prepare(
-				"UPDATE device SET
-				 auth_key = :authkey,
-				 status = 'ok'
-				 WHERE imei = :imei"
+			$res = mysql_query("select user_id from device where auth_key = '$authKey'") or die(mysql_error());
+			list($userId) = mysql_fetch_array($res, MYSQL_NUM);
+			
+			mysql_query(
+				"DELETE FROM device WHERE auth_key = '$authKey'"
 			);
-			$stmt->bindValue(":authKey", $authKey);
-			$stmt->bindValue(":imei", $imei);
-			return $stmt->execute();
+			mysql_query(
+				"UPDATE device SET auth_key = '$authKey', status = 'ok', user_id = '$userId' WHERE imei = '$imei'"
+			);
+			
+			return true;
+			//$stmt->bindValue(":authKey", $authKey);
+			//$stmt->bindValue(":imei", $imei);
+			//return $stmt->execute();
 			/*
 			$stmt = $this->db->prepare(
 				"SELECT name FROM device WHERE imei = :imei"
@@ -409,6 +550,22 @@ class DAO {
 		$stmt->bindValue(":authKey", $authKey);
 		$result = $stmt->execute();
 		return $result;
+	}
+	
+	function addSandboxDevice($authKey, $imei) {
+		
+		$stmt = $this->db->prepare("delete from device where imei = :imei");
+		$stmt->bindValue(":imei", $imei);
+		$stmt->execute();
+		
+		$stmt = $this->db->prepare(
+			"INSERT INTO device (imei, user_id, auth_key, add_time, status)
+			 VALUES (:imei, 0, :authKey, now(), 'ok')"
+		);
+		$stmt->bindValue(":imei", $imei);
+		$stmt->bindValue(":authKey", $authKey);
+		$stmt->execute();
+		return true;
 	}
 	
 	function changeDeviceNickname($imei, $name) {

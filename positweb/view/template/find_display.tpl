@@ -24,5 +24,21 @@
 	
 	<br />
 	
+	<div class="video_loop">
+		{foreach from=$videos item=videoid}
+			<a href="displayVideo?id={$videoid}">Click to download video</a>
+		{/foreach}
+	</div>
+	
+	<div class="audio_loop">
+		{foreach from=$audios item=audioid}
+			<embed type="application/x-shockwave-flash" 
+				src="http://www.google.com/reader/ui/3247397568-audio-player.swf?audioUrl=displayAudio?id={$audioid}" 
+				width="400" height="27" allowscriptaccess="never" quality="best" bgcolor="#ffffff" wmode="window" 
+				flashvars="playerMode=embedded"
+			/> <br />
+		{/foreach}
+	</div>
+	
 </div>
 {include file="footer.tpl"}

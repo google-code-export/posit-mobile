@@ -123,13 +123,10 @@ CREATE TABLE IF NOT EXISTS `audio` (
 CREATE TABLE IF NOT EXISTS project (
   id int(11) NOT NULL auto_increment,
   `name` varchar(32) NOT NULL,
-  description text NOT NULL,
   create_time datetime NOT NULL,
   permission_type set('open','closed') NOT NULL default 'open',
-  PRIMARY KEY  (id),
-  FULLTEXT KEY description (description)
+  PRIMARY KEY  (id)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
-
 
 -- --------------------------------------------------------
 
