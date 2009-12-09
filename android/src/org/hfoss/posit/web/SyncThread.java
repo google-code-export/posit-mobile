@@ -8,11 +8,8 @@
 
 package org.hfoss.posit.web;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -23,7 +20,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.hfoss.posit.Find;
-import org.hfoss.posit.PositMain;
 import org.hfoss.posit.provider.MyDBHelper;
 import org.hfoss.posit.utilities.Utils;
 import org.hfoss.third.Base64Coder;
@@ -34,10 +30,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -70,7 +63,7 @@ public class SyncThread extends Thread {
 	}
 
 	public void run() {
-		while(!shutdownRequested){
+
 			try{
 			Communicator comm = new Communicator(mContext);
 			Log.i(TAG, "Getting remote finds...");
@@ -94,7 +87,7 @@ public class SyncThread extends Thread {
 					mHandler.sendEmptyMessage(SYNCERROR);
 					shutdownRequested = true;	
 				}
-		}
+		
 	}
 
 	/**
@@ -111,8 +104,8 @@ public class SyncThread extends Thread {
 			Log.i(TAG, "Remote Finds (SIDs) From Server Size: " + remoteFindsList.size());
 		}
 		MyDBHelper mDBHelper = new MyDBHelper(mContext);  		// Get all phone SIDs
-		List<Integer> phoneSIDs = mDBHelper.getAllPhoneSIDs();
-		List<Integer> phoneUpdateSIDs = mDBHelper.getFindsNeedingUpdate(remoteFindsList);
+		List<Long> phoneSIDs = mDBHelper.getAllPhoneSIDs();
+		List<Long> phoneUpdateSIDs = mDBHelper.getFindsNeedingUpdate(remoteFindsList);
 		if(Utils.debug) {
 			Log.i(TAG, "Phone SIDs: " + phoneSIDs.toString());
 			Log.i(TAG, "# to be updated = " + phoneUpdateSIDs.size());
@@ -123,9 +116,9 @@ public class SyncThread extends Thread {
 		for (int i = 0; i < remoteFindsList.size(); i++) {
 			HashMap<String, Object> find = remoteFindsList.get(i);
 			//Integer id = new ResponseParser(find.get(i));
-			Integer Id = Integer.parseInt(find.get("id").toString());
+			Long Id = Long.parseLong(find.get("id").toString());
 			
-				int id = Id.intValue();
+				long id = Id.longValue();
 				Communicator.cleanupOnReceive(find);
 				ContentValues args = MyDBHelper.getContentValuesFromMap(find);
 				args.remove(MyDBHelper.COLUMN_IMAGE_URI);
@@ -210,13 +203,13 @@ public class SyncThread extends Thread {
 			return;
 		}
 		MyDBHelper mDBHelper = new MyDBHelper(mContext); 
-		List<Integer> newFindsOnPhone = mDBHelper.getAllNewIds();
-		List<Integer> phoneSIDs = mDBHelper.getUpdatedSIDsFromPhone(remoteFindsList);
+		List<Long> newFindsOnPhone = mDBHelper.getAllNewIds();
+		List<Long> phoneSIDs = mDBHelper.getUpdatedSIDsFromPhone(remoteFindsList);
 		if(Utils.debug)
 			Log.i(TAG, "Sending finds to server: " + newFindsOnPhone.toString());
 
 		if (newFindsOnPhone!=null) {
-			for (int id: newFindsOnPhone) {
+			for (long id: newFindsOnPhone) {
 				Find find = new Find(mContext, id);
 				comm.sendFind(find);
 				Cursor cursor = find.getImages();
@@ -225,7 +218,7 @@ public class SyncThread extends Thread {
 		}
 
 		if (phoneSIDs!=null) {
-			for(int id: phoneSIDs) {
+			for(long id: phoneSIDs) {
 				Find find = new Find(mContext, id);
 				comm.updateFind(find);
 				Cursor cursor = find.getImages();
@@ -243,7 +236,7 @@ public class SyncThread extends Thread {
 	 * @param cursor the Cursor that contains all the information
 	 * @param findId the Find that this image is associated with
 	 */
-	private void putNewImagesToServer(Communicator comm, Cursor cursor, int findId) {
+	private void putNewImagesToServer(Communicator comm, Cursor cursor, long findId) {
 		cursor.moveToFirst();
 
 		while (!cursor.isAfterLast()) {			

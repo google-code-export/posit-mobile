@@ -559,9 +559,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 * @param remoteFindsList -- the list of all finds on the server.
 	 * @return list of all the SIDs in the phone that the phone has to send now
 	 */
-	public List<Integer> getUpdatedSIDsFromPhone(List<HashMap<String, Object>> remoteFindsList) {
+	public List<Long> getUpdatedSIDsFromPhone(List<HashMap<String, Object>> remoteFindsList) {
 		String queryCondition = "";
-		List<Integer> idsList = new ArrayList<Integer>();
+		List<Long> idsList = new ArrayList<Long>();
 		for (int i = 0; i < remoteFindsList.size(); i++) {
 			HashMap<String, Object> find = remoteFindsList.get(i);
 			if(find.containsKey("id")&&find.containsKey("revision")) {
@@ -582,7 +582,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			if (c.getCount() != 0) {
 				c.moveToFirst();
 				do {
-					idsList.add(c.getInt(c.getColumnIndexOrThrow(COLUMN_SID)));
+					idsList.add(c.getLong(c.getColumnIndexOrThrow(COLUMN_SID)));
 
 				} while (c.moveToNext());
 			}
@@ -602,9 +602,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 * @param remoteFindsList -- the list of all finds on the server.
 	 * @return list of all the SIDs in the phone that need updating
 	 */
-	public List<Integer> getFindsNeedingUpdate(List<HashMap<String, Object>> remoteFindsList) {
+	public List<Long> getFindsNeedingUpdate(List<HashMap<String, Object>> remoteFindsList) {
 		String queryCondition = "";
-		List<Integer> idsList = new ArrayList<Integer>();
+		List<Long> idsList = new ArrayList<Long>();
 
 		for (int i = 0; i < remoteFindsList.size(); i++) {
 			HashMap<String, Object> find = remoteFindsList.get(i);
@@ -625,7 +625,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			if (c.getCount() != 0) {
 				c.moveToFirst();
 				do {
-					idsList.add(c.getInt(c.getColumnIndexOrThrow(COLUMN_SID)));
+					idsList.add(c.getLong(c.getColumnIndexOrThrow(COLUMN_SID)));
 
 				} while (c.moveToNext());
 			}
@@ -651,8 +651,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			return (c.getLong(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER)));
 	}
 
-	public List<Integer> getAllPhoneSIDs () {
-		List<Integer> allSIDs = new ArrayList<Integer>();
+	public List<Long> getAllPhoneSIDs () {
+		List<Long> allSIDs = new ArrayList<Long>();
 		try {
 			mDb = getReadableDatabase();
 			/* Get all the SIDs in our database in a list */
@@ -660,7 +660,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			if (c.getCount() != 0) {
 				c.moveToFirst();
 				do {
-					allSIDs.add(c.getInt(c.getColumnIndexOrThrow(COLUMN_SID)));
+					allSIDs.add(c.getLong(c.getColumnIndexOrThrow(COLUMN_SID)));
 				} while (c.moveToNext());
 			}
 			c.close();
@@ -697,9 +697,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 *  are set to 0 initially. 
 	 * @return
 	 */
-	public List<Integer> getAllNewIds(){
+	public List<Long> getAllNewIds(){
 		String[] projection = new String[] { COLUMN_IDENTIFIER };
-		List<Integer> findsList = new ArrayList<Integer>();
+		List<Long> findsList = new ArrayList<Long>();
 		try {
 			mDb = getReadableDatabase();
 			Cursor c = mDb.query(FIND_TABLE_NAME, projection, COLUMN_SID + "=0 and "+ IS_AD_HOC +"=0",
@@ -709,7 +709,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			if (c.getCount() > 0) {
 				c.moveToFirst();
 				do {
-					findsList.add(c.getInt(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER)));
+					findsList.add(c.getLong(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER)));
 				} while (c.moveToNext());
 			}
 			c.close();

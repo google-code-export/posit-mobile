@@ -11,13 +11,16 @@ package org.hfoss.posit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Random;
 
 import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.POSITProvider;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * Represents a specific find for a project, with a unique identifier
@@ -89,18 +92,29 @@ public class Find {
 	 * @return whether the DB operation succeeds
 	 */
 	public boolean insertToDB(ContentValues content, List<ContentValues> images) {
+		int projId = 0;
 		if (content != null) {
-			if (!content.containsKey(MyDBHelper.COLUMN_REVISION))
-				content.put(MyDBHelper.COLUMN_REVISION, 1);
-			if(!content.containsKey(MyDBHelper.COLUMN_SID))
-				content.put(MyDBHelper.COLUMN_SID, 0);
-			mId = mDbHelper.addNewFind(content); // returns rowId
+			projId = content.getAsInteger(POSITProvider.COLUMN_PROJECT_ID);
+			if (!content.containsKey(POSITProvider.COLUMN_REVISION))
+				content.put(POSITProvider.COLUMN_REVISION, 1);
+			if(!content.containsKey(POSITProvider.COLUMN_SID))
+				content.put(POSITProvider.COLUMN_SID, 0);
+			//mId = mDbHelper.addNewFind(content); // returns rowId
+			Uri uri = mContext.getContentResolver().insert(POSITProvider.FINDS_CONTENT_URI, content);
+			mId = Long.parseLong(uri.getPathSegments().get(1));
 		}
 		if (images != null && images.size() > 0) {
 			ListIterator<ContentValues> it = images.listIterator();
 			while (it.hasNext()) {
 				ContentValues imageValues = it.next();
-				mDbHelper.addNewPhoto(imageValues, mId);
+				if (!imageValues.containsKey(POSITProvider.COLUMN_FIND_ID))
+					imageValues.put(POSITProvider.COLUMN_FIND_ID,mId);
+				if (!imageValues.containsKey(POSITProvider.COLUMN_PHOTO_IDENTIFIER))
+					imageValues.put(POSITProvider.COLUMN_PHOTO_IDENTIFIER, new Random().nextInt(999999999));
+				if (!imageValues.containsKey(POSITProvider.COLUMN_PROJECT_ID))
+					imageValues.put(POSITProvider.COLUMN_PROJECT_ID, projId);
+				mContext.getContentResolver().insert(POSITProvider.PHOTOS_CONTENT_URI, imageValues);
+				//mDbHelper.addNewPhoto(imageValues, mId);
 			}
 		}
 		return mId != -1;
@@ -126,10 +140,9 @@ public class Find {
 	 * @return whether the DB operation was successful
 	 */
 	public boolean delete() {
-		if (mDbHelper.deleteFind(mId)) {
-			return deleteImages(mId);
-		}else 
-			return false;
+		Log.i("FIND","deleteing find #"+mId);
+		mContext.getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_id/"+mId), null, null);
+		return true;
 	}
 
 	/**
@@ -144,7 +157,9 @@ public class Find {
 	 * @return the cursor that points to the images
 	 */
 	public Cursor getImages() {
-		return mDbHelper.getImagesCursor(this.mId);
+		Log.i("","find id = "+mId);
+		return 	mContext.getContentResolver().query(Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+mId), null, null,null,null);
+
 	}
 	
 	/**

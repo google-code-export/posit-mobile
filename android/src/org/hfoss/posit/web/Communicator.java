@@ -183,7 +183,7 @@ public class Communicator {
 		}
 	}
 
-	public void sendMedia(int identifier, int findId, String data, String mimeType) {
+	public void sendMedia(int identifier, long findId, String data, String mimeType) {
 		HashMap<String, String> sendMap = new HashMap<String, String>();
 		String url = null;
 

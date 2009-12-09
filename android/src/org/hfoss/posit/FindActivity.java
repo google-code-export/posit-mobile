@@ -335,11 +335,12 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					if (mFind.delete()) // Assumes find was instantiated in onCreate
 					{
 						Utils.showToast(FindActivity.this, R.string.deleted_from_database);
+						finish();
 					}
 
 					else 
 						Utils.showToast(FindActivity.this, R.string.delete_failed);
-					finish();
+					
 					//Intent intent = new Intent(FindActivity.this, ListFindsActivity.class);
 					//startActivity(intent);
 					//TabMain.moveTab(1);
@@ -532,28 +533,25 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			Log.i("after nonnumeric check", (System.currentTimeMillis()-start)+"");
 
 			if (mState == STATE_INSERT) { //if this is a new find
-				Log.i("enter insert block", (System.currentTimeMillis()-start)+"");
+				
 				mFind = new Find(this);
-				Log.i("create new find", (System.currentTimeMillis()-start)+"");
-				Log.i("","NUM PICS = "+mTempBitmaps.size());
 				saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
-				Log.i("after saveCameraImageAndUri", (System.currentTimeMillis()-start)+"");
 				mTempBitmaps.clear();
-				Log.i("","NUM PICS = "+mTempBitmaps.size());
+				
 				List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
-				Log.i("after retriveImages", (System.currentTimeMillis()-start)+"");
-				/*if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
+				
+				if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
 					Log.i("after insert", (System.currentTimeMillis()-start)+"");
 					Utils.showToast(this, R.string.saved_to_database);
 				} else {
 					Utils.showToast(this, R.string.save_failed);
-				}*/
-				Uri uri = getContentResolver().insert(POSITProvider.FINDS_CONTENT_URI, contentValues);
-				Log.i("about to finish", (System.currentTimeMillis()-start)+"");
+				}
+				
 				finish();
 				//onCreate(null);
 				//TabMain.moveTab(1);
-			} else { 
+			} 
+			else { 
 				if (mFind.updateToDB(contentValues)) {
 					Utils.showToast(this, R.string.saved_to_database);
 				} else {
@@ -791,7 +789,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 						EditText eText = (EditText) findViewById(R.id.idText);
 						eText.setText(value);
 					} else showDialog(NON_UNIQUE_ID);
-				
+					cursor.close();
 			} catch(NumberFormatException e) {
 				showDialog(NON_NUMERIC_ID);
 			}
@@ -851,6 +849,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			ContentValues values = new ContentValues();
 			values.put(MediaColumns.TITLE, "posit image");
 			values.put(ImageColumns.BUCKET_DISPLAY_NAME,"posit");
+			
 			values.put(ImageColumns.IS_PRIVATE, 0);
 			values.put(MediaColumns.MIME_TYPE, "image/jpeg");
 			Uri imageUri = getContentResolver()
@@ -924,6 +923,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				mGallery.setOnItemClickListener(this);
 			} else {
 				mCursor=null;
+				mCursor.close();
 				Utils.showToast(this, "No images to display.");
 			}
 		} else { //for new finds
@@ -951,6 +951,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					intent.putExtra("position",position);
 					intent.putExtra("findId", mFindId);
 					setResult(RESULT_OK,intent);
+					mCursor.close();
 					startActivityForResult(intent, IMAGE_VIEW);
 				}
 			} catch (Exception e) {
