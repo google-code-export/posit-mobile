@@ -37,14 +37,21 @@ function dbConnect() {
 	return $db;
 }
 
-
+/**
+ * 
+ * The class for accessing the database
+ *	
+ */
 class DAO {
 	private $db;
 	
 	function DAO() {
 		$this->db = dbConnect();
 	}
-	
+	/**
+	 * get user from the user ID
+	 * @param unknown_type $userId
+	 */
 	function getUser($userId) {
 		$stmt = $this->db->prepare(
 			"SELECT email, first_name, last_name, privileges, create_time FROM user WHERE id = :userId"
@@ -55,7 +62,11 @@ class DAO {
 		
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * creates a new project
+	 * @param unknown_type $name
+	 * @param unknown_type $description
+	 */
 	function newProject($name, $description) {
 		$name = addslashes($name);
 		$description = addslashes($description);
@@ -73,7 +84,10 @@ class DAO {
 		$stmt = $this->db->prepare("INSERT INTO project (name) VALUES ('$name')");
 		$stmt->execute();
 	}
-	
+	/**
+	 * gets an associative array of all the projects that are accessible to the entity
+	 * @param unknown_type $permissionType
+	 */
 	function getProjects($permissionType = PROJECTS_ALL) {
 		if($permissionType == PROJECTS_OPEN)
 			$whereClause = "where permission_type = 'open'";
@@ -92,7 +106,10 @@ class DAO {
 
 		return $result;
 	}
-	
+	/**
+	 * get the projects accessible to the user
+	 * @param unknown_type $userId
+	 */
 	function getUserProjects($userId) {
 		$stmt = $this->db->prepare(
 			"select project_id from user_project 
@@ -105,7 +122,10 @@ class DAO {
 		
 		return $result;
 	}
-	
+	/**
+	 * get all the finds for a project
+	 * @param unknown_type $projectId
+	 */
 	function getFinds($projectId) {
 		$stmt = $this->db->prepare("select id, name, description, add_time, modify_time,
 			latitude, longitude, revision from find where project_id = :projectId"
@@ -154,7 +174,10 @@ class DAO {
 
 		return $result;
 	}
-	
+	/**
+	 * get a specific find
+	 * @param unknown_type $id
+	 */
 	function getFind($id) {
 		$stmt = $this->db->prepare("select id, name, description, add_time, modify_time, 
 			latitude, longitude, revision from find where id = :id");
@@ -198,7 +221,10 @@ class DAO {
 		return $result[0];
 	
 	}
-
+	/**
+	 * get a project object
+	 * @param $id
+	 */
 	function getProject($id) {
 		$stmt = $this->db->prepare(
 			"select name, create_time, permission_type
@@ -223,7 +249,10 @@ class DAO {
 		
 		return $result;
 	}
-	
+	/**
+	 * get a picture
+	 * @param unknown_type $pictureId
+	 */
 	function getPicture($pictureId){
 		$stmt = $this->db->prepare(
 			"select id,find_id,mime_type,data_full,data_thumb from photo
@@ -234,7 +263,10 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * get all the pictures associated to a find
+	 * @param unknown_type $findId
+	 */
 	function getPicturesByFind($findId){
 		$stmt = $this->db->prepare(
 			"select id,find_id,mime_type,data_full,data_thumb from photo
@@ -250,21 +282,31 @@ class DAO {
 		}
 		return $result;
 	}
-	
+	/**
+	 * get the video by Id
+	 * @param unknown_type $videoId
+	 */
 	function getVideo($videoId) {
 		$stmt = $this->db->prepare("select id, find_id, mime_type, data_path from video where id=:id");
 		$stmt->bindValue(':id', $videoId);
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * get audio clip by Id
+	 * @param unknown_type $audioId
+	 */
 	function getAudioClip($audioId) {
 		$stmt = $this->db->prepare("select id, find_id, mime_type, data_path from audio where id=:id");
 		$stmt->bindValue(':id', $audioId);
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * verify the login based on email address and password entered
+	 * @param $email
+	 * @param $pass
+	 */
 	function checkLogin($email, $pass) {
 		$stmt = $this->db->prepare(
 			"SELECT id, first_name, last_name
@@ -281,7 +323,10 @@ class DAO {
 		else
 			return false;
 	}
-	
+	/**
+	 * delete a find
+	 * @param unknown_type $findId
+	 */
 	function deleteFind($findId) {
 		$stmt = $this->db->prepare("delete from find where id = :findId");
 		$stmt->bindvalue(":findId", $findId);
@@ -290,40 +335,64 @@ class DAO {
 		echo "Deletion of find with id = ".$findId." successful.";
 
 	}
-	
+	/**
+	 * delete all finds
+	 * @param unknown_type $projectId
+	 */
 	function deleteAllFinds($projectId) {
 		$stmt = $this->db->prepare("delete from find where project_id = :projectId");
 		$stmt->bindvalue(":projectId", $projectId);
 		$stmt->execute();
 	}
-	
+	/**
+	 * delete the given project
+	 * @param unknown_type $id
+	 */
 	function deleteProject($id) {
 		$stmt = $this->db->prepare("delete from project where id = :id");
 		$stmt->bindValue(":id", $id);
 		$stmt->execute();
 	}
-	
+	/**
+	 * delete the image associated with the id
+	 * @param unknown_type $findId
+	 */
 	function deleteImages($findId) {
 		$stmt = $this->db->prepare("delete from photo where find_id = :findId");
 		$stmt->bindValue(":findId", $findId);
 		$stmt->execute();
 		echo "Deletion of image with find_id = ".$findId." successful.";
 	}
-	
+	/**
+	 * delete all the videos associated with a find
+	 * @param unknown_type $findId
+	 */
 	function deleteVideos($findId) {
 		$stmt = $this->db->prepare("delete from video where find_id = :findId");
 		$stmt->bindValue(":findId", $findId);
 		$stmt->execute();
 		echo "Deletion of video with find_id = ".$findId." successful.";
 	}
-	
+	/**
+	 * delete audio clips associated with a find
+	 * @param unknown_type $findId
+	 */
 	function deleteAudioClips($findId) {
 		$stmt = $this->db->prepare("delete from audio where find_id = :findId");
 		$stmt->bindValue(":findId", $findId);
 		$stmt->execute();
 		echo "Deletion of audio clip with find_id = ".$findId." successful.";
 	}
-	
+	/**
+	 * Create  a new find
+	 * @param unknown_type $id
+	 * @param unknown_type $projectId
+	 * @param unknown_type $name
+	 * @param unknown_type $description
+	 * @param unknown_type $latitude
+	 * @param unknown_type $longitude
+	 * @param unknown_type $revision
+	 */
 	function createFind($id, $projectId, $name, $description, $latitude, $longitude, $revision) {
 		$stmt = $this->db->prepare(
 			"insert into find (id, project_id, name, description, 
@@ -342,7 +411,13 @@ class DAO {
 		$stmt->execute();
 		return "Inserted into database";
 	}
-	
+	/**
+	 * Update information about a find
+	 * @param unknown_type $id
+	 * @param unknown_type $name
+	 * @param unknown_type $description
+	 * @param unknown_type $revision
+	 */
 	function updateFind($id, $name, $description, $revision) {
 		$stmt = $this->db->prepare("update find set 
 			name = :name, description = :description, 
@@ -356,7 +431,14 @@ class DAO {
 		$stmt->execute();
 		return "Inserted into database";
 	}
-	
+	/**
+	 * Add a picture to the find
+	 * @param unknown_type $id
+	 * @param unknown_type $findId
+	 * @param unknown_type $mimeType
+	 * @param unknown_type $dataFull
+	 * @param unknown_type $dataThumb
+	 */
 	function addPictureToFind($id, $findId, $mimeType, $dataFull, $dataThumb) {
 		$stmt = $this->db->prepare(
 			"insert into photo (id, find_id, mime_type, data_full, data_thumb)
@@ -371,7 +453,13 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * Add video to the find
+	 * @param unknown_type $id
+	 * @param unknown_type $findId
+	 * @param unknown_type $mimeType
+	 * @param unknown_type $dataPath
+	 */
 	function addVideoToFind($id, $findId, $mimeType, $dataPath) {
 		$stmt = $this->db->prepare(
 			"insert into video (id, find_id, mime_type, data_path)
@@ -385,7 +473,13 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * Add audio clip to the find
+	 * @param unknown_type $id
+	 * @param unknown_type $findId
+	 * @param unknown_type $mimeType
+	 * @param unknown_type $dataPath
+	 */
 	function addAudioClipToFind($id, $findId, $mimeType, $dataPath) {
 		$stmt = $this->db->prepare(
 			"insert into audio (id, find_id, mime_type, data_path)
@@ -399,7 +493,10 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * deletes picture from the find
+	 * @param unknown_type $id
+	 */
 	function deletePictureFromFind($id) {
 		$stmt = $this->db->prepare(
 			"delete from photo where id = :id"
@@ -407,7 +504,10 @@ class DAO {
 		$stmt->bindValue(":id", $id);
 		$stmt.execute();
 	}
-	
+	/**
+	 * delete video from the find
+	 * @param $id
+	 */
 	function deleteVideoFromFind($id) {
 		$stmt = $this->db->prepare(
 			"select data_path from video where id = :id");
@@ -424,7 +524,10 @@ class DAO {
 		$stmt->bindValue(":id", $id);
 		$stmt.execute();
 	}
-	
+	/**
+	 * delete audio clip from a  find
+	 * @param unknown_type $id
+	 */
 	function deleteAudioClipFromFind($id) {+
 		$stmt = $this->db->prepare(
 			"select data_path from audio where id = :id");
@@ -441,7 +544,10 @@ class DAO {
 		$stmt->bindValue(":id", $id);
 		$stmt.execute();
 	}
-	
+	/**
+	 * register a new user
+	 * @param $newUser
+	 */
 	function registerUser($newUser) {
 		list($email, $firstName, $lastName, $password) = $newUser;
 		
@@ -466,7 +572,10 @@ class DAO {
 		$stmt->execute();
 		return true;
 	}
-	
+	/**
+	 * get all the devices the user has registered
+	 * @param unknown_type $userId
+	 */
 	function getDevicesByUser($userId) {
 		$stmt = $this->db->prepare(
 			"SELECT imei, name, auth_key, add_time
@@ -478,7 +587,10 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * get devices by the key given
+	 * @param unknown_type $authKey
+	 */
 	function getDeviceByAuthKey($authKey) {
 		$stmt = $this->db->prepare(
 			"SELECT imei, name, user_id, add_time, status
@@ -489,7 +601,11 @@ class DAO {
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	
+	/**
+	 * registration pending verification
+	 * @param unknown_type $userId
+	 * @param unknown_type $authKey
+	 */
 	function registerDevicePending($userId, $authKey) {
 		if(!$userId || !$authKey) return false;
 		
@@ -503,7 +619,12 @@ class DAO {
 		
 		return true;
 	}
-	
+	/**
+	 * confirm registration 
+	 * @param unknown_type $authKey
+	 * @param unknown_type $imei
+	 * @param unknown_type $name
+	 */
 	function confirmDevice($authKey, $imei, $name) {
 		
 		$stmt = $this->db->prepare(
@@ -551,7 +672,11 @@ class DAO {
 		$result = $stmt->execute();
 		return $result;
 	}
-	
+	/**
+	 * add a device to the sandbox
+	 * @param unknown_type $authKey
+	 * @param unknown_type $imei
+	 */
 	function addSandboxDevice($authKey, $imei) {
 		
 		$stmt = $this->db->prepare("delete from device where imei = :imei");
@@ -567,7 +692,11 @@ class DAO {
 		$stmt->execute();
 		return true;
 	}
-	
+	/**
+	 * change/set the nickname of the device 
+	 * @param unknown_type $imei
+	 * @param unknown_type $name
+	 */
 	function changeDeviceNickname($imei, $name) {
 		$stmt = $this->db->prepare(
 			"UPDATE device SET name = :name WHERE imei = :imei"
@@ -576,7 +705,10 @@ class DAO {
 		$stmt->bindValue(":imei", $imei);
 		return $stmt->execute();
 	}
-	
+	/**
+	 * remove a device from the database
+	 * @param unknown_type $imei
+	 */
 	function removeDevice($imei) {
 		$stmt = $this->db->prepare(
 			"DELETE FROM device WHERE imei = :imei"
@@ -584,12 +716,18 @@ class DAO {
 		$stmt->bindValue(":imei", $imei);
 		return $stmt->execute();
 	}
-	
+	/**
+	 * remove all the devices that didn't get verified
+	 */
 	function purgePendingDevices() {
 		$stmt = $this->db->prepare("DELETE FROM device WHERE imei IS NULL");
 		$stmt->execute();
 	}
-
+	/**
+	 * search for finds
+	 * @param $search_value
+	 * @param $project_id
+	 */
 	function searchFinds($search_value, $project_id){
 		$stmt = $this->db->prepare(
 			"SELECT id, name, description
@@ -608,7 +746,10 @@ class DAO {
 		}
 		return $available_values;
 	}
-
+	/**
+	 * generic execute command
+	 * @param $command_value
+	 */
 	function execCommand($command_value){
 		if ($command_value == "create_sample_text") {
 			$file = "test/HelloWorld.txt";
