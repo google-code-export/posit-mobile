@@ -130,6 +130,7 @@ class DAO {
 		$stmt = $this->db->prepare("select id, name, description, add_time, modify_time,
 			latitude, longitude, revision from find where project_id = :projectId"
 		);
+		if ($stmt==NULL) return NULL;
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -179,7 +180,7 @@ class DAO {
 	 * @param unknown_type $id
 	 */
 	function getFind($id) {
-		$stmt = $this->db->prepare("select id, name, description, add_time, modify_time, 
+		$stmt = $this->db->prepare("select id, barcode_id, name, description, add_time, modify_time, 
 			latitude, longitude, revision from find where id = :id");
 		
 		$stmt->bindValue(":id", $id);
@@ -385,7 +386,7 @@ class DAO {
 	}
 	/**
 	 * Create  a new find
-	 * @param unknown_type $id
+	 * @param unknown_type $barcode_id
 	 * @param unknown_type $projectId
 	 * @param unknown_type $name
 	 * @param unknown_type $description
@@ -393,14 +394,15 @@ class DAO {
 	 * @param unknown_type $longitude
 	 * @param unknown_type $revision
 	 */
-	function createFind($id, $projectId, $name, $description, $latitude, $longitude, $revision) {
+	function createFind($barcode_id, $projectId, $name, $description, $latitude, $longitude, $revision) {
+		Log::getInstance()->log("$barcode_id, $projectId, $name, $description, $latitude, $longitude, $revision");
 		$stmt = $this->db->prepare(
-			"insert into find (id, project_id, name, description, 
+			"insert into find (barcode_id, project_id, name, description, 
 			latitude, longitude, add_time, modify_time, revision) VALUES
-			(:id, :projectId, :name, :description, :latitude, :longitude ,now(), now(), :revision)"
+			(:barcode_id, :projectId, :name, :description, :latitude, :longitude ,now(), now(), :revision)"
 		);
 		
-		$stmt->bindValue(":id", $id);
+		$stmt->bindValue(":barcode_id", $barcode_id);
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->bindValue(":name", $name);
 		$stmt->bindValue(":description", $description);
@@ -408,8 +410,9 @@ class DAO {
 		$stmt->bindValue(":longitude", $longitude);
 		$stmt->bindValue(":revision", $revision);
 			
-		$stmt->execute();
-		return "Inserted into database";
+		$stmt->execute(); 
+		return $this->db->lastInsertId(); //get the rowid where it's inserted so that the client can sync.. @todo update in API
+		
 	}
 	/**
 	 * Update information about a find
@@ -608,7 +611,6 @@ class DAO {
 	 */
 	function registerDevicePending($userId, $authKey) {
 		if(!$userId || !$authKey) return false;
-		
 		$stmt = $this->db->prepare(
 			"INSERT INTO device (user_id, auth_key, add_time)
 			 VALUES (:userId, :authKey, now())"

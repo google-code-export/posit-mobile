@@ -39,9 +39,10 @@ CREATE TABLE IF NOT EXISTS device (
 --
 
 CREATE TABLE IF NOT EXISTS find (
-  id mediumint(9) NOT NULL,
+  id mediumint(9) NOT NULL auto_increment,
   project_id int(11) NOT NULL,
   description varchar(100) NOT NULL,
+  barcode_id varchar(32) NULL,
   `name` varchar(32) NOT NULL,
   add_time datetime NOT NULL,
   modify_time datetime NOT NULL,

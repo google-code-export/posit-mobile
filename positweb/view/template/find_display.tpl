@@ -10,6 +10,8 @@
 	<h3>Time Added:</h3>
 	<div class="find_add_time">{$find.add_time}</div>
 	
+	<div class="associated_barcode">{$find.barcode_id}</div>
+	<p style="text-align: center"><img src="qrcode?d={$find.barcode_id}"/></p>
 	<h3>Location:</h3>
 	<div class="find_location">
 		Longitude: {$find.longitude}

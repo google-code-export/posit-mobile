@@ -140,7 +140,6 @@ function webController($path, $request) {
 			case 'settings.registerDevice':
 				$authKey = genAuthKey();
 				$userId = $_SESSION["loginId"];
-				
 				$result = $dao->registerDevicePending($userId, $authKey);
 				
 				$server = SERVER_BASE_URI;
