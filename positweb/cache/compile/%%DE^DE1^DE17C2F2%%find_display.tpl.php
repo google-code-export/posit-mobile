@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-12-11 01:20:41
+<?php /* Smarty version 2.6.26, created on 2009-12-11 02:27:10
          compiled from find_display.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => $this->_tpl_vars['find']['name'],'tab' => 'projects')));
@@ -7,6 +7,7 @@ unset($_smarty_tpl_vars);
  ?>
 <h2><?php echo $this->_tpl_vars['find']['name']; ?>
 </h2>
+  
 <div class="find_details">
 	<h3>Description:</h3>
 	<div class="find_description"><?php echo $this->_tpl_vars['find']['description']; ?>
@@ -22,14 +23,19 @@ unset($_smarty_tpl_vars);
 	
 	<div class="associated_barcode"><?php echo $this->_tpl_vars['find']['barcode_id']; ?>
 </div>
-	<p style="text-align: center"><img src="qrcode?d=<?php echo $this->_tpl_vars['find']['barcode_id']; ?>
-"/></p>
 	<h3>Location:</h3>
 	<div class="find_location">
 		Longitude: <?php echo $this->_tpl_vars['find']['longitude']; ?>
 
 		Latitude: <?php echo $this->_tpl_vars['find']['latitude']; ?>
 
+	</div>
+	<div class="map-display">
+	<img src="http://maps.google.com/maps/api/staticmap?zoom=14&size=256x256&markers=color:red|<?php echo $this->_tpl_vars['find']['latitude']; ?>
+,<?php echo $this->_tpl_vars['find']['longitude']; ?>
+&sensor=false&key=<?php echo @GOOGLE_MAPS_KEY; ?>
+"/>
+	
 	</div>
 	
 	<div class="picture_loop">

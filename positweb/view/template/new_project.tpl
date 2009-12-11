@@ -9,7 +9,7 @@
 		
 		<p>
 			<label for="description">Description: <span style="color: #666">(optional)</span></label><br/>
-			<textarea rows="6" cols="30"></textarea>
+			<textarea rows="6" cols="30" name="description"></textarea>
 		</p>
 		<input type="submit" value="Add project"/>	
 	</form>

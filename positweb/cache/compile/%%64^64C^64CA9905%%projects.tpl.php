@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-08-14 10:34:01
+<?php /* Smarty version 2.6.26, created on 2009-12-11 03:05:01
          compiled from projects.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => 'Projects Page','tab' => 'projects')));
@@ -13,7 +13,8 @@ unset($_smarty_tpl_vars);
 ?>
 		<a href="project.display?id=<?php echo $this->_tpl_vars['project']['id']; ?>
 "><?php echo $this->_tpl_vars['project']['name']; ?>
-</a><br/>
+</a> <?php echo $this->_tpl_vars['project']['description']; ?>
+<br/>
 	<?php endforeach; endif; unset($_from); ?>
 	<?php else: ?>
 		<em>There are no projects on this server yet.</em>

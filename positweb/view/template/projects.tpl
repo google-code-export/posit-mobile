@@ -3,7 +3,7 @@
 <div class="project_list">
 	{if $projects}
 	{foreach from=$projects item=project}
-		<a href="project.display?id={$project.id}">{$project.name}</a><br/>
+		<a href="project.display?id={$project.id}">{$project.name}</a> {$project.description}<br/>
 	{/foreach}
 	{else}
 		<em>There are no projects on this server yet.</em>
