@@ -10,8 +10,7 @@ require_once("util/log.php");
 require_once("model/dao.php");
 require_once("3rd/smarty-2.6.26/Smarty.class.php");
 
-$l = Log::getInstance();
-$l->log("test");
+
 $dao = new DAO();
 $smarty = new Smarty();
 $smarty->template_dir = 'view/template/';

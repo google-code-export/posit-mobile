@@ -7,7 +7,7 @@
  * @param $files
  */
 function apiController($path, $request, $files = null) {
-
+	$log = Log::getInstance();
 	global $dao;
 	list($reqPath, $queryString) = explode('?', $path);
 	$pathParts = explode('/', substr($reqPath,1));
@@ -23,7 +23,6 @@ function apiController($path, $request, $files = null) {
 		echo json_encode($response);
 		die();
 	}
-	
 	$device = $dao->getDeviceByAuthKey($authKey);
 	
 	if($action != "registerDevice" && $action != "getPendingDeviceStatus" && !$device) {

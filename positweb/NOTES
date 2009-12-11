@@ -1,0 +1,2 @@
+logging in log.php
+use {$smarty.const.<CONSTANT>} to access contants inside smarty template 
