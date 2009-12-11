@@ -336,6 +336,24 @@ class DAO {
 		echo "Deletion of find with id = ".$findId." successful.";
 
 	}
+	
+	function addExpedition($projectId){
+		$stmt = $this->db->prepare("INSERT INTO expedition ( project_id ) VALUES (:projectId)");
+		$stmt->bindValue(":projectId", $projectId);
+//		$stmt->bindValue(":userId", $userid);
+		$stmt->execute();
+		return $this->db->lastInsertId();
+	}
+	
+	function addExpeditionPoint($expeditionId, $latitude, $longitude, $sampleTime){
+		$stmt = $this->db->prepare("INSERT INTO expedition_point ( expedition_id, latitude, longitude , recorded_time)" 
+		."VALUES (:expeditionId, :latitude, :longitude, now() )");
+		$stmt->bindValue(":expeditionId", $expeditionId);
+		$stmt->bindValue(":latitude", $latitude);
+		$stmt->bindValue(":longitude", $longitude);
+		return $stmt->execute() > 0;
+	}
+	
 	/**
 	 * delete all finds
 	 * @param unknown_type $projectId

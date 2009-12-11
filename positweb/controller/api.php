@@ -47,6 +47,17 @@ function apiController($path, $request, $files = null) {
 				$result = $dao->confirmDevice($authKey, $imei, $name);
 			echo json_encode($result);
 			break;
+		
+		case 'addExpedition':
+			echo $dao->addExpedition($request["projectId"]);
+			break;
+		
+		case 'addExpeditionPoint':
+			echo $dao->addExpeditionPoint($request["expeditionId"],$request["lat"],
+											$request["lng"], $request["alt"]);
+			break;
+			
+			
 		case 'getPendingDeviceStatus':
 			$device = $dao->getDeviceByAuthKey($authKey);
 			if($device["status"] == "ok")
