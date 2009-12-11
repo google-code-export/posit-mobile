@@ -91,7 +91,7 @@ function webController($path, $request) {
 				break;
 			case 'project.new.do':
 				$name = $request["name"];
-				$description = $name["description"];
+				$description = $request["description"];
 				$dao->newProject($name, $description);
 				header("Location: projects");
 				break;

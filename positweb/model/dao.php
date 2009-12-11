@@ -69,20 +69,20 @@ class DAO {
 	 */
 	function newProject($name, $description) {
 		$name = addslashes($name);
+		Log::getInstance()->log($description);
 		$description = addslashes($description);
-		/*$stmt = $this->db->prepare(
+		$stmt = $this->db->prepare(
 			"INSERT INTO project (name, description) VALUES (:name, :description)"
 		); // or print_r($this->db->errorInfo()) && die();
 		
 		$stmt->bindValue(":name", $name);
 		$stmt->bindValue(":description", $description);
 		
-		print_r($stmt);
 		
-		$stmt->execute();*/
-		
-		$stmt = $this->db->prepare("INSERT INTO project (name) VALUES ('$name')");
 		$stmt->execute();
+		
+		/*$stmt = $this->db->prepare("INSERT INTO project (name) VALUES ('$name')");*/
+		
 	}
 	/**
 	 * gets an associative array of all the projects that are accessible to the entity
@@ -97,7 +97,7 @@ class DAO {
 			$whereClause = "";
 			
 		$stmt = $this->db->prepare(
-			"select id, name, create_time, permission_type
+			"select id, name, description, create_time, permission_type
 			 from project ". $whereClause
 		);
 		

@@ -1,5 +1,6 @@
 {include file="header.tpl" title=$find.name tab="projects"}
 <h2>{$find.name}</h2>
+  
 <div class="find_details">
 	<h3>Description:</h3>
 	<div class="find_description">{$find.description}</div>
@@ -11,11 +12,14 @@
 	<div class="find_add_time">{$find.add_time}</div>
 	
 	<div class="associated_barcode">{$find.barcode_id}</div>
-	<p style="text-align: center"><img src="qrcode?d={$find.barcode_id}"/></p>
 	<h3>Location:</h3>
 	<div class="find_location">
 		Longitude: {$find.longitude}
 		Latitude: {$find.latitude}
+	</div>
+	<div class="map-display">
+	<img src="http://maps.google.com/maps/api/staticmap?zoom=14&size=256x256&markers=color:red|{$find.latitude},{$find.longitude}&sensor=false&key={$smarty.const.GOOGLE_MAPS_KEY}"/>
+	
 	</div>
 	
 	<div class="picture_loop">
