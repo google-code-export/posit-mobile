@@ -160,3 +160,19 @@ CREATE TABLE IF NOT EXISTS user_project (
   permission set('yes','no') default NULL,
   KEY user_id (user_id,project_id)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+
+-- 
+-- Table structure for table `expedition`
+-- 
+
+CREATE TABLE `expedition` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(32) default NULL,
+  `project_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `description` text,
+  `add_time` datetime NOT NULL,
+  `modify_time` datetime NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
