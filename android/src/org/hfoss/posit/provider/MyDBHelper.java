@@ -433,7 +433,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		String[] columns = null;
 		String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;
-		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_IDENTIFIER + "=" + id, selectionArgs, groupBy, having, orderBy);
+		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_ID + "=" + id, selectionArgs, groupBy, having, orderBy);
 		cursor.moveToFirst();
 		HashMap<String,String> findsMap = new HashMap<String, String>();
 		if (cursor.getCount() != 0) {
@@ -698,7 +698,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 * @return
 	 */
 	public List<Long> getAllNewIds(){
-		String[] projection = new String[] { COLUMN_IDENTIFIER };
+		String[] projection = new String[] { COLUMN_ID };
 		List<Long> findsList = new ArrayList<Long>();
 		try {
 			mDb = getReadableDatabase();
@@ -709,7 +709,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			if (c.getCount() > 0) {
 				c.moveToFirst();
 				do {
-					findsList.add(c.getLong(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER)));
+					findsList.add(c.getLong(c.getColumnIndexOrThrow(COLUMN_ID)));
 				} while (c.moveToNext());
 			}
 			c.close();

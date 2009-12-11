@@ -173,13 +173,14 @@ public class Communicator {
 			//find.setSyncStatus(true);
 			ContentValues cv = new ContentValues();
 			cv.put("synced", "1");
-			cv.put("sid", sendMap.get("identifier"));
+			cv.put("sid", responseString);
+			//cv.put("sid", sendMap.get("identifier"));
 			find.updateToDB(cv);
 			//find.delete();
 
 		}
 		catch (Exception e) {
-			Log.e(TAG, e.getStackTrace().toString());
+			Log.e(TAG, "Cannot send the find"+e.getMessage());
 		}
 	}
 
@@ -439,7 +440,7 @@ public class Communicator {
 				Log.e(TAG, "JSONException" +  e.getMessage());
 		} 
 		if(Utils.debug)
-			Log.i("THE FINDS", findsMap.toString());
+			Log.i(TAG, "The Finds "+ findsMap.toString());
 		return findsMap;
 	}
 
