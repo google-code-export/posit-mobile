@@ -38,7 +38,7 @@ import android.widget.RadioGroup;
  */
 public class ShowProjectsActivity extends Activity implements View.OnClickListener{
 
-	private static final String TAG = "ListActivity";
+	private static final String TAG = "ShowProjectsActivity";
 	private static final int CONFIRM_PROJECT_CHANGE = 0;
 	private ArrayList<HashMap<String, Object>> list;
 	private Communicator comm;

@@ -83,7 +83,7 @@ public class SyncThread extends Thread {
 			mHandler.sendEmptyMessage(DONE);
 			}
 			catch(Exception e){
-					Log.i("SyncThread","Sync Error"); 
+					Log.i("SyncThread","Sync Error "+ e.getMessage()); 
 					mHandler.sendEmptyMessage(SYNCERROR);
 					shutdownRequested = true;	
 				}

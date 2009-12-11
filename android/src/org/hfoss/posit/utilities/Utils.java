@@ -74,7 +74,7 @@ public class Utils {
         return false; 
 	}
 	
-	public static boolean debug = false;
+	public static boolean debug = true;
 	/**
 	 * This is for showing the Toast on screen for notifications
 	 * 
