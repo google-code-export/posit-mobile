@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-08-31 10:44:35
+<?php /* Smarty version 2.6.26, created on 2009-12-12 00:11:59
          compiled from header.tpl */ ?>
 <?php require_once(SMARTY_CORE_DIR . 'core.load_plugins.php');
 smarty_core_load_plugins(array('plugins' => array(array('modifier', 'default', 'header.tpl', 3, false),)), $this); ?>
@@ -9,7 +9,8 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'default', '
 		<link rel="stylesheet" href="../res/style/basic.css"/>
 		<script src="../res/js/util.js"></script>
 		<script src="../res/js/jquery-1.3.2.min.js"></script>
-		<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAaWJSFbTOOP7LwuoqYOWKaxR0VQJcDXb7cwsw42dNMXfxq-WZQRQ2-K5DpIlxvXekhiy5guz8Ybaz5A"></script>
+		<script type="text/javascript" src="http://www.google.com/jsapi?key=<?php echo @GOOGLE_MAPS_KEY; ?>
+"></script>
 	</head>
 	<body<?php echo $this->_tpl_vars['body_attributes']; ?>
 >
@@ -33,6 +34,7 @@ smarty_core_load_plugins(array('plugins' => array(array('modifier', 'default', '
 				<?php if ($this->_tpl_vars['loginHasAdmin']): ?>
 					<li<?php if ($this->_tpl_vars['tab'] == 'admin'): ?> id="tab-selected"<?php endif; ?>><a href="admin">Administration</a></li>
 				<?php endif; ?>
+				<li<?php if ($this->_tpl_vars['tab'] == 'Expeditions'): ?> id="tab-selected"<?php endif; ?>><a href="expeditions">Expeditions</a></li>
 			</ul>
 		</div>
 		<div id="content">

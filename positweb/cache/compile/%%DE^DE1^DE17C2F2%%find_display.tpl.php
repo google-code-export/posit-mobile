@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-12-11 02:27:10
+<?php /* Smarty version 2.6.26, created on 2009-12-11 19:28:11
          compiled from find_display.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => $this->_tpl_vars['find']['name'],'tab' => 'projects')));
@@ -7,7 +7,8 @@ unset($_smarty_tpl_vars);
  ?>
 <h2><?php echo $this->_tpl_vars['find']['name']; ?>
 </h2>
-  
+<p><a href="project.display?id=<?php echo $this->_tpl_vars['find']['project_id']; ?>
+">All Finds</a></p>
 <div class="find_details">
 	<h3>Description:</h3>
 	<div class="find_description"><?php echo $this->_tpl_vars['find']['description']; ?>
@@ -20,7 +21,7 @@ unset($_smarty_tpl_vars);
 	<h3>Time Added:</h3>
 	<div class="find_add_time"><?php echo $this->_tpl_vars['find']['add_time']; ?>
 </div>
-	
+	<h3> Barcode:</h3>
 	<div class="associated_barcode"><?php echo $this->_tpl_vars['find']['barcode_id']; ?>
 </div>
 	<h3>Location:</h3>

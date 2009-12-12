@@ -1,6 +1,6 @@
 {include file="header.tpl" title=$find.name tab="projects"}
 <h2>{$find.name}</h2>
-  
+<p><a href="project.display?id={$find.project_id}">All Finds</a></p>
 <div class="find_details">
 	<h3>Description:</h3>
 	<div class="find_description">{$find.description}</div>
@@ -10,7 +10,7 @@
 	
 	<h3>Time Added:</h3>
 	<div class="find_add_time">{$find.add_time}</div>
-	
+	<h3> Barcode:</h3>
 	<div class="associated_barcode">{$find.barcode_id}</div>
 	<h3>Location:</h3>
 	<div class="find_location">

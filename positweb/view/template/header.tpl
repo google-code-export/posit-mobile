@@ -4,7 +4,7 @@
 		<link rel="stylesheet" href="../res/style/basic.css"/>
 		<script src="../res/js/util.js"></script>
 		<script src="../res/js/jquery-1.3.2.min.js"></script>
-		<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAaWJSFbTOOP7LwuoqYOWKaxR0VQJcDXb7cwsw42dNMXfxq-WZQRQ2-K5DpIlxvXekhiy5guz8Ybaz5A"></script>
+		<script type="text/javascript" src="http://www.google.com/jsapi?key={$smarty.const.GOOGLE_MAPS_KEY}"></script>
 	</head>
 	<body{$body_attributes}>
 		<div id="header">
@@ -26,6 +26,7 @@
 				{if $loginHasAdmin}
 					<li{if $tab == "admin"} id="tab-selected"{/if}><a href="admin">Administration</a></li>
 				{/if}
+				<li{if $tab == "Expeditions"} id="tab-selected"{/if}><a href="expeditions">Expeditions</a></li>
 			</ul>
 		</div>
 		<div id="content">
