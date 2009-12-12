@@ -115,3 +115,26 @@ a {
 
 fieldset { padding: 10px 20px 10px 20px }
 legend { font-weight: bold }
+
+.list-item { 
+  padding: 5px 10px 5px 10px;
+  margin-bottom: 5px;
+  background: #9fbfe6;
+  border-style:solid;
+  border-width:thin;
+  }
+
+.list-item:hover { 
+  padding: 5px 10px 5px 10px;
+  margin-bottom: 5px;
+  background: #c5deef;
+  border-style:solid;
+  border-width:thin;
+  }
+.list-item .find_description {
+	background: #aecadc;;
+}
+
+.list-item .find_time {
+	font-size:small;
+}

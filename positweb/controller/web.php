@@ -86,6 +86,18 @@ function webController($path, $request) {
 				$smarty->assign("projects", $projects);
 				$smarty->display("projects.tpl");
 				break;
+			case 'expeditions':
+				$projectId = $request["project_id"];
+				$expeditions = $dao->getExpeditions($projectId);
+				$smarty->assign("expeditions", $expeditions);
+				$smarty->display("expeditions.tpl");
+				break;
+			case 'expedition.tracker':
+				$expeditionId = $request["id"];
+				$expeditionPoints = $dao->getExpeditionPoints($expeditionId);
+				$smarty->assign("expeditionPoints", $expeditionPoints);
+				$smarty->display("expedition_tracker.tpl");
+				break;
 			case 'project.new':
 				$smarty->display("new_project.tpl");
 				break;

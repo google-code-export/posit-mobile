@@ -180,7 +180,7 @@ class DAO {
 	 * @param unknown_type $id
 	 */
 	function getFind($id) {
-		$stmt = $this->db->prepare("select id, barcode_id, name, description, add_time, modify_time, 
+		$stmt = $this->db->prepare("select id, project_id, barcode_id, name, description, add_time, modify_time, 
 			latitude, longitude, revision from find where id = :id");
 		
 		$stmt->bindValue(":id", $id);
@@ -228,7 +228,7 @@ class DAO {
 	 */
 	function getProject($id) {
 		$stmt = $this->db->prepare(
-			"select name, create_time, permission_type
+			"select id, name, create_time, permission_type
 			 from project where id = :id");
 		
 		$stmt->bindValue(":id", $id);	
@@ -345,14 +345,32 @@ class DAO {
 		return $this->db->lastInsertId();
 	}
 	
-	function addExpeditionPoint($expeditionId, $latitude, $longitude, $sampleTime){
-		$stmt = $this->db->prepare("INSERT INTO expedition_point ( expedition_id, latitude, longitude , recorded_time)" 
-		."VALUES (:expeditionId, :latitude, :longitude, now() )");
+	function addExpeditionPoint($expeditionId, $latitude, $longitude, $altitude){
+		$stmt = $this->db->prepare("INSERT INTO expedition_point ( expedition_id, latitude, longitude , altitude, recorded_time)" 
+		."VALUES (:expeditionId, :latitude, :longitude, :altitude, now() )");
 		$stmt->bindValue(":expeditionId", $expeditionId);
 		$stmt->bindValue(":latitude", $latitude);
 		$stmt->bindValue(":longitude", $longitude);
+		$stmt->bindValue(":altitude", $altitude);
 		return $stmt->execute() > 0;
 	}
+	
+	function getExpeditions($projectId){
+		$stmt = $this->db->prepare("SELECT id, name, description, project_id FROM expedition WHERE project_id= :projectId ");
+		$stmt->bindValue(":projectId", $projectId);
+		$stmt->execute();
+		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		return $temp;
+	}
+	
+	function getExpeditionPoints($expeditionId){
+		$stmt = $this->db->prepare("SELECT latitude, longitude, altitude, expedition_id FROM expedition_point WHERE expedition_id= :expeditionId ");
+		$stmt->bindValue(":expeditionId", $expeditionId);
+		$stmt->execute();
+		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		return $temp;
+	}
+	
 	
 	/**
 	 * delete all finds
@@ -360,7 +378,7 @@ class DAO {
 	 */
 	function deleteAllFinds($projectId) {
 		$stmt = $this->db->prepare("delete from find where project_id = :projectId");
-		$stmt->bindvalue(":projectId", $projectId);
+		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
 	}
 	/**

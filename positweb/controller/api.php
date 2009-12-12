@@ -53,6 +53,7 @@ function apiController($path, $request, $files = null) {
 			break;
 		
 		case 'addExpeditionPoint':
+			echo $request["expeditionId"];
 			echo $dao->addExpeditionPoint($request["expeditionId"],$request["lat"],
 											$request["lng"], $request["alt"]);
 			break;
