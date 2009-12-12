@@ -9,13 +9,16 @@
 package org.hfoss.posit;
 
 import java.util.List;
-import java.util.Random;
 
 import org.hfoss.posit.utilities.Utils;
 import org.hfoss.posit.web.Communicator;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,6 +26,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,6 +47,9 @@ public class TrackerActivity extends Activity implements LocationListener {
 	private static final int UPDATE_LOCATION = 2;
 	private static final boolean ENABLED_ONLY = true;
 	private static final int THUMBNAIL_TARGET_SIZE = 320;
+	protected static final int DONE = 1;
+	protected static final int NONETWORK = 2;
+	protected static final int SYNCERROR = 3;
 	
 	private double mLongitude = 0;
 	private double mLatitude = 0;
@@ -54,6 +61,7 @@ public class TrackerActivity extends Activity implements LocationListener {
 	private Thread mThread;
 	private LocationManager mLocationManager;
 	private Location mLocation;
+	private ProgressDialog mProgressDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +71,8 @@ public class TrackerActivity extends Activity implements LocationListener {
 	     mLocationTextView = (TextView)findViewById(R.id.trackerLocation);
 	     
 	     communicator = new Communicator(this);
-	     communicator.expedition = "auto" + new Random().nextInt(9999);
+	     
+//	     communicator.expedition = "auto" + new Random().nextInt(9999);
 	     
 	     //LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 	    // Location location = locationManager.getLastKnownLocation("gps");
@@ -76,7 +85,27 @@ public class TrackerActivity extends Activity implements LocationListener {
 	     
 	}
 	
+	private void registerExpedition(){
+		mProgressDialog = ProgressDialog.show(this, "Connecting to Server",
+				"Please wait.", true, false);
+		Thread expeditionThread = new RegisterExpeditionThread(this, new Handler() {
+			public void handleMessage(Message msg) {
+				if (msg.what == DONE) {
+					mProgressDialog.dismiss();
+				} else if (msg.what == NONETWORK) {
+					Utils.showToast(mProgressDialog.getContext(),
+							"Sync Error:No Network Available");
+					mProgressDialog.dismiss();
+				} else if (msg.what == SYNCERROR) {
+					Utils.showToast(mProgressDialog.getContext(),
+							"Sync Error: An unknown error has occurred");
+					mProgressDialog.dismiss();
+				}
+			}
+		});
+		expeditionThread.start();
 
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -94,7 +123,15 @@ public class TrackerActivity extends Activity implements LocationListener {
 		switch(item.getItemId()) {
 			case R.id.start_tracking_menu_item:
 				initializeLocationAndStartGpsThread();
-				Utils.showToast(this, communicator.expedition);
+				Utils.showToast(this, "expedition number "+getExpeditionId());
+				break;
+			case R.id.new_expedition_menu_item:
+				registerExpedition();
+				break;
+				
+			case R.id.stop_tracking_menu_item:
+				mLocationManager.removeUpdates(this);
+				mThread.stop();
 				break;
 		}
 		return true;
@@ -182,7 +219,7 @@ public class TrackerActivity extends Activity implements LocationListener {
 			bestProvider = mLocationManager.getBestProvider(new Criteria(),ENABLED_ONLY);
 			if (bestProvider != null && bestProvider.length() != 0) {
 				mLocationManager.requestLocationUpdates(
-						"gps", 1000, 0, this);	 // Every 5000 millisecs	
+						"gps", 5000, 0, this);	 // Every 5000 millisecs	
 				location = mLocationManager.getLastKnownLocation(bestProvider);				
 			}	
 		}
@@ -214,7 +251,7 @@ public class TrackerActivity extends Activity implements LocationListener {
 		    mLatitude = mLocation.getLatitude();
 		    mLongitude = mLocation.getLongitude();
 		    mAltitude = mLocation.getAltitude();
-			String result = communicator.logPoint(mLatitude, mLongitude, mAltitude);
+			String result = communicator.registerExpeditionPoint(mLatitude, mLongitude, mAltitude, getExpeditionId());
 			mLocationTextView.setText("" + mLatitude + ", " + mLongitude + "; " + result);
 			
 			switch (msg.what) {
@@ -226,5 +263,41 @@ public class TrackerActivity extends Activity implements LocationListener {
 			super.handleMessage(msg);
 		}
 	};
+
+	protected int getExpeditionId() {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		return sp.getInt("EXPEDITION_ID", 0);
+	}
+	
+	/**
+	 * Some assumptions made:
+	 * - The project Id is declared
+	 * - The server address is known
+	 * There's a cleaner way to do this, but this is to avoid breaking stuff excessively
+	 * @author pgautam
+	 *
+	 */
+	class RegisterExpeditionThread extends Thread{
+		
+		private Handler mHandler;
+		private Context mContext;
+
+		public RegisterExpeditionThread(Context context,
+				Handler handler) {
+			mHandler = handler;
+			mContext = context;
+		}
+
+		@Override
+		public void run() {
+			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+			Editor edit = sp.edit();
+			int  i = communicator.registerExpeditionId(sp.getInt("PROJECT_ID", 1)); //FIXME this is just for test
+			edit.putInt("EXPEDITION_ID", i);
+			
+			edit.commit();
+			mHandler.sendEmptyMessage(DONE);
+		}
+	}
 }
 

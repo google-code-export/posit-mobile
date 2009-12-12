@@ -63,7 +63,7 @@ import android.util.Log;
  */
 public class Communicator {
 	private static final String COLUMN_IMEI = "imei";
-	public String expedition;
+
 	/*
 	 * You should be careful with putting names for server. DO NOT always trust
 	 * DNS.
@@ -493,13 +493,44 @@ public class Communicator {
 		else return true;
 	}
 	
-	public String logPoint(double lat, double lng) {
-		String result = doHTTPGET("http://hockey.posit.ossf.org/tracker/logPoint?lat="+lat+"&lng="+lng+"&expedition="+expedition);
+	public String registerExpeditionPoint(double lat, double lng, int expedition) {
+		String result = doHTTPGET(server+"/api/addExpeditionPoint?authKey="+authKey+"&lat="+lat+"&lng="+lng+"&expedition="+expedition);
 		return result;
 	}	
 	
-	public String logPoint(double lat, double lng,  double alt) {
-		String result = doHTTPGET("http://hockey.posit.ossf.org/tracker/logPoint?lat="+lat+"&lng="+lng+"&alt="+alt+"&expedition="+expedition);
-		return result;
+	
+	
+	public String registerExpeditionPoint(double lat, double lng,  double alt, int expedition) {
+		HashMap<String, String> sendMap  = new HashMap<String,String>();
+		addRemoteIdentificationInfo(sendMap);
+		String addExpeditionUrl = server+"/api/addExpeditionPoint?authKey="+authKey;
+		sendMap.put("lat", ""+lat );
+		sendMap.put("lng", lng+"");
+		sendMap.put("alt", ""+alt);
+		sendMap.put("expeditionId", expedition+"");
+		String addExpeditionResponseString = doHTTPPost(addExpeditionUrl, sendMap);
+		if (Utils.debug){
+			Log.i(TAG, "response: " + addExpeditionResponseString);
+		}
+		return addExpeditionResponseString;
+	}
+	
+	public int registerExpeditionId(int projectId){
+		HashMap<String, String> sendMap  = new HashMap<String,String>();
+		addRemoteIdentificationInfo(sendMap);
+		String addExpeditionUrl = server+"/api/addExpedition?authKey="+authKey;
+		sendMap.put("projectId", ""+projectId );
+		String addExpeditionResponseString = doHTTPPost(addExpeditionUrl, sendMap);
+		if (Utils.debug){
+			Log.i(TAG, "response: " + addExpeditionResponseString);
+		}
+		try {
+			Integer i = Integer.parseInt(addExpeditionResponseString);
+			return i;
+		}catch (NumberFormatException e ){
+			Log.e(TAG, "Invalid response received");
+			return -1;
+		}
+		
 	}
 }
