@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!-- Application name and the Strings seen in the PositMain -->
     <string name="app_name">POSIT</string>
@@ -167,6 +166,6 @@
     <string name="trackerDefaultLocation">unknown</string>
     <string name="start_tracking_menu_item">Start tracking</string>
     <string name="stop_tracking_menu_item">Stop tracking</string>
-    <string name="expedition_menu_item">New expedition</string>
+    <string name="new_expedition_menu_item">New expedition</string>
 <string name="nativeActivity">Native Activity</string>
 </resources>

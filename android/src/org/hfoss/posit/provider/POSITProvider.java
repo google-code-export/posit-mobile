@@ -36,6 +36,7 @@ public class POSITProvider extends ContentProvider{
        uriMatcher.addURI(PROVIDER_NAME, "photos_project/#", PHOTOS_BY_PROJECT);
     }
     
+ 
     private SQLiteDatabase db;
     private static final String DATABASE_NAME ="posit";
 	public static final int DATABASE_VERSION = 2;
