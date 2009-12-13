@@ -10,11 +10,15 @@ package org.hfoss.posit;
 
 
 
+import java.io.IOException;
+
 import org.hfoss.posit.adhoc.AdhocClient;
 import org.hfoss.posit.adhoc.RWGConstants;
 import org.hfoss.posit.adhoc.RWGService;
+import org.hfoss.posit.extension.InstanceSettingsReader;
 import org.hfoss.posit.sms.SahanaSMSActivity;
 import org.hfoss.posit.utilities.Utils;
+import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -39,6 +43,7 @@ import android.widget.Button;
 public class PositMain extends Activity implements OnClickListener, RWGConstants{
 	
 	private static final int confirm_exit=0;
+	private static final String TAG = "PositMain";
 	public static AdhocClient mAdhocClient;
 	public static WifiManager wifiManager;
 	
@@ -54,6 +59,8 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		
+		
 		
 		final Button addFindButton = (Button)findViewById(R.id.addFindButton);
 		if(addFindButton!=null)
@@ -81,9 +88,13 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		Utils.showToast(this, "Current Project: "+sp.getString("PROJECT_NAME", ""));
-		
+
 		setUIState();
+		
+
 	}
+
+	
 
 	/*@Override
 	protected void onSaveInstanceState(Bundle outState) {
@@ -116,6 +127,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
      * sync up with the server.
      */
     private void checkPhoneRegistrationAndInitialSync() {
+    	checkInstanceSettings();
        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
        
        String AUTH_KEY = sp.getString("AUTHKEY", null);
@@ -128,6 +140,16 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			//startActivity(intent);
 	   }
     }
+
+
+
+	private void checkInstanceSettings() {
+		  // checking the settings file and setting all the settings stuff 
+		  // the values instance creator in the site has put
+		  InstanceSettingsReader i = new InstanceSettingsReader(this);
+		  i.parseSettingsFile(); 
+		  
+	}
 
 	/* (non-Javadoc)
 	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)

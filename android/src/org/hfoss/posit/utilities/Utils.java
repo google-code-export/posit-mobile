@@ -8,6 +8,11 @@
 
 package org.hfoss.posit.utilities;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -277,4 +282,39 @@ public class Utils {
 	        })
 	        .show();
 	  }
+	  /**
+	   * Taken from  
+	   * http://stackoverflow.com/questions/326390/how-to-create-a-java-string-from-the-contents-of-a-file
+	   * Reads content of a file into a string. This is useful for small-ish files
+	   * You shouldn't be reading very large files anyways, like this.
+	   * @param path
+	   * @return
+	   * @throws IOException
+	   */
+	  public static String readFileToString(String file) throws IOException {
+		  BufferedReader reader = new BufferedReader( new FileReader (file));
+		    String line  = null;
+		    StringBuilder stringBuilder = new StringBuilder();
+		    String ls = System.getProperty("line.separator");
+		    while( ( line = reader.readLine() ) != null ) {
+		        stringBuilder.append( line );
+		        stringBuilder.append( ls );
+		    }
+		    return stringBuilder.toString();
+		}
+	  
+	  public static String readInputStreamToString(InputStream inputStream) {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			byte buf[] = new byte[1024];
+			int len;
+			try {
+				while ((len = inputStream.read(buf)) != -1) {
+					outputStream.write(buf, 0, len);
+				}
+				outputStream.close();
+				inputStream.close();
+			} catch (IOException e) {
+			}
+			return outputStream.toString();
+		}
 }
