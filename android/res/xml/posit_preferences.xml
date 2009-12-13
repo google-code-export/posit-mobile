@@ -29,4 +29,8 @@
 		android:dialogTitle="@string/adhoc_groupsize_title"
 		android:defaultValue="3"/>
 	</PreferenceCategory>
+	
+
+	
+	
 </PreferenceScreen>
