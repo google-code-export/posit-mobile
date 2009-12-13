@@ -235,7 +235,13 @@ function webController($path, $request) {
 				require_once("qr_img.php");
 				chdir($oldwd);
 				break;
-			
+			case 'customPosit':
+				$userId = $_SESSION["loginId"];
+				$devices = $dao->getDevicesByUser($userId);
+				$smarty->assign("devices", $devices);
+				$projectId=$request["project_id"];
+				$smarty->display("custom_posit.tpl");
+				break;
 			default:
 				header("Location: main");
 		}
