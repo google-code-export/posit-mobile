@@ -1,7 +1,9 @@
 package org.hfoss.posit.adhoc;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
@@ -9,8 +11,11 @@ import org.hfoss.posit.PositMain;
 import org.hfoss.posit.utilities.Utils;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class RWGService extends Service implements RWGConstants {
@@ -32,7 +37,7 @@ public class RWGService extends Service implements RWGConstants {
 	
 	public static boolean isRunning ()
     {
-    	int procId = findProcessId(RWG_BINARY_INSTALL_PATH);
+    	int procId = findProcessId("rwgexec");
 
 		return (procId != -1);
 		
@@ -94,6 +99,39 @@ public class RWGService extends Service implements RWGConstants {
 
 	}
 	
+	private void runRWG() throws IOException {
+        // Get the user's group size setting
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        int groupSize = Integer.parseInt(sp.getString("ADHOC_GROUPSIZE", "3"));
+        
+        Log.i("Adhoc", "Set groupSize to "+ groupSize);
+        
+        Log.i("RWGService", "runRWG()");
+        DataOutputStream os = null;
+
+
+
+		/*
+		 * We need to run rwgexec as root, so we get a su shell.
+		 * The pipes need to be in the current working directory when rwgexec is
+		 * started, so we cd to /data/rwg first.
+		 */
+
+        try {
+        		killRWGProcess();
+                procRWG = Runtime.getRuntime().exec("su");
+        os = new DataOutputStream(procRWG.getOutputStream());
+        os.writeBytes("chmod 777 files"+"\n");
+        os.writeBytes("cd "+POSIT_HOME+"files" + "\n");
+        os.writeBytes("chmod 777 rwgexec"+"\n");
+        os.writeBytes("./rwgexec -t -g "+ groupSize+ " -h 99 -l 3600 -i tiwlan0 > trace.txt"+"\n");
+        os.close();
+        Log.i("RWGService", "tried to open rwgexec");
+        } catch (Exception e) {
+                Log.d("RWG", "Unexpected error - Here is what I know: "+e.getMessage());
+        }
+}
+	
 	public void initRWG() {
 		try{
 			boolean binaryExists = new File(RWG_BINARY_INSTALL_PATH).exists();
@@ -119,14 +157,16 @@ public class RWGService extends Service implements RWGConstants {
 			else
 				Log.i(TAG,"Binary already exists");
 			
-			Log.i(TAG,"Setting permission on Tor binary");
+			Log.i(TAG,"Setting permission on RWG binary");
 			doCommand(SHELL_CMD_CHMOD, CHMOD_EXE_VALUE + ' ' + RWG_BINARY_INSTALL_PATH);
 			killRWGProcess();
 			
-			doCommand(SHELL_CMD_RM,RWG_LOG_PATH);
+			//doCommand(SHELL_CMD_RM,RWG_LOG_PATH);
 			
 			Log.i(TAG,"Starting tor process");
-			procRWG = doCommand(RWG_BINARY_INSTALL_PATH,"");
+            
+			runRWG();
+            //procRWG = doCommand(RWG_BINARY_INSTALL_PATH,"-t -g "+ groupSize+ " -h 99 -l 3600 -i tiwlan0 > trace.txt");
 		} 
 		catch (Exception e) {
 		
@@ -169,15 +209,39 @@ public class RWGService extends Service implements RWGConstants {
 		}
 		
 		/*if (ACTIVITY != null)
-			((TorControlPanel)ACTIVITY).setUIState();*/
-
-    	
+			((TorControlPanel)ACTIVITY).setUIState();*/	
+    }
+	
+	public int killProcessRunning(String processName) throws Exception {
+        int pid = -1;
+    	Process process = null;
+		process = Runtime.getRuntime().exec("ps");
+        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null;
+        while ((line = in.readLine()) != null) {
+            if (line.contains(processName)) {
+            	Log.i("LINE",line);
+            	line = line.substring(line.indexOf(' '));
+            	line = line.trim();
+            	pid = Integer.parseInt(line.substring(0,line.indexOf(' ')));
+            	Runtime.getRuntime().exec("kill -9 "+pid);
+            }
+        }
+        in.close();
+        process.waitFor();
+		return pid;
     }
 
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
+		try{
+		killProcessRunning("./rwgexec");
+        this.getSystemService(Context.WIFI_SERVICE);
+                Log.i("RWGService","Stopped WiFi Service");
+        }
+        catch(Exception e){Log.i("endRWG()",e.toString());}
+       procRWG.destroy();
 	}
 
 
