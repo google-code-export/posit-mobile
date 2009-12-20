@@ -18,9 +18,6 @@ import java.util.List;
 import org.hfoss.posit.Find;
 import org.hfoss.posit.PositMain;
 import org.hfoss.posit.R;
-import org.hfoss.posit.R.layout;
-import org.hfoss.posit.R.raw;
-import org.hfoss.posit.R.string;
 import org.hfoss.posit.utilities.Utils;
 import org.hfoss.third.CoreTask;
 import org.json.JSONException;
@@ -293,10 +290,11 @@ public class AdhocClient {
     	 Log.i("NETWORK START THREAD", "starting rwgexec");
     	 if (!RWGService.isRunning())
 			{
+    		 	Log.i(TAG, "NOT RUNNING");
 		        rwgService = new Intent(mContext, RWGService.class);
 		        //rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		        RWGService.setActivity((PositMain)mContext);
-				
+
 				mContext.startService(rwgService);
 			      
 			}
@@ -322,11 +320,13 @@ public class AdhocClient {
     	 *  we read from the output pipe and write to the input pipe.
     	 */
     	// open Output Pipe
-    	if(RWGService.isRunning()) {
-    		Log.i("ADHOC_CLIENT","It's running!");
+    	 
+    	while(!RWGService.isRunning());
+    	
+    	Log.i("ADHOC_CLIENT","It's running!");
 		try{
 			Log.i("ADHOCCLIENT", "DOING INPUT PIPE");
-			FileOutputStream fos = new FileOutputStream("/data/rwg/input");
+			FileOutputStream fos = new FileOutputStream("/data/data/org.hfoss.posit/files/input");
 			Log.i("ADHOCCLIENT", "1");
 			BufferedOutputStream bos = new BufferedOutputStream(fos);
 			Log.i("ADHOCCLIENT", "2");
@@ -335,17 +335,17 @@ public class AdhocClient {
 			bw = new BufferedWriter(pw);
 			Log.i("ADHOCCLIENT", "DID INPUT PIPE");
 		}catch(Exception e2){
-			Log.i("ADHOCCLIENT", e2.toString());
+			Log.i("ADHOCCLIENT", e2.toString(), e2);
 			System.out.println(e2.getClass().toString());
-		}}
+		}
     	 
     	try{
-    		 FileInputStream fis = new FileInputStream("/data/rwg/output");
+    		 FileInputStream fis = new FileInputStream("/data/data/org.hfoss.posit/files/output");
     		 InputStreamReader isr = new InputStreamReader(fis,"ASCII");
     		 br = new BufferedReader(isr);
     		 Log.i("ADHOCCLIENT", "DID OUTPUT PIPE");
 	    }catch(Exception e1){
-	    	System.out.println(e1.getClass().toString());		
+	    	Log.i("ADHOCCLIENT", e1.toString(), e1);
 	    }
 	    
 	    Log.i("ADHOCCLIENT", "GETS TO NETWORK CONFIG DONE");

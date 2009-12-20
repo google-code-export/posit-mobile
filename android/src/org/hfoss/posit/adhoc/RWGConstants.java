@@ -9,7 +9,7 @@ public interface RWGConstants {
 	public final static String RWG_BINARY_ASSET_KEY = "rwgexec";	
 	
 	//path to install the Tor binary too
-	public final static String RWG_BINARY_INSTALL_PATH = "/data/rwg/"+ RWG_BINARY_ASSET_KEY;
+	public final static String RWG_BINARY_INSTALL_PATH = POSIT_HOME + "files/" + RWG_BINARY_ASSET_KEY;
 	
 	//key of the tor binary in the Zip file
 	public final static String RWG_BINARY_ZIP_KEY = "assets/" + RWG_BINARY_ASSET_KEY;
