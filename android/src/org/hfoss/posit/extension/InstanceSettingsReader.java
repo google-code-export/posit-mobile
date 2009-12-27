@@ -13,7 +13,12 @@ import android.content.SharedPreferences.Editor;
 import android.content.res.AssetManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
-
+/**
+ * This is used to read the assets/settings.json file and update the application 
+ * preferences
+ * @author pgautam
+ *
+ */
 public class InstanceSettingsReader {
 	private static final String TAG = "InstanceSettingsReader";
 	private String serverAddress;
@@ -28,7 +33,10 @@ public class InstanceSettingsReader {
 	}
 	
 
-
+	/**
+	 * Parse the json object in the file
+	 * @return
+	 */
 	public  boolean parseSettingsFile(){
 //		FileInputStream fIs = new FileInputStream(new File(SETTINGS_FILE));
 //		BufferedInputStream bS = new BufferedInputStream(fIs);
@@ -56,7 +64,9 @@ public class InstanceSettingsReader {
 	}
 
 
-
+	/**
+	 * Load all the values to the global shared preferences
+	 */
 	private void loadValuesToSharedPreferences() {
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		Editor editor = sp.edit();
@@ -69,15 +79,24 @@ public class InstanceSettingsReader {
 	}
 
 
-
+	/**
+	 * sets the projectId
+	 * @param projectId
+	 */
 	public void setProjectId(int projectId) {
 		this.projectId = projectId;
 	}
-
+	/**
+	 * returns the projectId
+	 * @return
+	 */
 	public int getProjectId() {
 		return projectId;
 	}
-
+	/**
+	 * sets the server address from the file
+	 * @param serverAddress
+	 */
 	public void setServerAddress(String serverAddress) {
 		this.serverAddress = serverAddress;
 	}
