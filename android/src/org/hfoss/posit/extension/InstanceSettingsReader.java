@@ -27,6 +27,8 @@ public class InstanceSettingsReader {
 	private String authKey;
 	private boolean syncOn;
 	private String projectName;
+	private String instanceName;
+	private String instanceDescription;
 	
 	public InstanceSettingsReader(Context context)  {
 		mContext = context;
@@ -52,6 +54,8 @@ public class InstanceSettingsReader {
 			projectName = jsonObject.getString("projectName");
 			authKey = jsonObject.getString("authKey");
 			syncOn = jsonObject.getBoolean("syncOn");
+			instanceName = jsonObject.getString("instanceName");
+			instanceDescription = jsonObject.getString("instanceDescription");
 			loadValuesToSharedPreferences();
 			return true;
 		} catch (IOException e) {
@@ -75,6 +79,8 @@ public class InstanceSettingsReader {
 		editor.putString("PROJECT_NAME", projectName);
 		editor.putString("SERVER_ADDRESS", serverAddress);
 		editor.putBoolean("SYNC_ON_OFF", syncOn);
+		editor.putString("INSTANCE_NAME", instanceName);
+		editor.putString("INSTANCE_DESCRIPTION", instanceDescription);
 		editor.commit();
 	}
 
