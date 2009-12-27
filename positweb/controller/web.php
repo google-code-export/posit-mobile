@@ -35,6 +35,9 @@ function webController($path, $request) {
 			case 'main':
 				$smarty->display('main.tpl');
 				break;
+			case '404':
+				$smarty->display('404.tpl');
+				break;
 			case 'maps':
 				$projects = $dao->getProjects();
 				$smarty->assign("projects", $projects);
@@ -235,12 +238,51 @@ function webController($path, $request) {
 				require_once("qr_img.php");
 				chdir($oldwd);
 				break;
+
+			case 'customPosit.list':
+				$project_id = $request["project_id"];
+				//$instances = $dao->getInstancesForProject($project_id);
+				//$smarty->assign("instances", $instances);
+				$smarty->assign("project_id", $project_id);
+				$smarty->display("custom_posit_list.tpl");
+				break;
+
+			case 'customPosit.download':
+				$project_id=$request["project_id"];
+				//hack to get just project_id because php doesn't support multiple constructors.. 
+				$data = array(null, $project_id, null, null, null);
+				$posit = new CustomPosit($data);
+				$posit->download();
+				break;
 			case 'customPosit':
 				$userId = $_SESSION["loginId"];
+				
 				$devices = $dao->getDevicesByUser($userId);
 				$smarty->assign("devices", $devices);
-				$projectId=$request["project_id"];
+				$project_id=$request["project_id"];
+				$smarty->assign("project_id", $project_id);
 				$smarty->display("custom_posit.tpl");
+				break;
+				
+			case 'customPosit.create.do':
+				
+				$name = $request["name"];
+				$project_id= $request["project_id"];
+				$description = $request["description"];
+				$sync_on = $request["sync_on"];
+				$device_id = $request["device_id"];
+				echo $project_id;
+				$data = array($name, $project_id, $description, $sync_on, $device_id);
+				
+				if ($name==null || $project_id ==null){
+					$smarty->assign("name", $name);
+					$smarty->assign("project_id",$project_id);
+					$smarty->assign("description",$description);
+					$smarty->assign("device_id",$device_id);
+					$smarty->display("custom_posit.tpl");
+				}
+				$posit = new CustomPosit($data);
+				$posit->build();
 				break;
 			default:
 				header("Location: main");

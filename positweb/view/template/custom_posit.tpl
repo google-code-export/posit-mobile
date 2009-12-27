@@ -1,7 +1,8 @@
 {include file="header.tpl" title="New Instance" tab="projects"}
 <h2>{$project.name}</h2>
 <div>
-	<form action="customPosit.new.do" method="post">
+	<form action="customPosit.create.do" method="post">
+			<input type="hidden" name="project_id" value="{$project_id}"/>
 		<p>
 			<label for="name">Instance name:</label><br/>
 			<input type="text" name="name"/>
@@ -11,14 +12,14 @@
 			<textarea rows="6" cols="30" name="description"></textarea>
 		</p>
 		<p>
-			<label for="syncOn">Enable Syncing:</label><br/>
+			<label for="sync_on">Enable Syncing:</label><br/>
 			Yes<INPUT TYPE="RADIO" NAME="syncOn" checked>
 			No <INPUT TYPE="RADIO" NAME="syncOn"> </br>
 		</p>
 		
 		<p>
-			<label for="deviceId">Enable Device:</label><br/>
-			<select name="deviceId">
+			<label for="device_id">Enable Device:</label><br/>
+			<select name="device_id">
 			{foreach from=$devices item=device}
 			<option value={$smarty.foreach.device.index}>{$device.imei}</option>
 			{/foreach}

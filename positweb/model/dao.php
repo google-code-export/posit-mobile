@@ -798,6 +798,36 @@ class DAO {
 		}
 	}
 
+	function addInstance($project_id, $name, $description, $sync_on, $auth_key){
+		$stmt = $this->db->prepare("INSERT INTO instance (project_id, name, description, sync_on, auth_key) VALUES (:project_id, :name, :description, :sync_on, :auth_key)") or print_r($this->db->errorInfo()) && die();
+		$stmt->bindValue(":project_id", $project_id);
+		$stmt->bindValue(":name",$name);
+		$stmt->bindValue(":description",$description);
+                $stmt->bindValue(":sync_on", $sync_on);
+		$stmt->bindValue(":auth_key", $auth_key);
+		$stmt->execute();
+
+		return true;	
+	}
+	
+
+	function getInstancesForProject ($project_id){
+		$stmt = $this->db->prepare(
+			"SELECT id, name, description, project_id, sync_on, auth_key
+			FROM instance
+			WHERE project_id = :project_id"
+			) or print_r($this->db->errorInfo()) && die();
+		$stmt->bindValue(":project_id", $project_id);
+		$stmt->execute();
+		$available_values = array();
+		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		
+		foreach($temp as $value){
+			$available_values[] = $value;
+		}
+		return $available_values;
+
+	}
 }
 
 ?>

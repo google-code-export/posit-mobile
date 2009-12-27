@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-12-13 14:17:34
+<?php /* Smarty version 2.6.26, created on 2009-12-27 07:04:18
          compiled from project_display.tpl */ ?>
 <?php require_once(SMARTY_CORE_DIR . 'core.load_plugins.php');
 smarty_core_load_plugins(array('plugins' => array(array('modifier', 'date_format', 'project_display.tpl', 10, false),)), $this); ?>
@@ -12,7 +12,7 @@ unset($_smarty_tpl_vars);
 <div class="project_finds">
 <p><a href="projects">All Projects</a> <a href="expeditions?project_id=<?php echo $this->_tpl_vars['project']['id']; ?>
 ">Expeditions</a></p>
-<a href="customPosit?project_id=<?php echo $this->_tpl_vars['project']['id']; ?>
+<a href="customPosit.list?project_id=<?php echo $this->_tpl_vars['project']['id']; ?>
 ">Custom POSIT instance</a></p>
 </div>
 	<?php $_from = $this->_tpl_vars['finds']; if (!is_array($_from) && !is_object($_from)) { settype($_from, 'array'); }if (count($_from)):
