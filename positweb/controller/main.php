@@ -9,7 +9,7 @@ require_once("util/constants.php");
 require_once("util/log.php");
 require_once("model/dao.php");
 require_once("3rd/smarty-2.6.26/Smarty.class.php");
-
+require_once("controller/customPosit.php");
 
 $dao = new DAO();
 $smarty = new Smarty();
