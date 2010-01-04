@@ -96,7 +96,8 @@ public class AdhocClient {
 		/*
 		 * The Adhoc client needs several binaries installed to run. We check each time.
 		 */
-    	mContext = c;
+        Log.i(TAG, "Creating AdhocClient");
+        mContext = c;
     	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Random-Walk Gossip-Based Manycast", true,true);
 		coretask = new CoreTask();
 		coretask.setPath(mContext.getApplicationContext().getFilesDir().getParent());
@@ -104,6 +105,7 @@ public class AdhocClient {
 		boolean filesetOutdated = coretask.filesetOutdated();
         if (binariesExists() == false || filesetOutdated) {
         	if (coretask.hasRootPermission()) {
+                Log.i(TAG, "Installing Binaries");
         		installBinaries();
         	}
         	else {
@@ -111,10 +113,10 @@ public class AdhocClient {
         	}
         }
     
-        Log.i(TAG, "starting network thread...");
+       Log.i(TAG, "Starting network thread...");
         this.netStartUpThread = new Thread(new NetworkStart());
         this.netStartUpThread.start();
-        Log.i(TAG, "starting HandleIncoming thread...");
+        Log.i(TAG, "Starting HandleIncoming thread...");
         this.netHandleIncomingThread = new Thread(new HandleIncoming());
         this.netHandleIncomingThread.start();
         Log.i(TAG, "Done starting network services!");
@@ -244,6 +246,8 @@ public class AdhocClient {
 			else
 				done=false;
     	}
+        Log.i(TAG, "Enabled Wifi");
+
     }
     
     private void checkDirs() {
@@ -276,18 +280,21 @@ public class AdhocClient {
     class NetworkStart implements Runnable {
         // @Override
        public void run() {	
-    	 
+      	 Log.i(TAG, "Starting NetworkStart");
     	 enableWifi();
     	 status = "Wifi enabled, starting AdhocClient. Plz Wait";
     	 statusHandler.post(statusUpdate);
     	 
     	 //disableAdhocClient();
-    	 enableAdhocClient();
+      	 //Log.i(TAG, "Enabling AdhocClient");
+      	 //enableAdhocClient();
+      	 //Log.i(TAG, "Enabled AdhocClient");
+
     		    	 
     	 status = "Wifi & AdhocClient enabled, Start the protocol (./data/rwg/rwgexec -i tiwlan0)";
     	 statusHandler.post(statusUpdate);
     	 
-    	 Log.i("NETWORK START THREAD", "starting rwgexec");
+    	 Log.i(TAG, "Starting rwgexec");
     	 if (!RWGService.isRunning())
 			{
     		 	Log.i(TAG, "NOT RUNNING");
@@ -303,7 +310,7 @@ public class AdhocClient {
     	    	}catch(Exception e){
     	    		System.out.println(e.getClass().toString());
     	    	}
-    	 Log.i("ADHOCCLIENT", "AFTER SERVICE IS STARTED");
+    	 Log.i(TAG, "AFTER SERVICE IS STARTED");
     	 
     	 
     	 
@@ -369,7 +376,8 @@ public class AdhocClient {
     class HandleIncoming implements Runnable {
        // @Override
     	 public void run() {
-        	 
+          	Log.i(TAG, "Starting HandleIncoming");
+
     		boolean pipeOpen = false;
     		buff = new char[1];
     		

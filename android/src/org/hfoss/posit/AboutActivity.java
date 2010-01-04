@@ -28,21 +28,22 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 /**
- * Shows the user specifics about the development team.
- * 
- * 
- *
+ * Displays basic information about POSIT, including name,
+ *  developer (HFOSS), and the names of development team members.
  */
 public class AboutActivity extends Activity{
 	private static final String TAG = "AboutActivity";
-
+	 
+	/**
+	 * To add a name to the development team, edit strings.xml and
+	 *  about_copyright.xml.
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
-	     setContentView(R.layout.about_copyright);
+		super.onCreate(savedInstanceState);	
+		setContentView(R.layout.about_copyright);
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -57,14 +58,14 @@ public class AboutActivity extends Activity{
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		Intent intent;
 		switch(item.getItemId()) {
-			case R.id.settings_menu_item:
-				intent = new Intent(this, SettingsActivity.class);
-				startActivity(intent);
-				break;
-			case R.id.goback_menu_item:
-				intent = new Intent(this,PositMain.class);
-				startActivity(intent);
-				break;
+		case R.id.settings_menu_item:
+			intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
+			break;
+		case R.id.goback_menu_item:
+			intent = new Intent(this,PositMain.class);
+			startActivity(intent);
+			break;
 		}
 		return true;
 	}

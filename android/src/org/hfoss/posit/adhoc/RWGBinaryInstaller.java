@@ -13,7 +13,7 @@ import android.util.Log;
 
 public class RWGBinaryInstaller implements RWGConstants {
 
-	private static final String TAG = "RWG";
+	private static final String TAG = "RWGBinaryInstaller";
 	
 	public RWGBinaryInstaller(){}
 	
