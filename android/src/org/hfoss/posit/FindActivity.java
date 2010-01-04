@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.hfoss.posit.adhoc.AdhocClientActivity;
+import org.hfoss.posit.adhoc.RWGService;
 import org.hfoss.posit.provider.MyDBHelper;
 import org.hfoss.posit.provider.POSITProvider;
 import org.hfoss.posit.utilities.ImageAdapter;
@@ -115,7 +116,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 	public static boolean SAVE_CHECK=false;
 	public static int PROJECT_ID;
-	private static boolean IS_ADHOC = false;
+//	private static boolean IS_ADHOC = false;
 
 	public int INTENT_CHECK=0;// anybody finds more suitable ways please change it 
 
@@ -173,7 +174,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
-		IS_ADHOC = sp.getBoolean("IS_ADHOC", false);
+//		IS_ADHOC = sp.getBoolean("IS_ADHOC", false);
 
 		final Intent intent = getIntent();
 		String action = intent.getAction();
@@ -535,7 +536,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			Log.i("start",(start=System.currentTimeMillis())+"");
 			ContentValues contentValues = retrieveContentFromView();
 			Log.i("after retrive", (System.currentTimeMillis()-start)+"");
-			if (IS_ADHOC)
+			//if (IS_ADHOC)
+			if (RWGService.isRunning())
 				sendAdhocFind(contentValues);
 			Log.i("after adhoc check", (System.currentTimeMillis()-start)+"");
 			

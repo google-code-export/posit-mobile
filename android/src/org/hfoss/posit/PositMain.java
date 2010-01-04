@@ -21,10 +21,6 @@
  */
 package org.hfoss.posit;
 
-
-
-import java.io.IOException;
-
 import org.hfoss.posit.adhoc.AdhocClient;
 import org.hfoss.posit.adhoc.RWGConstants;
 import org.hfoss.posit.adhoc.RWGService;
@@ -53,118 +49,86 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+/**
+ *  Implements the main activity and the main screen for the POSIT application. 
+ */
 public class PositMain extends Activity implements OnClickListener, RWGConstants{
-	
+
 	private static final int confirm_exit=0;
 	private static final String TAG = "PositMain";
 	public static AdhocClient mAdhocClient;
 	public static WifiManager wifiManager;
-	
-	private Intent rwgService = null;
-	
+
 	/**
-	 * Called when the application is first created.  If there is no wireless or data connection, starts the 
-	 * AdhocClient to work in ad hoc mode.  Also, if this is the first time that the application is run, 
-	 * the application will check the phone's registration.  Also saves the
-	 * selected project id so that when the application is restored, the right project is showed.
+	 * Called when the activity is first created.  Sets the UI layout, adds
+	 * the buttons, checks whether the phone is registered with a POSIT server.
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
-		
-		
+
 		final Button addFindButton = (Button)findViewById(R.id.addFindButton);
 		if(addFindButton!=null)
-		addFindButton.setOnClickListener(this);
-		
+			addFindButton.setOnClickListener(this);
+
 		final Button listFindButton = (Button)findViewById(R.id.listFindButton);
 		if(listFindButton!=null) {
-		Log.i("TAG",listFindButton.getText()+"");
-		listFindButton.setOnClickListener(this);
+			Log.i(TAG,listFindButton.getText()+"");
+			listFindButton.setOnClickListener(this);
 		}
-		
-		final Button rwgButton = (Button)findViewById(R.id.rwgButton);
-		if(rwgButton!=null)
-		rwgButton.setOnClickListener(this);
-		
+
 		final Button sahanaButton = (Button)findViewById(R.id.sahanaSMS);
 		if(sahanaButton!=null)
-		sahanaButton.setOnClickListener(this);
-		
-		//if (!Utils.isConnected(this)) 
-		//	startActivity(new Intent(this, AdhocClientActivity.class));
-		//else 
+			sahanaButton.setOnClickListener(this);
+
+		// If this is the first run on this device, let the user register the phone.
 		if(savedInstanceState==null)
 			checkPhoneRegistrationAndInitialSync();
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		
+
 		Utils.showToast(this, "Current Project: "+sp.getString("PROJECT_NAME", ""));
-
-		setUIState();
 		
+		/*  ******* POLICY:  RWG should not be running at start up  */
+		
+		if (RWGService.isRunning())  {
+			Log.i(TAG, "RWG running");
+			Utils.showToast(this, "RWG running");
+		}
+		else {
+			Log.i(TAG, "RWG not running");
+			Utils.showToast(this, "RWG not running");
+		}
+	}
 
+	/**
+	 * Handles clicks on PositMain's buttons.
+	 */
+	public void onClick(View view) {
+		Log.i(TAG,"CLICK");
+		Intent intent = new Intent();
+
+		switch(view.getId()) {
+		case R.id.addFindButton :
+			intent.setClass(this, FindActivity.class);
+			intent.setAction(Intent.ACTION_INSERT);
+			startActivity(intent);
+			break;
+		case R.id.listFindButton :
+			intent.setClass(this, ListFindsActivity.class);
+			startActivity(intent);
+			break;
+		case R.id.sahanaSMS:
+			intent.setClass(this, SahanaSMSActivity.class);
+			startActivity(intent);
+			break;
+		}	
 	}
 
 	
-
-	/*@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		outState.putBoolean("notFirst", true);
-		super.onSaveInstanceState(outState);
-	}
-
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-		setContentView(R.layout.main);
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		setContentView(R.layout.main);
-	}
-
-	@Override
-	protected void onPause(){
-		super.onPause();
-	}	*/
-
 	/**
-     * The phone is registered if it has an authentication key that matches one of
-     * the projects on the server specified in the phone's preferences. If the phone is not registered, 
-     * the user will be prompted to go to the server site and register their phone.
-     * Shared preferences are also checked to see whether the phone should
-     * sync up with the server.
-     */
-    private void checkPhoneRegistrationAndInitialSync() {
-    	checkInstanceSettings();
-       SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-       
-       String AUTH_KEY = sp.getString("AUTHKEY", null);
-       
-	   if (AUTH_KEY == null || AUTH_KEY.equals("")||AUTH_KEY.equals(null))
-		   	startActivity(new Intent(this, ServerRegistrationActivity.class));
-	   else if (sp.getBoolean("SYNC_ON_OFF", true)){	
-       		Intent intent = new Intent(this, SyncActivity.class);
-			intent.setAction(Intent.ACTION_SYNC);
-			//startActivity(intent);
-	   }
-    }
-
-
-
-	private void checkInstanceSettings() {
-		  // checking the settings file and setting all the settings stuff 
-		  // the values instance creator in the site has put
-		  InstanceSettingsReader i = new InstanceSettingsReader(this);
-		  i.parseSettingsFile(); 
-		  
-	}
-
-	/* (non-Javadoc)
+	 * Creates the menu options for the PositMain screen.  Menu items are inflated
+	 *  from a resource file.
 	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
 	 */
 	@Override
@@ -173,15 +137,29 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		inflater.inflate(R.menu.positmain_menu, menu);
 		return true;
 	}
+	
+	/**
+	 * Updates the RWG Start/End menus based on whether RWG is running or not.
+	 * @see android.app.Activity#onPrepareOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (RWGService.isRunning()) {
+			menu.findItem(R.id.rwg_start).setEnabled(false);
+			menu.findItem(R.id.rwg_end).setEnabled(true);
+		} else {
+			menu.findItem(R.id.rwg_start).setEnabled(true);
+			menu.findItem(R.id.rwg_end).setEnabled(false);
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
 
-	/* When hit the back key, there should be a confirmation dialog pop-out 
+	/**
+	 * Manages the selection of menu items. 
 	 * @see android.app.Activity#onMenuItemSelected(int, android.view.MenuItem)
 	 */
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		Editor edit = sp.edit();
-		
 		switch(item.getItemId()) {
 		case R.id.settings_menu_item:
 			startActivity(new Intent(this, SettingsActivity.class));
@@ -192,43 +170,54 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		case R.id.projects_menu_item:
 			startActivity(new Intent(this, ShowProjectsActivity.class));
 			break;
-			
-		/*case R.id.rwg_start_activity:
-			startActivity(new Intent(this, AdhocClientActivity.class));
-			break;*/
 		case R.id.track_menu_item:
 			startActivity(new Intent(this, TrackerActivity.class));
 			break;
-		
 		case R.id.rwg_start:
-
 			wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
-			mAdhocClient = new AdhocClient(this);
-			
-	        
-	        edit.putBoolean("IS_ADHOC", true);
-	        edit.commit();
-	        break;
+			mAdhocClient = new AdhocClient(this);		
+			break;
 		case R.id.rwg_end:
-			
-			if(mAdhocClient!=null)
+			if(mAdhocClient!=null)  // Kill RWG if already running
 				mAdhocClient.end();
-
-	        edit.putBoolean("IS_ADHOC", false);
-	        edit.commit();
-			//stopService(new Intent(this,RWGService.class));
 			Utils.showToast(this, "RWG Service Stopped");
 			break;
-		//case R.id.native_activity:
-		//	startActivity(new Intent(this,NativeActivity.class));
-		//	break;
 		}
-		
 		return true;
 	}
 
 	/**
-	 * Makes sure that the user did not press the back key by accident by showing a confirmation dialog.
+	 * Checks whether the phone is registered with POSIT server.
+	 * The phone is registered if it has an authentication key that matches one of
+	 * the projects on the server specified in the phone's preferences. If the phone is not registered, 
+	 * the user will be prompted to go to the server site and register their phone.
+	 * Shared preferences are also checked to see whether the phone should
+	 * sync up with the server.
+	 */
+	private void checkPhoneRegistrationAndInitialSync() {
+		loadInstanceSettings();
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		String AUTH_KEY = sp.getString("AUTHKEY", null);
+		if (AUTH_KEY == null || AUTH_KEY.equals("") || AUTH_KEY.equals(null))
+			startActivity(new Intent(this, ServerRegistrationActivity.class));
+	}
+
+
+	/**
+	 * Reads the settings file and loads certain settings to SharedPreferences
+	 * 
+	 * The settings are passed as a JSON object and
+	 * include serverAddress, projectId, projectName, authKey, syncOn,
+	 * instanceName, instanceDescription.
+	 */
+	private void loadInstanceSettings() {
+		InstanceSettingsReader i = new InstanceSettingsReader(this);
+		i.parseSettingsFile(); 
+	}
+
+	/**
+	 * Intercepts the back key (KEYCODE_BACK) and displays a confirmation dialog
+	 * when the user tries to exit POSIT.
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -245,6 +234,9 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		super.onStop();
 	}
 
+	/**
+	 * Creates a dialog to confirm that the user wants to exit POSIT.
+	 */
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
@@ -268,6 +260,20 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			return null;
 		}
 	}
+	
+
+	/** 
+	 * Makes sure RWG is stopped before exiting the Activity
+	 * @see android.app.Activity#finish()
+	 */
+	@Override
+	public void finish() {
+		if (mAdhocClient != null) {
+			mAdhocClient.end();
+			Utils.showToast(this, "RWGService stopped");
+		}
+		super.finish();
+	}
 
 	@Override
 	protected void onDestroy() {
@@ -275,81 +281,4 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		// Intent svc = new Intent(this, SyncService.class);
 		// stopService(svc);
 	}
-	
-	
-	public void onClick(View view) {
-		Log.i("WOOO","CLICK");
-		Intent intent = new Intent();
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		Editor edit = sp.edit();
-		
-		switch(view.getId()) {
-		case R.id.addFindButton :
-			
-			intent.setClass(this, FindActivity.class);
-			intent.setAction(Intent.ACTION_INSERT);
-			startActivity(intent);
-			break;
-		case R.id.listFindButton :
-
-			intent.setClass(this, ListFindsActivity.class);
-			startActivity(intent);
-			break;
-		case R.id.rwgButton :
-			//if Tor binary is not running, then start the service up
-			if (!RWGService.isRunning())
-			{
-		        /*rwgService = new Intent(this, RWGService.class);
-		        rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		        RWGService.setActivity(this);
-				
-				startService(rwgService);*/
-				
-				wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
-				mAdhocClient = new AdhocClient(this);
-				
-		        
-		        edit.putBoolean("IS_ADHOC", true);
-		        edit.commit();
-			      
-			}
-			else
-			{
-				
-				if(mAdhocClient!=null)
-					mAdhocClient.end();
-
-		        edit.putBoolean("IS_ADHOC", false);
-		        edit.commit();
-				//stopService(new Intent(this,RWGService.class));
-				Utils.showToast(this, "RWG Service Stopped");
-				
-			}
-			
-			//update the UI
-		     setUIState();
-		     break;
-		case R.id.sahanaSMS:
-			intent.setClass(this, SahanaSMSActivity.class);
-			startActivity(intent);
-			break;
-		}	
-	}
-	
-	public void setUIState ()
-    {
-		Button btnStart = (Button)findViewById(R.id.rwgButton);
-    	
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		
-    	if (RWGService.isRunning() || !sp.getBoolean("IS_ADHOC", false))
-    	{
-    		btnStart.setText("Stop Tor");
-    	}
-    	else
-    	{
-    		btnStart.setText("Start Tor");
-
-    	}
-    }
 }

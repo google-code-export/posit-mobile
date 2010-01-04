@@ -15,7 +15,7 @@
 	<item android:id = "@+id/rwg_submenu" android:title="Adhoc Mode" android:icon="@drawable/ic_menu_share">
 	<menu>
 		<item android:id="@+id/rwg_start" android:title="Start RWG"></item>
-		<item android:id="@+id/rwg_end" android:title="Stop RWG"></item>
+		<item android:id="@+id/rwg_end" android:title="Stop RWG" android:enabled="false"></item>
 	</menu>
 	</item>
 

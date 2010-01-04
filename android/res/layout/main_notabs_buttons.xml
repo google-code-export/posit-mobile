@@ -9,7 +9,7 @@
 			android:id="@+id/applicationTypeLabel"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:textSize="25sp"
+			android:textSize="14sp"
 			android:textColor="#ffffff"
 			android:text="Crisis Management Tool"
 			android:layout_marginBottom="15dp"/>
@@ -17,7 +17,7 @@
 			android:id="@+id/version"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:textSize="25sp"
+			android:textSize="14sp"
 			android:textColor="#ffffff"
 			android:text="Version 0.5.0r alpha"
 			android:layout_marginBottom="10dp"/>
@@ -34,16 +34,19 @@
 			android:text="Add Find"
 			/>
 		<Button
-			android:id="@+id/rwgButton"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:text="Start RWG"
-			android:visibility="gone"
-			/>
-		<Button
 			android:id="@+id/sahanaSMS"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:text="Sahana SMS Module"
 			/>
 	</LinearLayout>
+	
+		<!--
+				<Button
+			android:id="@+id/rwgButton"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Start RWG"
+			/>   		
+		android:visibility="gone"  -->
+	

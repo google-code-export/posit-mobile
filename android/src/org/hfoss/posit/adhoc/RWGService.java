@@ -20,7 +20,7 @@ import android.util.Log;
 
 public class RWGService extends Service implements RWGConstants {
 	
-	private static final String TAG = "RWG";
+	private static final String TAG = "RWGService";
 	private static PositMain ACTIVITY = null;
 	private static Process procRWG = null;
 	
@@ -144,12 +144,12 @@ public class RWGService extends Service implements RWGConstants {
 				binaryExists = new File(RWG_BINARY_INSTALL_PATH).exists();
 	    		if (binaryExists)
 	    		{
-	    			Utils.showToast(ACTIVITY, "Tor binary installed!");
+	    			Utils.showToast(ACTIVITY, "RWG binary installed!");
 	    			Log.i(TAG,"Binary installed!");
 	    		}
 	    		else
 	    		{
-	    			Utils.showToast(ACTIVITY, "Tor binary install FAILED!");
+	    			Utils.showToast(ACTIVITY, "RWG binary install FAILED!");
 	    			Log.i(TAG,"Binary install failed.");
 	    			return;
 	    		}
@@ -163,14 +163,14 @@ public class RWGService extends Service implements RWGConstants {
 			
 			//doCommand(SHELL_CMD_RM,RWG_LOG_PATH);
 			
-			Log.i(TAG,"Starting tor process");
+			Log.i(TAG,"Starting RWG process");
             
 			runRWG();
             //procRWG = doCommand(RWG_BINARY_INSTALL_PATH,"-t -g "+ groupSize+ " -h 99 -l 3600 -i tiwlan0 > trace.txt");
 		} 
 		catch (Exception e) {
 		
-		Log.w(TAG,"unable to start Tor Process",e);
+		Log.w(TAG,"unable to start RWG Process",e);
 	
 		e.printStackTrace();
 		}
