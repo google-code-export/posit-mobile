@@ -379,7 +379,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					// User clicked OK so do some stuff 
 					ContentValues contentValues = retrieveContentFromView();
 
-					if(contentValues.getAsInteger(getString(R.string.idDB)) != 0){
+//					if(contentValues.getAsInteger(getString(R.string.idDB)) != 0){
+					if(contentValues.get(getString(R.string.idDB)) != null){
 						if (mState == STATE_INSERT) { //if this is a new find
 							mFind = new Find(FindActivity.this);
 							saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
