@@ -69,7 +69,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_ID = "_id";
 	public static final String PROJECT_ID = "projectId";
 	public static final String COLUMN_NAME = "name";
-	public static final String COLUMN_IDENTIFIER = "identifier";
+	public static final String COLUMN_BARCODE = "identifier";
 	public static final String COLUMN_DESCRIPTION = "description";
 	public static final String COLUMN_LATITUDE = "latitude";
 	public static final String COLUMN_LONGITUDE = "longitude";
@@ -98,7 +98,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		COLUMN_LATITUDE,
 		COLUMN_LONGITUDE,
 		COLUMN_SYNCED,
-		COLUMN_IDENTIFIER
+		COLUMN_BARCODE,
+		COLUMN_ID,
+		COLUMN_BARCODE,
 	};
 
 	public static final int[] list_row_views = {
@@ -107,7 +109,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		R.id.latitude_id,
 		R.id.longitude_id,
 		R.id.status,
-		R.id.num_photos
+		R.id.num_photos,
+		R.id.row_id,
+		R.id.barcode_id
 	};
 
 	/**
@@ -123,7 +127,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		+ COLUMN_DESCRIPTION + " text, "
 		+ COLUMN_LATITUDE + " double, "
 		+ COLUMN_LONGITUDE + " double, "
-		+ COLUMN_IDENTIFIER + " text, " /* for barcodes*/
+		+ COLUMN_BARCODE + " text, " /* for barcodes*/
 		+ COLUMN_TIME + " text, "
 		+ COLUMN_SID + " integer, "
 		+ COLUMN_SYNCED + " integer default 0, "
@@ -312,7 +316,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		boolean result = false;
 		if (args != null) {
 			Log.i(TAG, "id = "+id);
-			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_IDENTIFIER + "=" + id, null) > 0;
+//			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_BARCODE + "=" + id, null) > 0;
+			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_ID + "=" + id, null) > 0;
 			Log.i(TAG,"result = "+result);
 		}
 		mDb.close();
@@ -328,7 +333,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public boolean deleteFind(long id) {
 		//deleteImages(mRowId);
 		mDb = getWritableDatabase();
-		boolean result = mDb.delete(FIND_TABLE_NAME, COLUMN_IDENTIFIER + "=" + id, null)>0;
+		boolean result = mDb.delete(FIND_TABLE_NAME, COLUMN_BARCODE + "=" + id, null)>0;
 		mDb.close();
 		return result;
 	}
@@ -411,7 +416,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
 		String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;
-		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_IDENTIFIER+"="+id, selectionArgs, groupBy, having, orderBy);
+//		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_IDENTIFIER+"="+id, selectionArgs, groupBy, having, orderBy);
+		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_ID+"="+id, selectionArgs, groupBy, having, orderBy);
 		cursor.moveToFirst();
 		ContentValues values = null;
 		if (cursor.getCount() != 0)
@@ -645,12 +651,12 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 * @param l
 	 */
 	private long findIdofRemoteFind(int l) {
-		Cursor c = mDb.query(FIND_TABLE_NAME, new String[] { COLUMN_IDENTIFIER }, COLUMN_SID + "=" + l, null, null, null, null);
+		Cursor c = mDb.query(FIND_TABLE_NAME, new String[] { COLUMN_BARCODE }, COLUMN_SID + "=" + l, null, null, null, null);
 		c.moveToFirst();
 		if ( c.getCount()== 0)
 			return  0;
 		else 
-			return (c.getLong(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER)));
+			return (c.getLong(c.getColumnIndexOrThrow(COLUMN_BARCODE)));
 	}
 
 	public List<Long> getAllPhoneSIDs () {
@@ -724,7 +730,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
 	public Cursor getFindsWithIdentifier(String value) {
 		mDb = getWritableDatabase();
-		Cursor cursor = mDb.query("finds", null, COLUMN_IDENTIFIER + "=" + value, null, null, null, null);
+		Cursor cursor = mDb.query("finds", null, COLUMN_BARCODE + "=" + value, null, null, null, null);
 		Log.i(TAG, cursor.getCount()+"");
 		mDb.close();
 		return cursor;
@@ -756,7 +762,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			return  0;
 		else {
 			c.moveToFirst();
-			return (c.getLong(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER)));
+			return (c.getLong(c.getColumnIndexOrThrow(COLUMN_BARCODE)));
 		}
 	}
 }

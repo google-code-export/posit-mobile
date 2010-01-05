@@ -97,13 +97,13 @@ public class Communicator {
 
 	public Communicator(Context _context) {
 		mContext = _context;
-		
+
 		mHttpParams = new BasicHttpParams();
 		SchemeRegistry registry = new SchemeRegistry();
 		registry.register(new Scheme("http", new PlainSocketFactory(), 80));
 		mConnectionManager = new ThreadSafeClientConnManager(mHttpParams, registry);
 		mHttpClient = new DefaultHttpClient(mConnectionManager, mHttpParams);
-		
+
 		PreferenceManager.setDefaultValues(mContext, R.xml.posit_preferences, false);
 		applicationPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		setApplicationAttributes(applicationPreferences.getString("AUTHKEY", ""), 
@@ -149,10 +149,16 @@ public class Communicator {
 	 * @return whether the registration was successful
 	 */
 	public boolean registerDevice(String server, String authKey, String imei){
+		  // server = "http://192.168.1.105/posit";
 		String url = server + "/api/registerDevice?authKey=" +authKey 
 		+ "&imei=" + imei;
+		Log.i(TAG, "registerDevice URL=" + url);
 
-		responseString = doHTTPGET(url);
+		try {
+			responseString = doHTTPGET(url);
+		} catch (Exception e) {
+			Utils.showToast(mContext, e.getMessage());
+		}
 
 		if (responseString.equals("false"))
 			return false;
@@ -271,7 +277,7 @@ public class Communicator {
 		//sendMap.put(COLUMN_APP_KEY, appKey);
 		sendMap.put(COLUMN_IMEI, Utils.getIMEI(mContext));
 	}
-	
+
 	private void latLongHack(HashMap<String, String> sendMap) {
 		if (sendMap.get("latitude").toString().equals("")||
 				sendMap.get("latitude").toString().equals(""))
@@ -339,7 +345,7 @@ public class Communicator {
 			if(Utils.debug)
 				Log.e(TAG, "IllegalStateException: "+ e.getMessage());
 		}
-		
+
 		return responseString;
 	}
 	/**
@@ -369,10 +375,10 @@ public class Communicator {
 			if(Utils.debug)
 				Log.e(TAG, e.getMessage());	
 		}
-		
+
 		if(Utils.debug)
 			Log.i(TAG, "Response: "+ responseString);
-		
+
 		return responseString;
 	}
 	/**
@@ -380,7 +386,7 @@ public class Communicator {
 	 * @return a HashMap of the Id and Revision of all the finds in the server
 	 */
 	public List<HashMap<String,Object>> getAllRemoteFinds() {
-		
+
 		String findUrl = server +"/api/listFinds?projectId="+projectId+"&authKey="+authKey;
 
 		//this is a List of all of the finds
@@ -398,7 +404,7 @@ public class Communicator {
 			long totalTime = 0;
 			while (it.hasNext()) {
 				ArrayList<HashMap<String, Object>> imagesMap = new ArrayList<HashMap<String, Object>>();
-				
+
 				long start = System.currentTimeMillis();
 				HashMap<String, Object> map = it.next();
 				String findId = (String)map.get("id");
@@ -410,7 +416,7 @@ public class Communicator {
 						JSONObject jsonObj = jsonArr.getJSONObject(i);
 						if(Utils.debug)
 							Log.i(TAG, "JSON Image Response String: " + jsonObj.toString());
-	
+
 						HashMap<String,Object> imageMap = new HashMap<String,Object>();
 						Iterator<String> iterKeys = jsonObj.keys();
 						while(iterKeys.hasNext()) {
@@ -423,7 +429,7 @@ public class Communicator {
 				JSONArray imageIds = (JSONArray) map.get("images");
 				if(Utils.debug)
 					Log.d(TAG, "image ids jsonarray: " + imageIds.toString());
-				
+
 				for (int i=0; i<imageIds.length(); i++) {
 					int imageId = imageIds.getInt(i);
 					String imageUrl = server +"/api/getPicture?id=" + imageId + "&authKey=" +authKey;
@@ -505,14 +511,14 @@ public class Communicator {
 			return false;
 		else return true;
 	}
-	
+
 	public String registerExpeditionPoint(double lat, double lng, int expedition) {
 		String result = doHTTPGET(server+"/api/addExpeditionPoint?authKey="+authKey+"&lat="+lat+"&lng="+lng+"&expedition="+expedition);
 		return result;
 	}	
-	
-	
-	
+
+
+
 	public String registerExpeditionPoint(double lat, double lng,  double alt, int expedition) {
 		HashMap<String, String> sendMap  = new HashMap<String,String>();
 		addRemoteIdentificationInfo(sendMap);
@@ -527,7 +533,7 @@ public class Communicator {
 		}
 		return addExpeditionResponseString;
 	}
-	
+
 	public int registerExpeditionId(int projectId){
 		HashMap<String, String> sendMap  = new HashMap<String,String>();
 		addRemoteIdentificationInfo(sendMap);
@@ -544,6 +550,6 @@ public class Communicator {
 			Log.e(TAG, "Invalid response received");
 			return -1;
 		}
-		
+
 	}
 }
