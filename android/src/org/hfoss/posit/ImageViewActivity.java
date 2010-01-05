@@ -189,7 +189,7 @@ public class ImageViewActivity extends Activity {
 	 @Override
 	 protected Dialog onCreateDialog(int id) {
 		 final Intent intent = new Intent(ImageViewActivity.this, FindActivity.class);
-		 intent.putExtra(MyDBHelper.COLUMN_IDENTIFIER, mFind.getId());
+		 intent.putExtra(MyDBHelper.COLUMN_BARCODE, mFind.getId());
 		 intent.setAction(Intent.ACTION_EDIT);
 		 setResult(RESULT_OK,intent);
 		 setResult(RESULT_OK);
@@ -232,7 +232,7 @@ public class ImageViewActivity extends Activity {
 	 public boolean onKeyDown(int keyCode, KeyEvent event) {
 		 if(keyCode==KeyEvent.KEYCODE_BACK && mBm==null) {
 			 final Intent intent = new Intent(ImageViewActivity.this, FindActivity.class);
-			 intent.putExtra(MyDBHelper.COLUMN_IDENTIFIER, mFind.getId());
+			 intent.putExtra(MyDBHelper.COLUMN_BARCODE, mFind.getId());
 			 intent.setAction(Intent.ACTION_EDIT);
 			 setResult(RESULT_OK,intent);
 			 setResult(RESULT_OK);

@@ -62,7 +62,7 @@ public class POSITProvider extends ContentProvider{
     private SQLiteDatabase db;
     private static final String DATABASE_NAME ="posit";
 	public static final int DATABASE_VERSION = 2;
-	private static final String TAG = "MyDBHelper";
+	private static final String TAG = "PositProvider";
 	
 	/**
 	 * Finds table and field
@@ -216,7 +216,10 @@ public class POSITProvider extends ContentProvider{
 				Cursor c = query(Uri.parse("content://org.hfoss.provider.POSIT/finds_id/"+rowId),null,null,null,null);
 				c.moveToFirst();
 				String identifier = c.getString(c.getColumnIndexOrThrow(COLUMN_IDENTIFIER));
-				_uri = ContentUris.withAppendedId(uri, Long.parseLong(identifier));
+//				_uri = ContentUris.withAppendedId(uri, Long.parseLong(identifier));
+ 				Log.i(TAG,"rowID = " + rowId + " identifier = " + identifier);
+				_uri = ContentUris.withAppendedId(uri, rowId);
+				Log.i(TAG, "_uri= " + _uri.toString());
 		        getContext().getContentResolver().notifyChange(_uri, null);
 		        c.close();
 			}

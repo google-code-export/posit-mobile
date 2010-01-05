@@ -65,7 +65,23 @@ android:orientation="horizontal">
 	android:layout_marginLeft="3dp"
 	android:textSize="13dp"
 	/>
+
+<TextView android:id="@+id/row_id"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:layout_below="@id/latitude_id"
+	android:layout_marginLeft="3dp"
+	android:textSize="13dp"
+	/>	
 	
+<TextView android:id="@+id/barcode_id"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:layout_below="@id/latitude_id"
+	android:layout_toRightOf="@id/row_id"
+	android:layout_marginLeft="3dp"
+	android:textSize="13dp"
+	/>
 </RelativeLayout>
 
 

@@ -301,7 +301,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	private void doEditAction() {
 		mState = STATE_EDIT;
-		mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_IDENTIFIER, 0); 
+//		//mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_IDENTIFIER, 0); 
+		mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_ID, 0); 
+
 		if(Utils.debug)
 			Log.i(TAG, "rowID = " + mFindId);
 

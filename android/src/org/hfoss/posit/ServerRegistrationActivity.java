@@ -28,6 +28,7 @@ import org.hfoss.posit.utilities.Utils;
 import org.hfoss.posit.web.Communicator;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -166,8 +167,24 @@ public class ServerRegistrationActivity extends Activity {
 		switch (requestCode) {
 		case BARCODE_READER:
 			String value = data.getStringExtra("SCAN_RESULT");
+			// Hack to remove extra escape characters from JSON text.
+			StringBuffer sb = new StringBuffer("");
+			for (int k = 0; k < value.length(); k++) {
+				char ch = value.charAt(k);
+				if (ch != '\\') {
+					sb.append(ch);
+				} else if (value.charAt(k+1) == '\\') {
+					sb.append(ch);
+				}	
+			}
+			value = sb.toString();
+			//  End of Hack
 			JSONObject object;
+			JSONTokener tokener=new JSONTokener(value);
+
 			try {
+				Log.i(TAG,"JSON="+value);
+				
 				object = new JSONObject(value);
 				String server = object.getString("server");
 				String authKey = object.getString("authKey");

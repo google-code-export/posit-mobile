@@ -183,7 +183,9 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		super.onListItemClick(l, v, position, id);
 		Intent intent = new Intent(this, FindActivity.class);
 		intent.setAction(Intent.ACTION_EDIT);
-		intent.putExtra(MyDBHelper.COLUMN_IDENTIFIER, mDbHelper.getIdentifierFromRowId(id));
+		Log.i(TAG,"id = " + id);
+//		intent.putExtra(MyDBHelper.COLUMN_IDENTIFIER, mDbHelper.getIdentifierFromRowId(id));
+		intent.putExtra(MyDBHelper.COLUMN_ID, id);
 		startActivityForResult(intent, FIND_FROM_LIST);
 		FindActivity.SAVE_CHECK=false;
 	}
@@ -291,7 +293,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 		TextView tv = (TextView) view;
-		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER));
+		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_BARCODE));
 		switch (view.getId()) {
 		/*case R.id.find_image:
 
