@@ -130,8 +130,8 @@ public class POSITProvider extends ContentProvider{
 
        @Override
        public void onCreate(SQLiteDatabase db) {
-          db.execSQL(CREATE_FINDS_TABLE);
-          db.execSQL(CREATE_PHOTOS_TABLE);
+ //         db.execSQL(CREATE_FINDS_TABLE);
+ //         db.execSQL(CREATE_PHOTOS_TABLE);
        }
 
        @Override

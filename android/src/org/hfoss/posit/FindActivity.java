@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.sql.Timestamp;
 
 import org.hfoss.posit.adhoc.AdhocClientActivity;
 import org.hfoss.posit.adhoc.RWGService;
@@ -80,8 +81,8 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 /**
- * Handles both adding new finds as well as editing existing finds.  
- * Includes adding and editing name, description, and barcode.  Also allows user
+ * Handles both adding new finds and editing existing finds.  
+ * Includes adding and editing name, description, and barcode_id.  Also allows user
  * to attach photos to the find, as well as delete everything.
  * 
  */
@@ -90,14 +91,16 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 	private Find mFind;
 	private long mFindId;
+	private String mFindGuId = null;
 	private int mState;
 	private Cursor mCursor = null;
 	private Gallery mGallery;
+	private static boolean NEWFIND=true;
 	
-	//list of temporary files representing pictures taken for a find
-	//that has not been added to the database
+	//Temporary files representing pictures taken for a find
+	//but not yet added to the database
 	private ArrayList<Bitmap> mTempBitmaps = new ArrayList<Bitmap>();
-	//list of uris of new images and thumbnails being attached to the find
+	//Uris of new images and thumbnails being attached to the find
 	private List<Uri> mNewImageUris = new LinkedList<Uri>();
 	private List<Uri> mNewImageThumbnailUris = new LinkedList<Uri>();
 
@@ -163,8 +166,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 	/**
 	 * Sets up the various actions for the FindActivity, which are 
-	 * to insert new finds in the DB, edit existing finds, and attaching images 
-	 * to the finds
+	 * inserting new finds in the DB, editing or deleting existing finds, 
+	 * and attaching images to the finds
 	 * @param savedInstanceState (not currently used) is to restore state.
 	 */
 	@Override
@@ -213,6 +216,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		mTempBitmaps = savedInstanceState.getParcelableArrayList("bitmaps");
 		displayGallery(mFindId);
+//		displayGallery(mFindGuId==null);  // New find
 		super.onRestoreInstanceState(savedInstanceState);
 	}
 
@@ -301,22 +305,27 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	private void doEditAction() {
 		mState = STATE_EDIT;
-//		//mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_IDENTIFIER, 0); 
 		mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_ID, 0); 
+//		mFindGuId = getIntent().getStringExtra(MyDBHelper.COLUMN_GUID);
 
 		if(Utils.debug)
-			Log.i(TAG, "rowID = " + mFindId);
+		//	Log.i(TAG, "rowID = " + mFindId);
+			Log.i(TAG, "guID = " + mFindGuId);
 
 		// Instantiate a find object and retrieve its data from the DB
-		mFind = new Find(this, mFindId);        
+		mFind = new Find(this, mFindId);   
+		//mFind = new Find(this, mFindGuId);        
+
 		ContentValues values = mFind.getContent();
 		if (values == null) {
 			Utils.showToast(this, "No values found for Find " + mFindId);
+//			Utils.showToast(this, "No values found for Find " + mFindGuId);
 			mState = STATE_INSERT;
 		} else {
 			displayContentInView(values);  
 		}
 		displayGallery(mFindId);
+//		displayGallery(!NEWFIND); // Not a new find
 	}
 
 
@@ -352,14 +361,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					{
 						Utils.showToast(FindActivity.this, R.string.deleted_from_database);
 						finish();
-					}
-
-					else 
+					}	else 
 						Utils.showToast(FindActivity.this, R.string.delete_failed);
-					
-					//Intent intent = new Intent(FindActivity.this, ListFindsActivity.class);
-					//startActivity(intent);
-					//TabMain.moveTab(1);
 				}
 			}
 			)
@@ -399,20 +402,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 							}
 						}
 						finish();
-						//Intent in = new Intent(this, ListFindsActivity.class); //redirect to list finds
-						//startActivity(in);
-						/*if(mState==STATE_INSERT)
-							TabMain.moveTab(1);
-						else if(mState==STATE_EDIT)
-							finish();*/
 					}
 				}
 			}).setNeutralButton(R.string.closing, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
-					/*if(mState==STATE_INSERT)
-						TabMain.moveTab(1);
-					else if(mState==STATE_EDIT)*/
-						finish();
 				}
 			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
@@ -420,39 +413,6 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				}
 			})
 			.create();
-
-		case NON_UNIQUE_ID:
-			return new AlertDialog.Builder(this)
-			.setIcon(R.drawable.alert_dialog_icon)
-			.setTitle(R.string.alert_dialog_non_unique)
-			.setPositiveButton(R.string.alert_dialog_ok, 
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					//do nothing
-				}
-			}).create();
-		
-		case NON_NUMERIC_ID:
-			return new AlertDialog.Builder(this)
-			.setIcon(R.drawable.alert_dialog_icon)
-			.setTitle(R.string.alert_dialog_non_numeric)
-			.setPositiveButton(R.string.alert_dialog_ok, 
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					//do nothing
-				}
-			}).create();
-		case TOO_BIG_ID:
-			return new AlertDialog.Builder(this)
-			.setIcon(R.drawable.alert_dialog_icon)
-			.setTitle("ID must be less than 9 digits")
-			.setPositiveButton(R.string.alert_dialog_ok, 
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					//do nothing
-				}
-			}).create();
-
 		default:
 			return null;
 		} // switch
@@ -491,8 +451,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * @return a boolean telling whether or not the operation was successful
 	 */
 	/*
-	 * Here I use an Integer INTNET_CHECK to check weather the the action is insert or edition.
-	 * if the action is edition, it the OnKedyDown method will utilize the checkSave method to 
+	 * TODO: This needs to be fixed. It doesn't work properly.
+	 * 
+	 * Here I use an Integer INTENT_CHECK to check whether the the action is insert or edit.
+	 * if the action is edit, the OnKeyDown method will utilize the checkSave method to 
 	 * check weather the database has been changed or not
 	 */
 	@Override
@@ -548,10 +510,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			// This indicates a non-numeric or invalid ID				
 			if (contentValues.getAsString(getString(R.string.idDB))==""|| contentValues.getAsString(getString(R.string.idDB))==null)
 				return false;
-			Log.i("after nonnumeric check", (System.currentTimeMillis()-start)+"");
+//			Log.i("after nonnumeric check", (System.currentTimeMillis()-start)+"");
 
 			if (mState == STATE_INSERT) { //if this is a new find
-				
 				mFind = new Find(this);
 				saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
 				mTempBitmaps.clear();
@@ -612,6 +573,11 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		return true;
 	} // onMenuItemSelected
 
+	/**
+	 * Used with RWG algorithm to transmit finds peer-to-peer through an ad-hoc
+	 * network.  
+	 * @param contentValues
+	 */
 	private void sendAdhocFind(ContentValues contentValues) {
 		Utils.showToast(this, "sending ad hoc find");
 		
@@ -661,22 +627,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		result.put(getString(R.string.descriptionDB), value);
 		eText = (EditText) findViewById(R.id.idText);
 		value = eText.getText().toString();
-		try {
+		result.put(getString(R.string.idDB), value);          // GuId
 
-//			result.put(getString(R.string.idDB), Long.parseLong(value));
-			result.put(getString(R.string.idDB), value);
-//			if(value.length() >= 10) {
-//				showDialog(TOO_BIG_ID);
-//				result.put(getString(R.string.idDB), 0);
-//
-//			}
-
-		} catch (NumberFormatException e) {
-			// If user entered non-numeric ID, show an error
-			Utils.showToast(this, "Error: ID must be numeric");
-			// and set id in result object to 0
-			result.put(getString(R.string.idDB), 0);
-		}
 		TextView tView = (TextView) findViewById(R.id.longitudeText);
 		value = tView.getText().toString();
 		result.put(getString(R.string.longitudeDB), value);
@@ -686,12 +638,11 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		tView = (TextView) findViewById(R.id.timeText);
 		value = tView.getText().toString();
 		result.put(getString(R.string.timeDB), value);
-
-		// Mark the find unsynched
+		
+		// Mark the find unsynced
 		result.put(getString(R.string.syncedDB),"0");
-		//add project id
+		//Add project id and the revision number
 		result.put(getString(R.string.projectId), PROJECT_ID);
-
 		return result;
 	}
 
@@ -796,26 +747,24 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		case BARCODE_READER:
 			String value = data.getStringExtra("SCAN_RESULT");
 			MyDBHelper dBHelper = new MyDBHelper(this);
-			Long scannedId = null;
+			EditText eText = (EditText) findViewById(R.id.idText);
+			eText.setText(value);
 			
-			try {
-				scannedId = Long.parseLong(value); // idea is to catch the exception after here if it's not a number
-				Log.i(TAG, "HERE");
-					Cursor cursor = dBHelper.getFindsWithIdentifier(value);
-					Log.i(TAG, cursor.getCount()+"");
-					if (cursor.getCount() == 0) {
-						EditText eText = (EditText) findViewById(R.id.idText);
-						eText.setText(value);
-					} else showDialog(NON_UNIQUE_ID);
-					cursor.close();
-			} catch(NumberFormatException e) {
-				showDialog(NON_NUMERIC_ID);
-			}
-//			if(scannedId>= 1000000000) {
-//				showDialog(TOO_BIG_ID);
-//				break;
+//			Long scannedId = null;
+//			
+//			try {
+////				scannedId = Long.parseLong(value); // idea is to catch the exception after here if it's not a number
+//				Log.i(TAG, "HERE");
+//					Cursor cursor = dBHelper.getFindsWithIdentifier(value);
+//					Log.i(TAG, cursor.getCount()+"");
+//					if (cursor.getCount() == 0) {
+//						EditText eText = (EditText) findViewById(R.id.idText);
+//						eText.setText(value);
+//					} else showDialog(NON_UNIQUE_ID);
+//					cursor.close();
+//			} catch(NumberFormatException e) {
+//				showDialog(NON_NUMERIC_ID);
 //			}
-			
 			break;
 
 		case CAMERA_ACTIVITY: //for existing find: saves image to db when user clicks "attach"
@@ -831,6 +780,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				Utils.showToast(this, R.string.save_failed);
 			}
 			displayGallery(mFindId);
+//			displayGallery(false); // Not a new find
 			mTempBitmaps.clear();
 			break;
 
@@ -839,6 +789,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			tempImage = (Bitmap) data.getExtras().get("data");
 			mTempBitmaps.add(tempImage);
 			displayGallery(mFindId);
+//			displayGallery(true);  // New Find
 			break;
 
 		case IMAGE_VIEW:
@@ -930,7 +881,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 *  @param id is the rowId of the find
 	 */
 	private void displayGallery(long id) {
+//	private void displayGallery(boolean newFind) {
 		if (id != 0) { //for existing finds
+//		if (!newFind) { //for existing finds
 			// Select just those images associated with this find.
 			if ((mCursor=mFind.getImages()).getCount()>0) {
 				finishActivity(FindActivity.IMAGE_VIEW);
@@ -1003,17 +956,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * @return a string representing the current time stamp.
 	 */
 	private String getDateText() {
-		Calendar cal = Calendar.getInstance();
-		int minute = cal.get(Calendar.MINUTE);
-		String minStr = minute+"";
-		if(minute < 10)
-			minStr = "0" + minute;
-		String dateString = cal.get(Calendar.YEAR) + "/" + cal.get(Calendar.MONTH)
-		+ "/" + cal.get(Calendar.DAY_OF_MONTH) + " "
-		+ cal.get(Calendar.HOUR_OF_DAY) + ":" + 
-		minStr;
-		//if the minute field is only one digit, add a 0 in front of it
-		return dateString;
+		Timestamp ts = new Timestamp(System.currentTimeMillis());
+		return ts.toString();
 	}
 
 	/* ***************   Location Listener Interface Methods **********     */

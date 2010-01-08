@@ -69,7 +69,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_ID = "_id";
 	public static final String PROJECT_ID = "projectId";
 	public static final String COLUMN_NAME = "name";
-	public static final String COLUMN_BARCODE = "identifier";
+	public static final String COLUMN_GUID = "identifier";    // Globally unique ID
+	public static final String COLUMN_BARCODE = "identifier"; // Same as GUID
 	public static final String COLUMN_DESCRIPTION = "description";
 	public static final String COLUMN_LATITUDE = "latitude";
 	public static final String COLUMN_LONGITUDE = "longitude";
@@ -91,7 +92,10 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_PHOTO_IDENTIFIER = "photo_identifier";
 	public static final String COLUMN_FIND_ID = "findId";
 
-
+	public static final String SYNC_HISTORY_TABLE = "sync_history";
+	public static final String SYNC_COLUMN_SERVER = "server_url";
+	public static final String FIND_HISTORY_TABLE = "find_history";
+	
 	public static final String[] list_row_data = { 
 		COLUMN_NAME,
 		COLUMN_DESCRIPTION,
@@ -128,16 +132,41 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		+ COLUMN_LATITUDE + " double, "
 		+ COLUMN_LONGITUDE + " double, "
 		+ COLUMN_BARCODE + " text, " /* for barcodes*/
-		+ COLUMN_TIME + " text, "
+		+ COLUMN_TIME + " timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP," //text, "
 		+ COLUMN_SID + " integer, "
 		+ COLUMN_SYNCED + " integer default 0, "
 		+ COLUMN_REVISION + " integer default 1, "
 		+ "audioClips integer, "	// needed for compatibility
 		+ "videos integer, "		// needed for compatibility
-		+ MODIFY_TIME + " text, "
+		+ MODIFY_TIME + " timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP," // text, "
 		+ PROJECT_ID + " integer, "
 		+ IS_AD_HOC + " integer default 0"
 		+ ");";
+	
+	/**
+	 * Keeps track of create, update, and delete actions on Finds.
+	 */
+	private static final String CREATE_FIND_HISTORY_TABLE = "CREATE TABLE find_history ("
+		+ "id integer primary key autoincrement,"
+		+ "time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+		+ "find_guid varchar(50) NOT NULL,"
+		+ "action varchar(20) NOT NULL"
+		+ ")";
+		
+	/**
+	 * Keeps track of sync actions between client (phone) and server
+	 */
+	private static final String CREATE_SYNC_HISTORY_TABLE = "CREATE TABLE sync_history ("
+		+ "id integer primary key autoincrement, "
+		+ "time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+		+ "server_url varchar(50) NOT NULL "
+		+ ")";
+
+	/**
+	 * Keeps track of sync actions between client (phone) and server
+	 */
+	private static final String INITIALIZE_SYNC_HISTORY_TABLE = 
+		"INSERT into sync_history (time,server_url) VALUES (datetime('now'),'noserver')";
 
 	private static final String CREATE_IMAGES_TABLE = "CREATE TABLE "
 		+ PHOTO_TABLE_NAME  
@@ -145,7 +174,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		+ COLUMN_PHOTO_IDENTIFIER + " integer, "
 		+ COLUMN_FIND_ID + " integer, "      // User Key
 		+ COLUMN_IMAGE_URI + " text, "      // The image's URI
-		+ COLUMN_PHOTO_THUMBNAIL_URI + " text "      // The thumbnail's URI
+		+ COLUMN_PHOTO_THUMBNAIL_URI + " text, "      // The thumbnail's URI
+		+ PROJECT_ID + "integer"
 		+ ");";
 
 	private Context mContext;   // The Activity
@@ -153,6 +183,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
 	public MyDBHelper(Context context) {
 		super(context, DBName, null, DBVersion);
+		Log.i(TAG, "Constructor");
+//		mDb = getWritableDatabase();
+//		onUpgrade(mDb, 2, 3);
 		this.mContext= context;
 	}
 
@@ -161,8 +194,14 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onCreate(SQLiteDatabase db) throws SQLException {
+		Log.i(TAG, "OnCreate");
 		db.execSQL(CREATE_FINDS_TABLE);
 		db.execSQL(CREATE_IMAGES_TABLE);
+		db.execSQL(CREATE_FIND_HISTORY_TABLE);
+		Log.i(TAG, "Created find_history table");
+		db.execSQL(CREATE_SYNC_HISTORY_TABLE);
+		db.execSQL(INITIALIZE_SYNC_HISTORY_TABLE);
+		Log.i(TAG, "Created sync_history table");
 	}
 
 	/**
@@ -175,9 +214,66 @@ public class MyDBHelper extends SQLiteOpenHelper {
 				+ newVersion + ", which will destroy all old data");
 		db.execSQL("DROP TABLE IF EXISTS " + FIND_TABLE_NAME);
 		db.execSQL("DROP TABLE IF EXISTS " + PHOTO_TABLE_NAME);
+		db.execSQL("DROP TABLE IF EXISTS " + "find_history");
+		db.execSQL("DROP TABLE IF EXISTS " + "sync_history");
 		onCreate(db);		
 	}
 
+	public Cursor testFindsHistory() {
+		mDb = getWritableDatabase();
+		Cursor c = mDb.rawQuery("SELECT * FROM sync_history", null);
+		Log.i(TAG,"SyncHistory rows: " + c.getCount());
+		mDb.close();
+		return c;
+	}
+	
+	/**
+	 * Returns a list of the IDs of all Finds that have been created,
+	 * updated or deleted since the last sync with the server.  Each
+	 * change to a Find is recorded in find_history.
+	 * @return a comma, delimited list of Find guids
+	 */
+	public String getDeltaFindsIds(){
+		mDb = getReadableDatabase();
+		Cursor c = mDb.rawQuery("SELECT time FROM sync_history order by time desc", null);
+		String maxtime = "No time";
+		if (c.moveToFirst()) 
+			maxtime = c.getString(0);  // column 0
+		Log.i(TAG, "Last sync time = " + maxtime);
+		String[] args = new String[1];
+		args[0] = maxtime;
+		c.close();
+		c = mDb.rawQuery("SELECT DISTINCT find_guid, action FROM find_history WHERE time > ?", args);
+		String result = "";
+		c.moveToFirst();
+		for (int k = 0; k < c.getCount(); k++) {
+			result += c.getString(0) + ":" + c.getString(1) + ",";
+			c.moveToNext();
+		}
+		c.close();
+		mDb.close();
+		Log.i(TAG, "Find deltas = " + result);
+		return result;
+	}
+	
+	/**
+	 * Records the time stamp for the current sync operation. 
+	 * @param values
+	 */
+	public boolean recordSync(ContentValues values) {
+		mDb = getWritableDatabase();
+		long result = mDb.insert(SYNC_HISTORY_TABLE, null, values);
+		mDb.close();
+		return result != -1;
+	}
+	
+	public boolean logFindHistory(ContentValues values) {
+		mDb = getWritableDatabase();
+		long result = mDb.insert(FIND_HISTORY_TABLE, null, values);
+		mDb.close();
+		return result != -1;
+	}
+	
 	/**
 	 * This method is called from a Find object to add its data to DB.
 	 * @param values  contains the <column_name,value> pairs for each DB field.
@@ -185,15 +281,48 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 */
 	public long addNewFind(ContentValues values) {
 		mDb = getWritableDatabase();  // Either create the DB or open it.
-		long result = mDb.insert(FIND_TABLE_NAME, null, values);
-		long findId = -1;
-		if (result != -1) {
-			findId = getIdentifierFromRowId(result);
+		long rowId = mDb.insert(FIND_TABLE_NAME, null, values);
+		if (rowId != -1) {
+			String guId = "";
+			guId = getGuIdFromRowId(rowId);
+			ContentValues lfh = new ContentValues();
+			lfh.put("find_guid", guId);
+			lfh.put("action", "create");               
+			if (logFindHistory(lfh))      // Timestamp the insertion
+				return rowId;  
+			else
+				return -1;
 		}
-		mDb.close();
-		return findId;
+		return rowId;
 	}
 
+	/**
+	 * Adds a new Find to the Db taking its column values from a ContentValues.
+	 * If the insertion is successful, a timestamped record of the insertion is
+	 * made in the find_history table. 
+	 * 
+	 * The GuID is a globally unique identifier that can be used on both the 
+	 * client and the server.
+	 * @param values -- an array of attribute/value pairs
+	 * @param images -- a list of images
+	 * @return true if both the insertion and the timestamping are successful
+	 */
+	public boolean addNewFind(ContentValues values, List<ContentValues> images) {
+		mDb = getWritableDatabase();  // Either create the DB or open it.
+		long rowId = mDb.insert(FIND_TABLE_NAME, null, values);
+		if (rowId != -1) {
+			String guId = "";
+			guId = getGuIdFromRowId(rowId);
+			ContentValues lfh = new ContentValues();
+			lfh.put("find_guid", guId);
+			lfh.put("action", "create");               
+			return logFindHistory(lfh);    // Timestamp the insertion
+		}
+		mDb.close();
+		return false;
+	}
+	
+	
 	/**
 	 * This method is called from a Find object to add a photo to DB.
 	 * @param values  contains the <column_name,value> pairs for each DB field.
@@ -315,25 +444,83 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		mDb = getWritableDatabase();  // Either create or open the DB.
 		boolean result = false;
 		if (args != null) {
-			Log.i(TAG, "id = "+id);
-//			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_BARCODE + "=" + id, null) > 0;
+			Log.i(TAG, "updateFind id = "+id);
 			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_ID + "=" + id, null) > 0;
-			Log.i(TAG,"result = "+result);
+			Log.i(TAG,"updateFind result = "+result);
 		}
+		if (result) {
+			String guId = "";
+			guId = getGuIdFromRowId(id);
+			ContentValues lfh = new ContentValues();
+			lfh.put("find_guid", guId);
+			lfh.put("action", "update");               
+			return logFindHistory(lfh);    // Timestamp the update
+		}
+		mDb.close();
+		return result;
+	}
+	
+	/**
+	 * Determines whether the Db contains a Find 
+	 * @param guId
+	 * @return
+	 */
+	public boolean containsFind(String guId) {
+		mDb = getWritableDatabase();  // Either create or open the DB.
+		Cursor c = mDb.rawQuery("Select * from " + FIND_TABLE_NAME + " where identifier = \"" + guId +"\"", null);
+		boolean result = c.getCount() > 0;
+//		boolean result = mDb.update(FIND_TABLE_NAME, null, COLUMN_GUID+"=" + guId, null) > 0;
+		c.close();
+		mDb.close();
+		return result;
+	}
+	
+	public boolean updateFind(String guId, ContentValues args) {
+		mDb = getWritableDatabase();  // Either create or open the DB.
+		boolean result = false;
+		if (args != null) {
+			Log.i(TAG, "updateFind guId = "+guId);
+			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_GUID + "=\"" + guId + "\"", null) > 0;
+			Log.i(TAG,"updateFind result = "+result);
+		}
+		if (result) {
+			ContentValues lfh = new ContentValues();
+			lfh.put("find_guid", guId);
+			lfh.put("action", "update");               
+			return logFindHistory(lfh);    // Timestamp the update
+		}
+
 		mDb.close();
 		return result;
 	}
 
 	/**
 	 * This method is called from a Find object, passing its ID. It delete's the object's
-	 *   data from the FindsTable DB.
+	 *   data from the FindsTable DB. 
+	 *   
+	 *   We first get the guId so we can log the deletion in the
+	 *   find_history table.
 	 * @param mRowId
 	 * @return
 	 */
 	public boolean deleteFind(long id) {
 		//deleteImages(mRowId);
 		mDb = getWritableDatabase();
-		boolean result = mDb.delete(FIND_TABLE_NAME, COLUMN_BARCODE + "=" + id, null)>0;
+		String guId = "";
+		Cursor c = mDb.rawQuery("Select identifier FROM " + FIND_TABLE_NAME + " where " + COLUMN_ID + "=" + id, null);
+		if (c.getCount() > 0) {
+			c.moveToFirst();
+			guId = c.getString(c.getColumnIndex(COLUMN_GUID));
+		}
+//		boolean result = mDb.delete(FIND_TABLE_NAME, COLUMN_BARCODE + "=" + id, null)>0;
+		boolean result = mDb.delete(FIND_TABLE_NAME, COLUMN_ID + "=" + id, null)>0;
+		if (result) {
+			ContentValues lfh = new ContentValues();
+			lfh.put("find_guid", guId);
+			lfh.put("action", "delete");               
+			return logFindHistory(lfh);    // Timestamp the update
+		}
+		c.close();
 		mDb.close();
 		return result;
 	}
@@ -428,6 +615,29 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	}
 
 	/**
+	 * fetchFindColumnsByGuId
+	 * @param id
+	 * @param columns
+	 * @return
+	 */
+	public ContentValues fetchFindColumnsByGuId(String guId, String[] columns) {
+		mDb = getReadableDatabase();  // Either open or create the DB    	
+		//String[] columns = mContext.getResources().getStringArray(R.array.TABLE_FINDS_core_fields);
+
+		String[] selectionArgs = null;
+		String groupBy = null, having = null, orderBy = null;
+		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_GUID+"="+guId, selectionArgs, groupBy, having, orderBy);
+//		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_ID+"="+id, selectionArgs, groupBy, having, orderBy);
+		cursor.moveToFirst();
+		ContentValues values = null;
+		if (cursor.getCount() != 0)
+			values = getValuesFromRow(cursor);
+		cursor.close();
+		mDb.close();
+		return values;
+	}
+	
+	/**
 	 * This method is called from a Find object.  It queries the DB with the 
 	 *   Find's ID. It constructs a ContentsValue hash table and returns it.
 	 *   Note that it closes the DB and the Cursor -- to prevent leaks.
@@ -442,6 +652,44 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;
 		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_ID + "=" + id, selectionArgs, groupBy, having, orderBy);
+		cursor.moveToFirst();
+		HashMap<String,String> findsMap = new HashMap<String, String>();
+		if (cursor.getCount() != 0) {
+			findsMap = Utils.getMapFromCursor(cursor);
+		}
+		cursor.close();
+		mDb.close();
+		return findsMap;
+	}
+	
+	public HashMap<String,String> fetchFindMap(String guid) {
+		mDb = getReadableDatabase();  // Either open or create the DB    	
+		//String[] columns = mContext.getResources().getStringArray(R.array.TABLE_FINDS_core_fields);
+		String[] columns = null; // Should get everything
+		String[] selectionArgs = null;   
+		String groupBy = null, having = null, orderBy = null;
+//		guid = "'"+guid+"'";   // To prevent SQLLite from deleting leading zero
+		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_GUID + "=\"" + guid + "\"", selectionArgs, groupBy, having, orderBy);
+		cursor.moveToFirst();
+		HashMap<String,String> findsMap = new HashMap<String, String>();
+		if (cursor.getCount() != 0) {
+			findsMap = Utils.getMapFromCursor(cursor);
+		} else {
+			Log.i(TAG,"fetchFindMap ERROR on fetch for Guid = " + guid);
+		}	
+		Log.i(TAG,"fetchFindMap map=" + findsMap.toString());
+		cursor.close();
+		mDb.close();
+		return findsMap;
+	}
+	
+	public HashMap<String,String> fetchFindMapSID(long id) {
+		mDb = getReadableDatabase();  // Either open or create the DB    	
+		//String[] columns = mContext.getResources().getStringArray(R.array.TABLE_FINDS_core_fields);
+		String[] columns = null;
+		String[] selectionArgs = null;
+		String groupBy = null, having = null, orderBy = null;
+		Cursor cursor = mDb.query(FIND_TABLE_NAME, columns, COLUMN_SID + "=" + id, selectionArgs, groupBy, having, orderBy);
 		cursor.moveToFirst();
 		HashMap<String,String> findsMap = new HashMap<String, String>();
 		if (cursor.getCount() != 0) {
@@ -548,7 +796,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		while (iter.hasNext()) {
 			String key = iter.next();
 			Object value = findsMap.get(key);
-			/* recognize server find */
+			
+			/* recognize server find 
 			if (value instanceof Integer) {
 				args.put(key, Integer.parseInt(value.toString()));
 			}else if (value instanceof Double) {
@@ -556,14 +805,15 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			}else {
 				args.put(key, value.toString());
 			}
+			*/
 
 		}
 		return args;
 	}    
 
 	/**
-	 * This method returns a list of those Finds that have been updated
-	 *  since last synced with the server.
+	 * This method returns a list of those Finds on the phone that have been 
+	 * updated since last synced with the server.
 	 * @param remoteFindsList -- the list of all finds on the server.
 	 * @return list of all the SIDs in the phone that the phone has to send now
 	 */
@@ -755,14 +1005,15 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		}
 	}
 
-	public long getIdentifierFromRowId(long rowId) {
+	public String getGuIdFromRowId(long rowId) {
 		mDb = getReadableDatabase();
 		Cursor c = mDb.query(FIND_TABLE_NAME, null, COLUMN_ID + "=" + rowId, null, null, null, null);
 		if ( c.getCount()== 0)
-			return  0;
+			return  "";
 		else {
 			c.moveToFirst();
-			return (c.getLong(c.getColumnIndexOrThrow(COLUMN_BARCODE)));
+			return (c.getString(c.getColumnIndexOrThrow(COLUMN_GUID)));
+
 		}
 	}
 }
