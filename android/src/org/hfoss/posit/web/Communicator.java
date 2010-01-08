@@ -21,17 +21,10 @@
  */
 package org.hfoss.posit.web;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,8 +57,8 @@ import org.json.JSONObject;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 /**
@@ -84,6 +77,7 @@ public class Communicator {
 
 	private static String server;
 	private static String authKey;
+	private static String imei;
 
 	private static int projectId;
 
@@ -109,6 +103,9 @@ public class Communicator {
 		setApplicationAttributes(applicationPreferences.getString("AUTHKEY", ""), 
 				applicationPreferences.getString("SERVER_ADDRESS", server), 
 				applicationPreferences.getInt("PROJECT_ID", projectId));
+		TelephonyManager manager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+		imei = manager.getDeviceId();
+
 	}
 
 	private void setApplicationAttributes(String aKey, String serverAddress, int projId){
@@ -166,24 +163,36 @@ public class Communicator {
 	}
 	/*
 	 * Send one find to the server.
+	 * @param find a reference to the Find object
+	 * @param action -- either  'create' or 'update'
 	 */
-	public void sendFind (Find find) {
-		HashMap<String, String> sendMap = find.getContentMap();
+	public void sendFind (Find find, String action) {
+		String url;
+		HashMap<String, String> sendMap = find.getContentMapGuid();
 		cleanupOnSend(sendMap);
-		String url = server +"/api/createFind?authKey="+authKey;
-		if(Utils.debug) {
-			Log.i("FIND STATS",sendMap.get("_id"));
-			Log.i("FIND STATS",sendMap.get("name"));
-			Log.i("FIND STATS",sendMap.get("description"));
-			Log.i("FIND STATS",sendMap.get("latitude"));
-			Log.i("FIND STATS",sendMap.get("longitude"));
-			Log.i("FIND STATS",sendMap.get("projectId"));
-			Log.i("FIND STATS",sendMap.get("revision"));
+		sendMap.put("imei", imei);
+
+		if (action.equals("create")) {
+			url = server +"/api/createFind?authKey="+authKey;
+		} else {
+			url = server +"/api/updateFind?authKey="+authKey;
 		}
-		//SEND_FIND_URL += "&id="+sendMap.get("_id")
-		responseString = doHTTPPost(url, sendMap);
+		if(Utils.debug) {
+			Log.i(TAG,"SendFind=" + sendMap.toString());			
+		}
+		
+		try {
+			responseString = doHTTPPost(url, sendMap);
+		} catch (Exception e) {
+			Log.i(TAG, e.getMessage());
+			Utils.showToast(mContext, e.getMessage());
+		}
 		if(Utils.debug)
 			Log.i(TAG, "sendFind.ResponseString: " + responseString);
+		if (responseString.indexOf("True") != -1)
+			find.setSyncStatus(true);
+
+		/**
 		try {
 			//this is for easiness, it would be more efficient to do in one query
 
@@ -201,6 +210,7 @@ public class Communicator {
 		catch (Exception e) {
 			Log.e(TAG, "Cannot send the find"+e.getMessage());
 		}
+		**/
 	}
 
 	public void sendMedia(int identifier, long findId, String data, String mimeType) {
@@ -221,20 +231,19 @@ public class Communicator {
 	}
 
 	public void updateFind (Find find) {
-		HashMap<String, String> sendMap = find.getContentMap();
+		HashMap<String, String> sendMap = find.getContentMapSID();
 		cleanupOnSend(sendMap);
 		String url = server +"/api/updateFind?authKey="+authKey;
 		if(Utils.debug) {
-			Log.i("FIND STATS",sendMap.get("_id"));
-			Log.i("FIND STATS",sendMap.get("name"));
-			Log.i("FIND STATS",sendMap.get("description"));
-			Log.i("FIND STATS",sendMap.get("latitude"));
-			Log.i("FIND STATS",sendMap.get("longitude"));
-			Log.i("FIND STATS",sendMap.get("projectId"));
-			Log.i("FIND STATS",sendMap.get("revision"));
+			Log.i(TAG,sendMap.toString());
 		}
 		//SEND_FIND_URL += "&id="+sendMap.get("_id")
-		responseString = doHTTPPost(url, sendMap);
+		try {
+			responseString = doHTTPPost(url, sendMap);	
+		} catch (Exception e) {
+			Log.i(TAG, e.getMessage());
+			Utils.showToast(mContext, e.getMessage());
+		}
 		if(Utils.debug)
 			Log.i(TAG, "sendFind.ResponseString: " + responseString);
 		try {
@@ -263,7 +272,9 @@ public class Communicator {
 		sendMap.put("find_time", sendMap.get("time"));
 		sendMap.remove("time");
 		sendMap.put("projectId", projectId+"");
-		sendMap.put("id",sendMap.get("identifier"));
+//	sendMap.put("id",sendMap.get("identifier"));
+		sendMap.put("barcode_id",sendMap.get("identifier"));
+
 		addRemoteIdentificationInfo(sendMap);
 		latLongHack(sendMap);
 	}
@@ -279,6 +290,7 @@ public class Communicator {
 	}
 
 	private void latLongHack(HashMap<String, String> sendMap) {
+		Log.i(TAG,"latlongHack " + sendMap.toString());
 		if (sendMap.get("latitude").toString().equals("")||
 				sendMap.get("latitude").toString().equals(""))
 			sendMap.put("latitude","-1");
@@ -293,7 +305,10 @@ public class Communicator {
 	 */
 	public static void cleanupOnReceive(HashMap<String,Object> rMap){
 		rMap.put(MyDBHelper.COLUMN_SYNCED,1);
-		rMap.put("identifier", rMap.get("id"));
+//		rMap.put("identifier", rMap.get("id"));
+		rMap.put("identifier", rMap.get("barcode_id"));
+		rMap.remove("barcode_id");
+
 		rMap.put("sid", rMap.get("id")); //set the id from the server as sid
 		rMap.remove("id");
 		rMap.put("projectId", projectId);
@@ -354,7 +369,8 @@ public class Communicator {
 	 * @param Uri
 	 * @return the request from the remote server
 	 */
-	private String doHTTPGET(String Uri)
+	//private String doHTTPGET(String Uri)
+	public String doHTTPGET(String Uri)
 	{
 		if (Uri==null) throw new NullPointerException("The URL has to be passed");
 		String responseString = null;
@@ -397,6 +413,8 @@ public class Communicator {
 
 		//responseString is the raw json string returned through php
 		String responseString = doHTTPPost(findUrl, sendMap);
+		Log.i(TAG,"getAllRemoteFinds() return = " + responseString);  
+		
 		try {
 			findsMap = (ArrayList<HashMap<String, Object>>) (new ResponseParser(responseString).parse());
 
@@ -409,6 +427,8 @@ public class Communicator {
 				HashMap<String, Object> map = it.next();
 				String findId = (String)map.get("id");
 				String imageUrl = server +"/api/getPicturesByFind?findId=" + findId + "&authKey=" +authKey;
+
+				
 				String imageResponseString = doHTTPPost(imageUrl, sendMap);
 				if(!imageResponseString.equals("false")) {
 					JSONArray jsonArr = new JSONArray(imageResponseString);
@@ -425,7 +445,9 @@ public class Communicator {
 						}
 						imagesMap.add(imageMap);
 					}
-				}/*
+				}
+				
+				/*
 				JSONArray imageIds = (JSONArray) map.get("images");
 				if(Utils.debug)
 					Log.d(TAG, "image ids jsonarray: " + imageIds.toString());
@@ -467,7 +489,38 @@ public class Communicator {
 		ContentValues vals = getRemoteFindById(find.getId());
 	}
 	/**
-	 * Pull the remote find from the server using the id provided
+	 * Pull the remote find from the server using the guid provided.
+	 * @param guid, a globally unique identifier
+	 * @return an associative list of attribute/value pairs
+	 */
+	public ContentValues getRemoteFindById(String guid) {
+		String url = server +"/api/getFind?guid=" +guid +"&authKey=" +authKey;
+		HashMap<String, String> sendMap = new HashMap<String,String>();
+		addRemoteIdentificationInfo(sendMap);
+		sendMap.put("guid", guid+"");
+		String responseString = doHTTPPost(url, sendMap);
+		ContentValues cv = new ContentValues();
+    
+		Log.i(TAG,"getRemoteFindById = " + responseString);
+		try {
+			JSONObject jobj = new JSONObject(responseString);
+			cv.put(MyDBHelper.COLUMN_BARCODE, jobj.getString("barcode_id"));
+			cv.put(MyDBHelper.PROJECT_ID, jobj.getInt("project_id"));
+			cv.put(MyDBHelper.COLUMN_NAME, jobj.getString("name"));
+			cv.put(MyDBHelper.COLUMN_DESCRIPTION, jobj.getString("description"));
+			cv.put(MyDBHelper.COLUMN_TIME, jobj.getString("add_time"));
+			cv.put(MyDBHelper.MODIFY_TIME, jobj.getString("modify_time"));
+			cv.put(MyDBHelper.COLUMN_LATITUDE, jobj.getDouble("latitude"));
+			cv.put(MyDBHelper.COLUMN_LONGITUDE, jobj.getDouble("longitude"));
+			cv.put(MyDBHelper.COLUMN_REVISION,jobj.getInt("revision"));
+			return cv;
+		} catch (JSONException e) {
+			Log.i(TAG, e.getMessage());
+		}
+		return null;
+	}
+	/**
+	 * Deprecated
 	 * @param remoteFindId
 	 * @return
 	 */
@@ -480,7 +533,8 @@ public class Communicator {
 		try {
 			HashMap<String, Object> responseMap = (new ResponseParser(responseString).parse()).get(0);
 			//JSONArray finds = new JSONArray(responseMap.get("finds").toString());
-			/*if (finds.length()>0) {
+			/*
+			if (finds.length()>0) {
 				HashMap<String,Object> rMap = new ResponseParser(finds.getString(0)).parse().get(0);
 
 				return MyDBHelper.getContentValuesFromMap(rMap);

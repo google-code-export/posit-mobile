@@ -177,7 +177,7 @@ public class ServerRegistrationActivity extends Activity {
 					sb.append(ch);
 				}	
 			}
-			value = sb.toString();
+			value = sb.toString();  // Valid JSON encoded string
 			//  End of Hack
 			JSONObject object;
 			JSONTokener tokener=new JSONTokener(value);

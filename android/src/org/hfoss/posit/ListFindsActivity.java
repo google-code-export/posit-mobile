@@ -21,12 +21,6 @@
  */
 package org.hfoss.posit;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-
 import org.hfoss.posit.provider.MyDBHelper;
 import org.hfoss.posit.utilities.Utils;
 
@@ -50,12 +44,16 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 
+/**
+ * Displays a summary of Finds on this phone in a clickable list.
+ *
+ */
 public class ListFindsActivity extends ListActivity implements ViewBinder{
 
 	private static final String TAG = "ListActivity";
 	private MyDBHelper mDbHelper;
 	private Cursor mCursor;  // Used for DB accesses
-	
+
 	private static final int confirm_exit=1;
 
 	private static final int CONFIRM_DELETE_DIALOG = 0;
@@ -63,7 +61,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	private static int PROJECT_ID;
 
 	/** 
-	 * This method is invoked when the Activity starts and
+	 * Called when the Activity starts and
 	 *  when the user navigates back to ListFindsActivity
 	 *  from some other app. It creates a
 	 *  DBHelper and calls fillData() to fetch data from the DB.
@@ -74,18 +72,18 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-	
+
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
 		//Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
-		
+
 		mDbHelper = new MyDBHelper(this);
 		//fillData();
 		//mDbHelper.close();
 	}
 
 	/** 
-	 * This method is called when the activity is ready to start 
+	 * Called when the activity is ready to start 
 	 *  interacting with the user. It is at the top of the Activity
 	 *  stack.
 	 * @see android.app.Activity#onResume()
@@ -93,11 +91,11 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
 		//Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
-		
+
 		fillData();
 	}
 
@@ -140,16 +138,16 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		String[] columns = MyDBHelper.list_row_data;
 		int [] views = MyDBHelper.list_row_views;
 
-		//mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);	
-		
-		Uri allFinds = Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID);
-	    mCursor = managedQuery(allFinds, null, null, null, null);
-	    
+		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);	
+
+		//		Uri allFinds = Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID);
+		//	    mCursor = managedQuery(allFinds, null, null, null, null);
+
 		if (mCursor.getCount() == 0) { // No finds
 			setContentView(R.layout.list_finds);
 			return;
 		}
-		//startManagingCursor(mCursor); // NOTE: Can't close DB while managing cursor
+		startManagingCursor(mCursor); // NOTE: Can't close DB while managing cursor
 
 		// CursorAdapter binds the data in 'columns' to the views in 'views' 
 		// It repeatedly calls ViewBinder.setViewValue() (see below) for each column
@@ -170,7 +168,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	}
 
 	/**
-	 * This method executes when the user clicks on one of the Finds in the
+	 * Invoked when the user clicks on one of the Finds in the
 	 *   list. It starts the FindActivity in EDIT mode, which will read
 	 *   the Find's data from the DB.
 	 *   @param l is the ListView that was clicked on 
@@ -184,14 +182,15 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		Intent intent = new Intent(this, FindActivity.class);
 		intent.setAction(Intent.ACTION_EDIT);
 		Log.i(TAG,"id = " + id);
-//		intent.putExtra(MyDBHelper.COLUMN_IDENTIFIER, mDbHelper.getIdentifierFromRowId(id));
 		intent.putExtra(MyDBHelper.COLUMN_ID, id);
+//		intent.putExtra(MyDBHelper.COLUMN_GUID, mDbHelper.getGuIdFromRowId(id));
+
 		startActivityForResult(intent, FIND_FROM_LIST);
 		FindActivity.SAVE_CHECK=false;
 	}
 
 	/**
-	 * This method creates the menus for this activity.
+	 * Creates the menus for this activity.
 	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
 	 */
 	@Override
@@ -202,8 +201,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	}
 
 	/** 
-	 * This method is invoked when a menu item is selected. It starts
-	 *   the appropriate Activity.
+	 * Starts the appropriate Activity when a MenuItem is selected.
 	 * @see android.app.Activity#onMenuItemSelected(int, android.view.MenuItem)
 	 */
 	@Override
@@ -212,7 +210,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		switch (item.getItemId()) {
 
 		case R.id.sync_finds_menu_item: 
-			
+
 			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 			boolean syncIsOn = sp.getBoolean("SYNC_ON_OFF", true);
 			if (!syncIsOn) {
@@ -223,67 +221,69 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			intent.setAction(Intent.ACTION_SYNC);
 			startActivity(intent);
 			break;
-			
+
 		case R.id.map_finds_menu_item:
 			mDbHelper.close();
 			intent = new Intent(this, MapFindsActivity.class);
 			startActivity(intent);
 			break;
-			
+
 		case R.id.delete_finds_menu_item:
 			showDialog(CONFIRM_DELETE_DIALOG);
 			break;
-		
-		case R.id.georss:
-			generateGeoRSS();
-			break;
-			
+
+			//		case R.id.georss:
+			//			generateGeoRSS();
+			//			break;
+			//			
 		}
 		return true;
 	}
-	
-	public void generateGeoRSS() {
-		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);
-		startManagingCursor(mCursor);
 
-		
-		try{
-			FileOutputStream fout = new FileOutputStream("/data/rss/data.xml");
-			PrintStream out = new PrintStream(fout);
-			out.println("<feed xmlns=\"http://www.w3.org/2005/Atom\"");
-			out.println("xmlns:georss=\"http://www.georss.org/georss\"");
-			out.println("xmlns:gml=\"http://www.opengis.net/gml\">");
-			mCursor.moveToFirst();
-			while(!mCursor.isAfterLast()) {
-				out.println("<entry>");
-				out.println("<title>"+
-					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_NAME))+
-					"</title>");
-				out.println("<description>"+
-					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_DESCRIPTION))+
-					"</description>");
-				out.println("<georss:where>");
-				out.println("<gml:Point>");
-				out.println("<gml:pos>"+
-					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE))+" "+
-					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE))+
-					"</gml:pos>");
-				out.println("</gml:Point>");
-				out.println("</georss:where>");
-				out.println("<datetime>"+
-						mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_TIME))+
-						"</datetime>");
-				out.println("</entry>");
-				mCursor.moveToNext();
-			}
-			out.println("</feed>");
-			out.close();
-		}
-		catch(IOException e){e.printStackTrace();}
-		finally{
-			Utils.showToast(this, "GeoRSS created!");
-		}
-	}
+	/**
+	 * What is this and why is it here??
+	 */
+	//	public void generateGeoRSS() {
+	//		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);
+	//		startManagingCursor(mCursor);
+	//
+	//		try{
+	//			FileOutputStream fout = new FileOutputStream("/data/rss/data.xml");
+	//			PrintStream out = new PrintStream(fout);
+	//			out.println("<feed xmlns=\"http://www.w3.org/2005/Atom\"");
+	//			out.println("xmlns:georss=\"http://www.georss.org/georss\"");
+	//			out.println("xmlns:gml=\"http://www.opengis.net/gml\">");
+	//			mCursor.moveToFirst();
+	//			while(!mCursor.isAfterLast()) {
+	//				out.println("<entry>");
+	//				out.println("<title>"+
+	//					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_NAME))+
+	//					"</title>");
+	//				out.println("<description>"+
+	//					mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_DESCRIPTION))+
+	//					"</description>");
+	//				out.println("<georss:where>");
+	//				out.println("<gml:Point>");
+	//				out.println("<gml:pos>"+
+	//					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE))+" "+
+	//					mCursor.getDouble(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE))+
+	//					"</gml:pos>");
+	//				out.println("</gml:Point>");
+	//				out.println("</georss:where>");
+	//				out.println("<datetime>"+
+	//						mCursor.getString(mCursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_TIME))+
+	//						"</datetime>");
+	//				out.println("</entry>");
+	//				mCursor.moveToNext();
+	//			}
+	//			out.println("</feed>");
+	//			out.close();
+	//		}
+	//		catch(IOException e){e.printStackTrace();}
+	//		finally{
+	//			Utils.showToast(this, "GeoRSS created!");
+	//		}
+	//	}
 
 	/**
 	 * Part of ViewBinder interface. Binds the Cursor column defined 
@@ -331,7 +331,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			return true;
 		case R.id.num_photos:
 			Uri findPhotos = Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+findIden);
-		    int count = managedQuery(findPhotos, null, null, null, null).getCount();
+			int count = managedQuery(findPhotos, null, null, null, null).getCount();
 			tv.setText(count+" photos  ");
 			return true;
 		default:
@@ -347,7 +347,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		}
 		return super.onKeyDown(keyCode, event);
 	}*/
-	
+
 
 
 	/**
@@ -357,7 +357,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 */
 	@Override
 	protected Dialog onCreateDialog(int id) {
-		
+
 		switch (id) {
 		case CONFIRM_DELETE_DIALOG:
 			return new AlertDialog.Builder(this)
@@ -367,7 +367,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					// User clicked OK so do some stuff 
-					/*MyDBHelper mDbHelper = new MyDBHelper(ListFindsActivity.this);
+					MyDBHelper mDbHelper = new MyDBHelper(ListFindsActivity.this);
 					if (mDbHelper.deleteAllFinds()) {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
@@ -376,13 +376,13 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.delete_failed);
 						dialog.cancel();
-					}*/
-					
+					}
+					/*
 					int count = getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID), null, null);
 					Log.i("PROVIDER", "deleted "+ count);
 					Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
 					setContentView(R.layout.list_finds);
-					
+					 */
 					//finish();
 					//Intent intent = new Intent(ListFindsActivity.this, ListFindsActivity.class);
 					//startActivity(intent);
@@ -396,7 +396,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			}).create();
 
 		} // switch
-		
+
 		switch (id) {
 		case confirm_exit:
 			return new AlertDialog.Builder(this)
@@ -417,6 +417,6 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		default:
 			return null;
 		}
-		}
+	}
 
 }

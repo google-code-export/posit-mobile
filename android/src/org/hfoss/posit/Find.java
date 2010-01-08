@@ -31,8 +31,10 @@ import org.hfoss.posit.provider.POSITProvider;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
@@ -40,9 +42,11 @@ import android.util.Log;
  * 
  */
 public class Find {
+	private static final String TAG = "Find";
 
 	private MyDBHelper mDbHelper;  // Handles all the DB actions
 	private long mId;  	         // The Find's rowID (should be changed to DB ID)
+	private String mGuid;       // BARCODE -- globally unique ID
 	public Cursor images = null;
 	private Context mContext;
 
@@ -63,7 +67,22 @@ public class Find {
 	public Find (Context context, long id) {
 		this(context);
 		mId = id;
+		mGuid = "";
 		images = getImages();
+		mContext = context;
+	}
+	
+	/**
+	 * This constructor is used for an existing Find.
+	 * @param context is the Activity
+	 * @param guid is a globally unique identifier, used by the server
+	 *   and other devices
+	 */
+	public Find (Context context, String guid) {
+		this(context);
+		mId = -1;
+		mGuid = guid;
+//		images = getImages();
 		mContext = context;
 	}
 
@@ -89,33 +108,52 @@ public class Find {
 	
 	
 	/**
+	 * Deprecated
 	 * Returns a hashmap of string key and value
 	 * this is used primarily for sending and receiving over Http, which is why it 
 	 * somewhat works as everything is sent as string eventually. 
 	 * @return
 	 */
 	public HashMap<String,String> getContentMap(){
+		Log.i(TAG, "getContentMap " + mId);
 		return mDbHelper.fetchFindMap(mId);
 	}
 	
+	/**
+	 * Returns a hashmap of key/value pairs represented as Strings.
+	 * This is used primarily for sending and receiving over Http.
+	 * @return
+	 */
+	public HashMap<String,String> getContentMapGuid(){
+		Log.i(TAG, "getContentMapGuid " + mGuid);
+		return mDbHelper.fetchFindMap(mGuid);
+	}
+	
+	/**
+	 * Deprecated
+	 * @return
+	 */
+	public HashMap<String,String> getContentMapSID(){
+		Log.i(TAG, "getContentMapSID " + mId);
+		return mDbHelper.fetchFindMapSID(mId);
+	}
+
 	/** 
-	 * insertToDB() assumes that the context has be passed through a constructor.
+	 * Creates an entry for a Find in the DB. 
+	 * Assumes that the context has been passed through a constructor.
 	 * @param content contains the Find's attributes and values.  
 	 * @param images list of contentvalues containing the image references to add
 	 * @return whether the DB operation succeeds
 	 */
 	public boolean insertToDB(ContentValues content, List<ContentValues> images) {
-		int projId = 0;
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		int projId = sp.getInt("PROJECT_ID", 0);
 		if (content != null) {
-			projId = content.getAsInteger(POSITProvider.COLUMN_PROJECT_ID);
-			if (!content.containsKey(POSITProvider.COLUMN_REVISION))
-				content.put(POSITProvider.COLUMN_REVISION, 1);
-			if(!content.containsKey(POSITProvider.COLUMN_SID))
-				content.put(POSITProvider.COLUMN_SID, 0);
-			//mId = mDbHelper.addNewFind(content); // returns rowId
-			Uri uri = mContext.getContentResolver().insert(POSITProvider.FINDS_CONTENT_URI, content);
-			mId = Long.parseLong(uri.getPathSegments().get(1));
+			//		content.put(MyDBHelper.PROJECT_ID, projId);
+			content.put(POSITProvider.COLUMN_REVISION, 1);
+			mDbHelper.addNewFind(content, null);
 		}
+
 		if (images != null && images.size() > 0) {
 			ListIterator<ContentValues> it = images.listIterator();
 			while (it.hasNext()) {
@@ -132,12 +170,14 @@ public class Find {
 		}
 		return mId != -1;
 	}
-	
+
 	/** 
-	 * updateDB() assumes that the context and rowID has be passed through a constructor.
+	 * updateDB() assumes that the context and rowID has be passed through 
+	 * a constructor.
 	 * @param content contains the Find's attributes and values.  
 	 * @return whether the DB operation succeeds
 	 */
+	// TODO: Confirm that this works with GUIDs
 	public boolean updateToDB(ContentValues content) {//, ContentValues images) {
 		if (isSynced()) { //TODO think of a better way to do this
 			//set it as unsynced
@@ -154,8 +194,10 @@ public class Find {
 	 */
 	public boolean delete() {
 		Log.i("FIND","deleteing find #"+mId);
-		mContext.getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_id/"+mId), null, null);
-		return true;
+		return mDbHelper.deleteFind(mId);
+		
+		//mContext.getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_id/"+mId), null, null);
+		//return true;
 	}
 
 	/**
@@ -164,6 +206,14 @@ public class Find {
 	public long getId() {
 		return mId;
 	}
+	
+	/**
+	 * @return the guId
+	 */
+	public String getguId() {
+		return mGuid;
+	}
+	
 	
 	/**
 	 * Get all images attached to this find
@@ -220,19 +270,38 @@ public class Find {
 		updateToDB(content);
 	}
 	
+	/**
+	 * Directly sets the Find as either Synced or not.
+	 * @param status
+	 */
 	public void setSyncStatus(boolean status){
 		ContentValues content = new ContentValues();
 		content.put(MyDBHelper.COLUMN_SYNCED, status);
-		updateToDB(content);
+		if (mId != -1)
+			mDbHelper.updateFind(mId, content);
+		else 
+			mDbHelper.updateFind(mGuid, content);
+//		updateToDB(content);
 	}
 	
+	// TODO: Test that this method works with GUIDs
 	public int getRevision() {
 		ContentValues value = mDbHelper.fetchFindColumns(mId, new String[] { MyDBHelper.COLUMN_REVISION});
 		return value.getAsInteger(MyDBHelper.COLUMN_REVISION);
 	}
 	
+	/**
+	 * Tests whether the Find is synced.  This method should work with
+	 * either GUIDs or row iDs. 
+	 * @return
+	 */
 	public boolean isSynced() {
-		ContentValues value = mDbHelper.fetchFindColumns(mId, new String[] { MyDBHelper.COLUMN_SYNCED});
+		ContentValues value=null;
+		if (mId != -1) {
+			value = mDbHelper.fetchFindColumns(mId, new String[] { MyDBHelper.COLUMN_SYNCED});
+		} else if (!mGuid.equals("")){
+			value = mDbHelper.fetchFindColumnsByGuId(mGuid, new String[] { MyDBHelper.COLUMN_SYNCED});
+		}
 		return value.getAsInteger(MyDBHelper.COLUMN_SYNCED)==1;
 	}	
 }
