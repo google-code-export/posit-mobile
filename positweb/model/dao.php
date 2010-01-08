@@ -48,11 +48,57 @@ class DAO {
 	function DAO() {
 		$this->db = dbConnect();
 	}
+	
+	/**
+	 *  returns a comma-delimited list of all finds since last sync for a given device
+	 *  @param unknown_type $imei the device's id
+	 */
+	 function getDeltaFindsIds($imei) {
+	 	Log::getInstance()->log("getDeltaFindsIds: $imei");
+		
+		// Get the timestamp of the last sync with this device
+		$stmt = $this->db->prepare(
+			"SELECT MAX(sync_history.time) FROM sync_history WHERE imei = :imei"
+		); 
+		$stmt->bindValue(":imei", $imei);
+		$stmt->execute();
+		$result = $stmt->fetch(PDO::FETCH_NUM);
+		$time = $result[0];
+		Log::getInstance()->log("getDeltaFindsIds: Max Time = $time");
+
+		// Get a list of the Finds (guids) that have changed since the last update
+//        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei = '$imei' AND time < 'TIME($time)'") or die(mysql_error());  
+        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
+		while ($row = mysql_fetch_row($res)) {
+			$list .= "$row[0],";
+		}    				
+		Log::getInstance()->log("getDeltaFindsIds: $list");
+		return $list;
+	 }
+	
+	/**
+	 * records a record in the sync_history table
+	 * @param unknown_type $imei
+	 */
+	 function recordSync($imei) {
+		Log::getInstance()->log("recordSycn: $imei");
+		$stmt = $this->db->prepare(
+			"INSERT INTO sync_history (imei) VALUES (:imei)"
+		); 
+		$stmt->bindValue(":imei", $imei);
+		$stmt->execute();
+		$lastid = $this->db->lastInsertId();
+		Log::getInstance()->log("lastInsertId()=$lastid");
+		return $lastid;
+	 }
+	 
 	/**
 	 * get user from the user ID
 	 * @param unknown_type $userId
 	 */
 	function getUser($userId) {
+		Log::getInstance()->log("getUser: $userId");
+
 		$stmt = $this->db->prepare(
 			"SELECT email, first_name, last_name, privileges, create_time FROM user WHERE id = :userId"
 		);
@@ -68,6 +114,8 @@ class DAO {
 	 * @param unknown_type $description
 	 */
 	function newProject($name, $description) {
+		Log::getInstance()->log("newProject: $name, $description");
+
 		$name = addslashes($name);
 		Log::getInstance()->log($description);
 		$description = addslashes($description);
@@ -89,6 +137,8 @@ class DAO {
 	 * @param unknown_type $permissionType
 	 */
 	function getProjects($permissionType = PROJECTS_ALL) {
+		Log::getInstance()->log("getProjects: $permissionType");
+
 		if($permissionType == PROJECTS_OPEN)
 			$whereClause = "where permission_type = 'open'";
 		else if($permissionType == PROJECTS_CLOSED)
@@ -111,6 +161,8 @@ class DAO {
 	 * @param unknown_type $userId
 	 */
 	function getUserProjects($userId) {
+	    Log::getInstance()->log("getUserProjects: $userId");
+
 		$stmt = $this->db->prepare(
 			"select project_id from user_project 
 			 where user_id = :userId"
@@ -127,10 +179,11 @@ class DAO {
 	 * @param unknown_type $projectId
 	 */
 	function getFinds($projectId) {
-		$stmt = $this->db->prepare("select id, name, description, add_time, modify_time,
+		Log::getInstance()->log("getFinds: $projectId");
+
+		$stmt = $this->db->prepare("select id, barcode_id, name, description, add_time, modify_time,
 			latitude, longitude, revision from find where project_id = :projectId"
-		);
-		if ($stmt==NULL) return NULL;
+		);	
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -179,15 +232,26 @@ class DAO {
 	 * get a specific find
 	 * @param unknown_type $id
 	 */
-	function getFind($id) {
-		$stmt = $this->db->prepare("select id, project_id, barcode_id, name, description, add_time, modify_time, 
-			latitude, longitude, revision from find where id = :id");
-		
-		$stmt->bindValue(":id", $id);
+	function getFind($guid) {
+		Log::getInstance()->log("getFind: $guid");
+
+//		$stmt = $this->db->prepare("select id, project_id, barcode_id, name, description, add_time, modify_time, 
+//			latitude, longitude, revision from find where id = :id");
+		$stmt = $this->db->prepare("select project_id, barcode_id, name, description, add_time, modify_time, 
+			latitude, longitude, revision from find where barcode_id = :guid");		
+		$stmt->bindValue(":guid", $guid);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		/**
+		foreach ($temp[0] as $key=>$value) {
+			Log::getInstance()->log("getFind temp: $key = $value");
+		}    				
+*/
 		$result = array();
 		$result[0]= $temp[0];
+		Log::getInstance()->log("getFind length of record: " . count($result[0]));
+
+/*
 		$result[0]["images"] = array();
 		
 		$stmt = $this->db->prepare("select id from photo where find_id = :id");
@@ -218,7 +282,7 @@ class DAO {
 		foreach($videoResult as $video) {
 			$result[0]["videos"][] = $video["id"];
 		}
-
+*/
 		return $result[0];
 	
 	}
@@ -227,6 +291,8 @@ class DAO {
 	 * @param $id
 	 */
 	function getProject($id) {
+		Log::getInstance()->log("getProject: $id");
+
 		$stmt = $this->db->prepare(
 			"select id, name, create_time, permission_type
 			 from project where id = :id");
@@ -255,6 +321,8 @@ class DAO {
 	 * @param unknown_type $pictureId
 	 */
 	function getPicture($pictureId){
+		Log::getInstance()->log("getPicture: $pictureId");
+
 		$stmt = $this->db->prepare(
 			"select id,find_id,mime_type,data_full,data_thumb from photo
 			where id = :id"
@@ -269,6 +337,7 @@ class DAO {
 	 * @param unknown_type $findId
 	 */
 	function getPicturesByFind($findId){
+		Log::getInstance()->log("getPicturesByFind: $findId");
 		$stmt = $this->db->prepare(
 			"select id,find_id,mime_type,data_full,data_thumb from photo
 			where find_id = :findId"
@@ -329,12 +398,25 @@ class DAO {
 	 * @param unknown_type $findId
 	 */
 	function deleteFind($findId) {
-		$stmt = $this->db->prepare("delete from find where id = :findId");
+		Log::getInstance()->log("deleteFind: $findId");
+
+		$stmt = $this->db->prepare("delete from find where barcode_id = :findId");
 		$stmt->bindvalue(":findId", $findId);
 		$stmt->execute();
 		$this->deleteImages($findId);
 		echo "Deletion of find with id = ".$findId." successful.";
-
+		
+		// Make an entry in find_history
+		$stmt = $this->db->prepare(
+			"insert into find_history (find_guid, action) VALUES
+			(:find_guid, :action)"
+		);
+		$stmt->bindValue(":find_guid", $findId);
+		$stmt->bindValue(":action", "delete");	
+		$stmt->execute();
+		
+		$lastid = $this->db->lastInsertId();
+		Log::getInstance()->log("Updated find_history, lastInsertId()=$lastid");
 	}
 	
 	function addExpedition($projectId){
@@ -377,6 +459,8 @@ class DAO {
 	 * @param unknown_type $projectId
 	 */
 	function deleteAllFinds($projectId) {
+		Log::getInstance()->log("deleteAllFinds: $projectId");
+
 		$stmt = $this->db->prepare("delete from find where project_id = :projectId");
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
@@ -386,6 +470,8 @@ class DAO {
 	 * @param unknown_type $id
 	 */
 	function deleteProject($id) {
+		Log::getInstance()->log("deleteProject: $id");
+
 		$stmt = $this->db->prepare("delete from project where id = :id");
 		$stmt->bindValue(":id", $id);
 		$stmt->execute();
@@ -422,7 +508,7 @@ class DAO {
 	}
 	/**
 	 * Create  a new find
-	 * @param unknown_type $barcode_id
+	 * @param unknown_type $guId
 	 * @param unknown_type $projectId
 	 * @param unknown_type $name
 	 * @param unknown_type $description
@@ -430,46 +516,75 @@ class DAO {
 	 * @param unknown_type $longitude
 	 * @param unknown_type $revision
 	 */
-	function createFind($barcode_id, $projectId, $name, $description, $latitude, $longitude, $revision) {
-		Log::getInstance()->log("$barcode_id, $projectId, $name, $description, $latitude, $longitude, $revision");
+	function createFind($imei, $guId, $projectId, $name, $description, $latitude, $longitude, $revision) {
+		Log::getInstance()->log("createFind: $guId, $projectId, $name, $description, $latitude, $longitude, $revision");
 		$stmt = $this->db->prepare(
-			"insert into find (barcode_id, project_id, name, description, 
+			"insert into find (imei, barcode_id, project_id, name, description, 
 			latitude, longitude, add_time, modify_time, revision) VALUES
-			(:barcode_id, :projectId, :name, :description, :latitude, :longitude ,now(), now(), :revision)"
+			(:imei, :barcode_id, :projectId, :name, :description, :latitude, :longitude ,now(), now(), :revision)"
 		);
 		
-		$stmt->bindValue(":barcode_id", $barcode_id);
+		$stmt->bindValue(":imei", $imei);
+		$stmt->bindValue(":barcode_id", $guId);
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->bindValue(":name", $name);
 		$stmt->bindValue(":description", $description);
 		$stmt->bindValue(":latitude", $latitude);
 		$stmt->bindValue(":longitude", $longitude);
 		$stmt->bindValue(":revision", $revision);
-			
 		$stmt->execute(); 
-		return $this->db->lastInsertId(); //get the rowid where it's inserted so that the client can sync.. @todo update in API
 		
+		$findid = $this->db->lastInsertId();
+		Log::getInstance()->log("lastInsertId()=$findid");
+		
+		// Make an entry in find_history
+		$stmt = $this->db->prepare(
+			"insert into find_history (find_guid, action, imei) VALUES
+			(:find_guid, :action, :imei)"
+		);
+		$stmt->bindValue(":find_guid", $guId);
+		$stmt->bindValue(":action", "create");	
+		$stmt->bindValue(":imei", $imei);	
+		$stmt->execute();
+		
+		$lastid = $this->db->lastInsertId();
+		Log::getInstance()->log("Updated find_history, created lastInsertId()=$lastid");
+
+//		return $findid; //get the rowid where it's inserted so that the client can sync.. @todo update in API
+		return "True Created $guId in row=$findid";  
 	}
 	/**
 	 * Update information about a find
-	 * @param unknown_type $id
+	 * @param unknown_type $guId -- globally unique ID
 	 * @param unknown_type $name
 	 * @param unknown_type $description
 	 * @param unknown_type $revision
 	 */
-	function updateFind($id, $name, $description, $revision) {
-		$stmt = $this->db->prepare("update find set 
-			name = :name, description = :description, 
-			revision = :revision where id = :id");
+	function updateFind($imei, $guId, $projectId, $name, $description, $revision) {
+		Log::getInstance()->log("updateFind: $imei, $guId, $projectId, $name, $description, $revision");
+		$stmt = $this->db->prepare("update find set name = :name, description = :description, 
+			revision = :revision, modify_time = NOW() where barcode_id = :guid AND project_id = :projectId");
 		
 		$stmt->bindValue(":name", $name);
 		$stmt->bindValue(":description", $description);
 		$stmt->bindValue(":revision", $revision);
-		$stmt->bindValue(":id", $id);
-		
+		$stmt->bindValue(":guid", $guId);
+		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
-		return "Inserted into database";
+		Log::getInstance()->log("Updated Find= $guId");
+
+		// Make an entry in find_history
+		$stmt = $this->db->prepare(
+			"insert into find_history (find_guid, action, imei) VALUES (:find_guid, :action, :imei)"
+		);
+		$stmt->bindValue(":find_guid", $guId);
+		$stmt->bindValue(":action", "update");	
+		$stmt->bindValue(":imei", $imei);	
+		$stmt->execute();
+		Log::getInstance()->log("Updated find_history, updated Find $guId $imei");
+		return "True Updated $guId on server";
 	}
+	
 	/**
 	 * Add a picture to the find
 	 * @param unknown_type $id
@@ -479,6 +594,7 @@ class DAO {
 	 * @param unknown_type $dataThumb
 	 */
 	function addPictureToFind($id, $findId, $mimeType, $dataFull, $dataThumb) {
+		Log::getInstance()->log("addPictureToFind: $id, $findId, $mimeType");
 		$stmt = $this->db->prepare(
 			"insert into photo (id, find_id, mime_type, data_full, data_thumb)
 			VALUES (:id, :findId, :mimeType, :dataFull, :dataThumb)"
@@ -588,6 +704,7 @@ class DAO {
 	 * @param $newUser
 	 */
 	function registerUser($newUser) {
+		Log::getInstance()->log("registerUser: $newUser");
 		list($email, $firstName, $lastName, $password) = $newUser;
 		
 		$stmt = $this->db->prepare(
@@ -616,6 +733,7 @@ class DAO {
 	 * @param unknown_type $userId
 	 */
 	function getDevicesByUser($userId) {
+		Log::getInstance()->log("getDevicesByUser: $userId");
 		$stmt = $this->db->prepare(
 			"SELECT imei, name, auth_key, add_time
 			 FROM device
@@ -631,6 +749,7 @@ class DAO {
 	 * @param unknown_type $authKey
 	 */
 	function getDeviceByAuthKey($authKey) {
+		Log::getInstance()->log("getDeviceByAuthKey: $authKey");
 		$stmt = $this->db->prepare(
 			"SELECT imei, name, user_id, add_time, status
 			 FROM device
@@ -646,6 +765,7 @@ class DAO {
 	 * @param unknown_type $authKey
 	 */
 	function registerDevicePending($userId, $authKey) {
+		Log::getInstance()->log("registerDevicePending: $userId, $authKey");
 		if(!$userId || !$authKey) return false;
 		$stmt = $this->db->prepare(
 			"INSERT INTO device (user_id, auth_key, add_time)
@@ -664,7 +784,8 @@ class DAO {
 	 * @param unknown_type $name
 	 */
 	function confirmDevice($authKey, $imei, $name) {
-		
+		Log::getInstance()->log("confirmDevice: $authKey, $imei, $name");
+
 		$stmt = $this->db->prepare(
 			"SELECT auth_key FROM device WHERE imei = :imei"
 		);
@@ -716,7 +837,7 @@ class DAO {
 	 * @param unknown_type $imei
 	 */
 	function addSandboxDevice($authKey, $imei) {
-		
+		log("addSandboxDevice " .$authKey . " " . $imei);
 		$stmt = $this->db->prepare("delete from device where imei = :imei");
 		$stmt->bindValue(":imei", $imei);
 		$stmt->execute();

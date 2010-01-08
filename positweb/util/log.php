@@ -1,5 +1,5 @@
 <?php
-$LOG_FILE = "/home3/hfoss/hfoss_posit/logs/dev_log";
+$LOG_FILE = "../logs/posit_web.txt";
 class Log {
 	static private $instance;
 	static $logfile;

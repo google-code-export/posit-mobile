@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-07-14 08:41:31
+<?php /* Smarty version 2.6.26, created on 2010-01-04 16:33:52
          compiled from settings/devices.tpl */ ?>
 <?php require_once(SMARTY_CORE_DIR . 'core.load_plugins.php');
 smarty_core_load_plugins(array('plugins' => array(array('modifier', 'date_format', 'settings/devices.tpl', 15, false),)), $this); ?>

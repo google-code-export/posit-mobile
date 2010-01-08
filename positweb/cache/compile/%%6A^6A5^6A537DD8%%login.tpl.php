@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-07-14 09:05:48
+<?php /* Smarty version 2.6.26, created on 2010-01-04 16:27:22
          compiled from login.tpl */ ?>
 <h2>Log in</h2>
 <?php if ($this->_tpl_vars['errMsg']): ?>

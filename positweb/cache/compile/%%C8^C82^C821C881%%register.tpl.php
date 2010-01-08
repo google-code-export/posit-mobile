@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-06-23 11:23:20
+<?php /* Smarty version 2.6.26, created on 2010-01-04 16:33:21
          compiled from register.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => 'Register')));
@@ -6,7 +6,7 @@ $this->_tpl_vars = $_smarty_tpl_vars;
 unset($_smarty_tpl_vars);
  ?>
 <h2>Register</h2>
-<form action="register.do" method="post">
+<form action="register.do" method="post" id="registration-form">
 	<table>
 		<tr>
 			<th><label for="firstName">First name:</label></th>

@@ -8,6 +8,8 @@
  */
 function apiController($path, $request, $files = null) {
 	$log = Log::getInstance();
+	$log->log("$path, $request");
+
 	global $dao;
 	list($reqPath, $queryString) = explode('?', $path);
 	$pathParts = explode('/', substr($reqPath,1));
@@ -38,6 +40,12 @@ function apiController($path, $request, $files = null) {
 	$deviceIdentifier = $device["imei"];
 	
 	switch($action) {
+	    case 'getDeltaFindsIds':
+			echo $dao->getDeltaFindsIds($deviceIdentifier);
+			break;
+		case 'recordSync':
+			echo $dao->recordSync($deviceIdentifier);
+			break;
 		case 'registerDevice':
 			$imei = $request["imei"];
 			$name = null;
@@ -78,24 +86,24 @@ function apiController($path, $request, $files = null) {
 			echo json_encode($dao->getFinds($request["projectId"]));
 			break;
 		case 'getFind':
-			$result = $dao->getFind($request["id"]);
+			$result = $dao->getFind($request["guid"]);
 			echo json_encode($result);
 			break;
 		case 'deleteFind':
 			echo $dao->deleteFind($request["id"]);
 			break;
 		case 'deleteProject':
-			$dao->deleteProject($resquest["projectId"]);
+			$dao->deleteProject($request["projectId"]);
 			break;
 		case 'deleteAllFinds':
 			$dao->deleteAllFinds($request["projectId"]);
 			break;
 		case 'createFind':
-			echo $dao->createFind($request["id"], $request["projectId"], 
+			echo $dao->createFind($request["imei"], $request["barcode_id"], $request["projectId"], 
 				$request["name"], $request["description"], $request["latitude"], $request["longitude"], $request["revision"]);
 			break;
 		case 'updateFind':
-			echo $dao->updateFind($request["id"],$request["name"], $request["description"], $request["revision"]);
+			echo $dao->updateFind($request["imei"],$request["barcode_id"],$request["projectId"],$request["name"], $request["description"], $request["revision"]);
 			break;
 		case 'attachPicture':
 			$imagedata=base64_decode($request["dataFull"]);
