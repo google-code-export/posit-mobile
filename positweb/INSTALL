@@ -17,3 +17,22 @@ Two ways:
  chmod 777 cache -R
 I prefer the first one giving all write access is bad idea
 if you want to change this, do it in controller/main.php
+
+Installing on Mac MAMP.  
+
+
+It is necessary to change the default apache/httpd.conf to including
+the following to allow for the Virtual Host.
+
+<Directory "/Applications/MAMP/htdocs">
+    Options All MultiViews
+    AllowOverride All 
+    RewriteEngine On
+    RewriteBase /
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?q=$1 [L,QSA]
+
+    Order allow,deny
+    Allow from all
+</Directory>

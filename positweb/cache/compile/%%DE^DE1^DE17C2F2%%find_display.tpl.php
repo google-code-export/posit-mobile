@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-12-11 19:28:11
+<?php /* Smarty version 2.6.26, created on 2010-01-05 21:33:53
          compiled from find_display.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => $this->_tpl_vars['find']['name'],'tab' => 'projects')));
