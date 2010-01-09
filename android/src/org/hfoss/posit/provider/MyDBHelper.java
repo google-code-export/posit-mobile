@@ -58,6 +58,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	/*
 	 * Add new tables here.
 	 */
+    private static final boolean DBG = false;
 	private static final String DBName ="posit";
 	public static final int DBVersion = 2;
 	private static final String TAG = "MyDBHelper";
@@ -96,7 +97,10 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public static final String SYNC_COLUMN_SERVER = "server_url";
 	public static final String FIND_HISTORY_TABLE = "find_history";
 	
+	// The following two arrays go together to form a <DB value, UI View> pair
+	// except for the first DB value, which is just a filler.
 	public static final String[] list_row_data = { 
+		COLUMN_BARCODE,  // Bogus but you need some field in the table to go with Thumbnail
 		COLUMN_NAME,
 		COLUMN_DESCRIPTION,
 		COLUMN_LATITUDE,
@@ -108,6 +112,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	};
 
 	public static final int[] list_row_views = {
+		R.id.find_image,    // Thumbnail in ListFindsActivity
 		R.id.name_id, 
 		R.id.description_id,
 		R.id.latitude_id,
@@ -183,7 +188,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
 	public MyDBHelper(Context context) {
 		super(context, DBName, null, DBVersion);
-		Log.i(TAG, "Constructor");
+		if (DBG) Log.i(TAG, "Constructor");
 //		mDb = getWritableDatabase();
 //		onUpgrade(mDb, 2, 3);
 		this.mContext= context;
@@ -194,14 +199,14 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onCreate(SQLiteDatabase db) throws SQLException {
-		Log.i(TAG, "OnCreate");
+		if (DBG) Log.i(TAG, "OnCreate");
 		db.execSQL(CREATE_FINDS_TABLE);
 		db.execSQL(CREATE_IMAGES_TABLE);
 		db.execSQL(CREATE_FIND_HISTORY_TABLE);
-		Log.i(TAG, "Created find_history table");
+		if (DBG) Log.i(TAG, "Created find_history table");
 		db.execSQL(CREATE_SYNC_HISTORY_TABLE);
 		db.execSQL(INITIALIZE_SYNC_HISTORY_TABLE);
-		Log.i(TAG, "Created sync_history table");
+		if (DBG) Log.i(TAG, "Created sync_history table");
 	}
 
 	/**
@@ -210,7 +215,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
+		if (DBG) Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 				+ newVersion + ", which will destroy all old data");
 		db.execSQL("DROP TABLE IF EXISTS " + FIND_TABLE_NAME);
 		db.execSQL("DROP TABLE IF EXISTS " + PHOTO_TABLE_NAME);
@@ -222,7 +227,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public Cursor testFindsHistory() {
 		mDb = getWritableDatabase();
 		Cursor c = mDb.rawQuery("SELECT * FROM sync_history", null);
-		Log.i(TAG,"SyncHistory rows: " + c.getCount());
+		if (DBG) Log.i(TAG,"SyncHistory rows: " + c.getCount());
 		mDb.close();
 		return c;
 	}
@@ -239,7 +244,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		String maxtime = "No time";
 		if (c.moveToFirst()) 
 			maxtime = c.getString(0);  // column 0
-		Log.i(TAG, "Last sync time = " + maxtime);
+		if (DBG) Log.i(TAG, "Last sync time = " + maxtime);
 		String[] args = new String[1];
 		args[0] = maxtime;
 		c.close();
@@ -252,7 +257,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		}
 		c.close();
 		mDb.close();
-		Log.i(TAG, "Find deltas = " + result);
+		if (DBG) Log.i(TAG, "Find deltas = " + result);
 		return result;
 	}
 	
@@ -444,9 +449,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		mDb = getWritableDatabase();  // Either create or open the DB.
 		boolean result = false;
 		if (args != null) {
-			Log.i(TAG, "updateFind id = "+id);
+			if (DBG) Log.i(TAG, "updateFind id = "+id);
 			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_ID + "=" + id, null) > 0;
-			Log.i(TAG,"updateFind result = "+result);
+			if (DBG) Log.i(TAG,"updateFind result = "+result);
 		}
 		if (result) {
 			String guId = "";
@@ -479,9 +484,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		mDb = getWritableDatabase();  // Either create or open the DB.
 		boolean result = false;
 		if (args != null) {
-			Log.i(TAG, "updateFind guId = "+guId);
+			if (DBG) Log.i(TAG, "updateFind guId = "+guId);
 			result = mDb.update(FIND_TABLE_NAME, args, COLUMN_GUID + "=\"" + guId + "\"", null) > 0;
-			Log.i(TAG,"updateFind result = "+result);
+			if (DBG) Log.i(TAG,"updateFind result = "+result);
 		}
 		if (result) {
 			ContentValues lfh = new ContentValues();
@@ -555,7 +560,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
 	public Cursor getImagesCursor(long id) {
 		mDb = getReadableDatabase();
-		Log.i("id = ",id+"");
+		if (DBG) Log.i(TAG, "id = " + id+"");
 		String[] columns = {COLUMN_IMAGE_URI, COLUMN_FIND_ID};
 		String[] selectionArgs = null;
 		String groupBy = null, having = null, orderBy = null;
@@ -568,8 +573,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		Cursor cursor = getImagesCursor(id);
 		cursor.moveToFirst();
 		ContentValues values = new ContentValues();
-		if(Utils.debug)
-			Log.i(TAG, "Images count = " + cursor.getCount() + " for _id = " + id);
+		//if(Utils.debug)
+		if (DBG) 	Log.i(TAG, "Images count = " + cursor.getCount() + " for _id = " + id);
 		if (cursor.getCount() != 0)
 			values = getValuesFromRow(cursor);
 		cursor.close();
@@ -677,7 +682,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		} else {
 			Log.i(TAG,"fetchFindMap ERROR on fetch for Guid = " + guid);
 		}	
-		Log.i(TAG,"fetchFindMap map=" + findsMap.toString());
+		if (DBG) Log.i(TAG,"fetchFindMap map=" + findsMap.toString());
 		cursor.close();
 		mDb.close();
 		return findsMap;
@@ -713,7 +718,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		for (String column : cursor.getColumnNames()) {
 			
 			if(Utils.debug)
-			Log.i(TAG, "Column " + column + " = " + 
+				if (DBG) Log.i(TAG, "Column " + column + " = " + 
 					cursor.getString(cursor.getColumnIndexOrThrow(column)));
 			values.put(column, cursor.getString(cursor.getColumnIndexOrThrow(column)));
 		}
@@ -830,7 +835,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 				}
 			}
 		}
-			Log.i(TAG, "Querying for updated SIDs: " + queryCondition);
+		if (DBG) Log.i(TAG, "Querying for updated SIDs: " + queryCondition);
 
 		try {
 			mDb = getReadableDatabase();
@@ -849,7 +854,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		} catch (Exception e) {
 			Log.e(TAG, e.getMessage());
 		}
-			Log.i(TAG, "Finds that need synching to server (Phone keys): " + idsList.toString());
+		if (DBG) Log.i(TAG, "Finds that need synching to server (Phone keys): " + idsList.toString());
 
 		return idsList;
 	}
@@ -892,7 +897,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		} catch (Exception e) {
 			Log.e(TAG, e.getMessage());
 		}
-			Log.i(TAG, "Finds that need synching from server (Phone keys): " + idsList.toString());
+		if (DBG) Log.i(TAG, "Finds that need synching from server (Phone keys): " + idsList.toString());
 		return idsList;
 	}	    
 
@@ -923,7 +928,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			}
 			c.close();
 			close(); // Close the DB
-				Log.i(TAG, "All SIDs on phone: " + allSIDs.toString());
+			if (DBG) Log.i(TAG, "All SIDs on phone: " + allSIDs.toString());
 		} catch (Exception e) {
 			Log.e(TAG,  e.getStackTrace() + "blah blah");
 		}
@@ -981,7 +986,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public Cursor getFindsWithIdentifier(String value) {
 		mDb = getWritableDatabase();
 		Cursor cursor = mDb.query("finds", null, COLUMN_BARCODE + "=" + value, null, null, null, null);
-		Log.i(TAG, cursor.getCount()+"");
+		if (DBG) Log.i(TAG, cursor.getCount()+"");
 		mDb.close();
 		return cursor;
 	}

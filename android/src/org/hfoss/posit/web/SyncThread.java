@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 
 import org.hfoss.posit.Find;
 import org.hfoss.posit.provider.MyDBHelper;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -40,17 +41,59 @@ import android.util.Log;
 public class SyncThread extends Thread {
 
 	private static final String TAG = "SyncThread";
-	public static final int DONE = 0;
-	public static final int NETWORKERROR = 2;
+	public static final int DONE = 30;
+	public static final int NETWORKERROR = 20;
 	public volatile boolean shutdownRequested = false;
-	public static final int SYNCERROR = 1;
+	public static final int SYNCERROR = 10;
 	private Handler mHandler;
 	private Context mContext;
+	private boolean mConnected;
+	private boolean mStopRequested;
 	
+	/**
+	 * Constructor sets up the thread environment with references to the
+	 * Activity context and the message handler.  And it sets up the 
+	 * control variables used to suspend and stop the thread.
+	 * 
+	 * It initially assumes that there is no network connection.
+	 * The NetworkConnectivityListener will notify it when a 
+	 * connection is obtained.
+	 * 
+	 * @param context
+	 * @param handler
+	 */
 	public SyncThread(Context context, Handler handler) {
 		mHandler = handler;
 		mContext = context;
+		mConnected = false;
+		mStopRequested = false;	
 	}
+	
+	/**
+	 * Must be called when a network WIFI connection is detected
+	 * in order for the synchronization to run. It notify's the
+	 * waiting thread.
+	 * 
+	 * @param connected
+	 */
+	public synchronized void setConnected(boolean connected) {
+		mConnected = connected;
+		if (mConnected)
+			notify();
+		Log.i(TAG,"Set connected to " + mConnected);
+	}
+	
+	/**
+	 * Stops the thread by forcing the run() method to return.
+	 * Called when there's no valid WIFI.
+	 */
+    public synchronized void stopThread() {
+    	mStopRequested = true;
+    	mConnected = true;
+        notify();
+		Log.i(TAG,"Requesting a stop");
+    }
+
 
 	/**
 	 * NOTE:  This method should be broken into sub methods.
@@ -85,20 +128,33 @@ public class SyncThread extends Thread {
 		String imei = manager.getDeviceId();
 		Communicator comm = new Communicator(mContext);
 
-		if (!Utils.isConnected(mContext)){
-			Utils.showToast(mContext, "Phone not connected to network");
-			Log.i(TAG, "Phone not connected to network");
-			mHandler.sendEmptyMessage(NETWORKERROR);
-		}
-
 		// Get finds from the server since last sync with this device
 		// (NEEDED: should be made project specific)
+
+		// Wait here to make sure there is a WIFI connection
+		try {
+//			Log.i(TAG,"SyncThread going to sleep");
+//			Thread.currentThread().sleep(1000);
+//			Log.i(TAG,"SyncThread waking up after sleep");
+
+			synchronized(this) {
+				while (!mConnected) {
+					Log.i(TAG,"SyncThread starting its wait");
+					wait();
+					Log.i(TAG,"SyncThread ending its wait");
+				}
+				if (mStopRequested)
+					return;
+			}
+		} catch (InterruptedException e){
+		}
 
 		String url = "";
 		String serverFindsNeedingSync = "";
 		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei;
 		Log.i(TAG, "getDeltaFindsIds URL=" + url);
 
+	
 		try {
 			serverFindsNeedingSync = comm.doHTTPGET(url);
 		} catch (Exception e) {
@@ -127,6 +183,7 @@ public class SyncThread extends Thread {
 				Log.i(TAG, "Ignoring deletions");
 			} else {
 				Find find = new Find(mContext, find_guid);   // Create a Find object
+	
 				try {
 					comm.sendFind(find,action);                  //  Send it to server
 				} catch (Exception e) {
@@ -138,10 +195,11 @@ public class SyncThread extends Thread {
 		}
 		
 		// Get finds from the server and store in the DB
-		
+
 		st = new StringTokenizer(serverFindsNeedingSync, ",");
 		while (st.hasMoreElements()) {
 			find_guid = st.nextElement().toString();
+
 			ContentValues cv = comm.getRemoteFindById(find_guid); 
 			if (cv != null) {
 				Log.i(TAG,cv.toString());
@@ -167,9 +225,10 @@ public class SyncThread extends Thread {
 		}
 		
 		// Record the synchronization in the client's sync_history table
-		
+
 		ContentValues values = new ContentValues();
 		values.put(MyDBHelper.SYNC_COLUMN_SERVER, server);
+		
 		boolean success = mdbh.recordSync(values);
 		if (!success) {
 			Log.i(TAG, "Error recording sync stamp");
@@ -182,6 +241,7 @@ public class SyncThread extends Thread {
 		url = server + "/api/recordSync?authKey=" +authKey + "&imei=" + imei;
 		Log.i(TAG, "recordSyncDone URL=" + url);
 		String responseString = "";
+			
 		try {
 			responseString = comm.doHTTPGET(url);
 		} catch (Exception e) {

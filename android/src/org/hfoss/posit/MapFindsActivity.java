@@ -154,7 +154,8 @@ public class MapFindsActivity extends MapActivity {
 			longitude = (int) (c.getDouble(c
 					.getColumnIndex(MyDBHelper.COLUMN_LONGITUDE))*1E6);
 
-			String itemIdStr = "" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_BARCODE));
+//			String itemIdStr = "" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_BARCODE));
+			String itemIdStr = "" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_ID));
 			String description = itemIdStr + "\n" 
 			+ c.getString(c.getColumnIndex(MyDBHelper.COLUMN_NAME));
 			description += "\n" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_DESCRIPTION));

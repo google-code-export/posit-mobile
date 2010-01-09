@@ -78,6 +78,7 @@ public class Utils {
            Log.w(TAG, "couldn't get connectivity manager");
         } else {
             NetworkInfo[] info = conManage.getAllNetworkInfo();
+            Log.v(TAG,info.toString());
             if (info != null) {
                 for (int i = 0; i < info.length; i++) {
                     if (info[i].getState() == NetworkInfo.State.CONNECTED) {
