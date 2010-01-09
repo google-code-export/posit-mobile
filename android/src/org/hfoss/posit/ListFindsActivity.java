@@ -27,6 +27,7 @@ import org.hfoss.posit.utilities.Utils;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,6 +40,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -59,6 +61,8 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	private static final int CONFIRM_DELETE_DIALOG = 0;
 	public static final int FIND_FROM_LIST = 0;
 	private static int PROJECT_ID;
+    private static final boolean DBG = false;
+
 
 	/** 
 	 * Called when the Activity starts and
@@ -75,11 +79,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
-		//Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
-
 		mDbHelper = new MyDBHelper(this);
-		//fillData();
-		//mDbHelper.close();
 	}
 
 	/** 
@@ -94,8 +94,6 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
-		//Utils.showToast(this, "Project: " + sp.getString("PROJECT_NAME", ""));
-
 		fillData();
 	}
 
@@ -151,6 +149,10 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 
 		// CursorAdapter binds the data in 'columns' to the views in 'views' 
 		// It repeatedly calls ViewBinder.setViewValue() (see below) for each column
+		// NOTE: The columns and views are defined in MyDBHelper.  For each column
+		// there must be a view and vice versa, although the column (data) doesn't
+		// necessarily have to go with the view, as in the case of the thumbnail.
+		// See comments in MyDBHelper.
 		SimpleCursorAdapter adapter = 
 			new SimpleCursorAdapter(this, R.layout.list_row, mCursor, columns, views);
 		adapter.setViewBinder(this);
@@ -181,7 +183,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		super.onListItemClick(l, v, position, id);
 		Intent intent = new Intent(this, FindActivity.class);
 		intent.setAction(Intent.ACTION_EDIT);
-		Log.i(TAG,"id = " + id);
+		if (DBG) Log.i(TAG,"id = " + id);
 		intent.putExtra(MyDBHelper.COLUMN_ID, id);
 //		intent.putExtra(MyDBHelper.COLUMN_GUID, mDbHelper.getGuIdFromRowId(id));
 
@@ -292,21 +294,24 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 * SimpleCursorAdapter will attempt to handle the binding on its own.
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-		TextView tv = (TextView) view;
+		TextView tv = null; // = (TextView) view;
 		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_BARCODE));
 		switch (view.getId()) {
-		/*case R.id.find_image:
-
+	
+		case R.id.find_image:
+			if (DBG) Log.i(TAG,"setViewValue case find_image=" + view.getId() );
 			int rowId = cursor.getInt(cursor
-					.getColumnIndexOrThrow(MyDBHelper.COLUMN_IDENTIFIER));
+					.getColumnIndexOrThrow(MyDBHelper.COLUMN_ID));
 			MyDBHelper myDbHelper = new MyDBHelper(this);
 			ContentValues values = myDbHelper.getImages(rowId);
 			ImageView iv = (ImageView) view;
 			if (values != null && values.containsKey(getString(R.string.imageUriDB))) {
 				String strUri = values.getAsString(getString(R.string.imageUriDB));
+				if (DBG) Log.i(TAG,"setViewValue strUri=" + strUri);
 				if (strUri != null) {
+					if (DBG) Log.i(TAG,"setViewValue strUri=" + strUri);
 					Uri iUri = Uri.parse(strUri);
-					//iv.setImageURI(iUri);
+					iv.setImageURI(iUri);
 					iv.setScaleType(ImageView.ScaleType.FIT_XY);
 				} else {
 					iv.setImageResource(R.drawable.person_icon);
@@ -316,20 +321,25 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 				iv.setImageResource(R.drawable.person_icon);
 				iv.setScaleType(ImageView.ScaleType.FIT_XY);
 			}
-			return true;*/
+			if (DBG) Log.i(TAG,"setViewValue case find_image finished");
+			return true;
 		case R.id.latitude_id:
+			tv = (TextView) view;
 			String lat = cursor.getString(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE));
 			tv.setText("Location: "+lat);
 			return true;
 		case R.id.longitude_id:
+			tv = (TextView) view;
 			String lon = cursor.getString(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE));
 			tv.setText(", "+lon);
 			return true;
 		case R.id.status:
+			tv = (TextView) view;
 			int status = cursor.getInt(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_SYNCED));
 			tv.setText(status==1?"Synced  ":"Not synced  ");
 			return true;
 		case R.id.num_photos:
+			tv = (TextView) view;
 			Uri findPhotos = Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+findIden);
 			int count = managedQuery(findPhotos, null, null, null, null).getCount();
 			tv.setText(count+" photos  ");
@@ -379,7 +389,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					}
 					/*
 					int count = getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID), null, null);
-					Log.i("PROVIDER", "deleted "+ count);
+					if (DBG) Log.i("PROVIDER", "deleted "+ count);
 					Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
 					setContentView(R.layout.list_finds);
 					 */

@@ -89,11 +89,5 @@ android:orientation="horizontal">
 	android:layout_below="@id/num_photos"
 	android:textSize="13dp"
 	/>
-
-	
-
 </RelativeLayout>
-
-
-
 </LinearLayout>

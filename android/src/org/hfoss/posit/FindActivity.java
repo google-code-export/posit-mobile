@@ -23,7 +23,6 @@ package org.hfoss.posit;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -117,6 +116,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private String valueDescription;
 	private String valueId;
 
+	private boolean isClean = true;
 	public static boolean SAVE_CHECK=false;
 	public static int PROJECT_ID;
 //	private static boolean IS_ADHOC = false;
@@ -132,16 +132,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	public static final int IMAGE_VIEW = 13;
 
 	private static final String TAG = "FindActivity";
-
 	private static final int CONFIRM_DELETE_DIALOG = 0;
-	private static final int NON_UNIQUE_ID = 1;
 	private static final int UPDATE_LOCATION = 2;
 	private static final int CONFIRM_EXIT=3;
-	private static final int NON_NUMERIC_ID = 4;
-	private static final int TOO_BIG_ID = 5;
-
 	private static final boolean ENABLED_ONLY = true;
-
 	private static final int THUMBNAIL_TARGET_SIZE = 320;
 
 	/**
@@ -178,6 +172,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
 //		IS_ADHOC = sp.getBoolean("IS_ADHOC", false);
+		
+		isClean = true;
 
 		final Intent intent = getIntent();
 		String action = intent.getAction();
@@ -215,6 +211,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		mTempBitmaps = savedInstanceState.getParcelableArrayList("bitmaps");
+		isClean = savedInstanceState.getBoolean("isclean");
 		displayGallery(mFindId);
 //		displayGallery(mFindGuId==null);  // New find
 		super.onRestoreInstanceState(savedInstanceState);
@@ -222,6 +219,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
+		outState.putBoolean("isclean", isClean);
 		outState.putParcelableArrayList("bitmaps", mTempBitmaps);
 		super.onSaveInstanceState(outState);
 	}
@@ -306,26 +304,19 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private void doEditAction() {
 		mState = STATE_EDIT;
 		mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_ID, 0); 
-//		mFindGuId = getIntent().getStringExtra(MyDBHelper.COLUMN_GUID);
-
-		if(Utils.debug)
-		//	Log.i(TAG, "rowID = " + mFindId);
-			Log.i(TAG, "guID = " + mFindGuId);
+		Log.i(TAG,"Find id = " + mFindId);
 
 		// Instantiate a find object and retrieve its data from the DB
 		mFind = new Find(this, mFindId);   
-		//mFind = new Find(this, mFindGuId);        
 
 		ContentValues values = mFind.getContent();
 		if (values == null) {
 			Utils.showToast(this, "No values found for Find " + mFindId);
-//			Utils.showToast(this, "No values found for Find " + mFindGuId);
 			mState = STATE_INSERT;
 		} else {
 			displayContentInView(values);  
 		}
 		displayGallery(mFindId);
-//		displayGallery(!NEWFIND); // Not a new find
 	}
 
 
@@ -382,9 +373,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					// User clicked OK so do some stuff 
 					ContentValues contentValues = retrieveContentFromView();
 
-//					if(contentValues.getAsInteger(getString(R.string.idDB)) != 0){
 					if(contentValues.get(getString(R.string.idDB)) != null){
-						if (mState == STATE_INSERT) { //if this is a new find
+						if (mState == STATE_INSERT) {            // if this is a new find
 							mFind = new Find(FindActivity.this);
 							saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
 							List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
@@ -406,6 +396,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				}
 			}).setNeutralButton(R.string.closing, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
+					finish();
 				}
 			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
@@ -424,6 +415,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * to save the data.
 	 */
 	private void checkSave(){
+		//action.equals(Intent.ACTION_EDIT)
 
 		EditText eText = (EditText) findViewById(R.id.nameText);
 		String value = eText.getText().toString();
@@ -450,6 +442,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * @param event is a KeyEvent that is not used here
 	 * @return a boolean telling whether or not the operation was successful
 	 */
+	
+	
 	/*
 	 * TODO: This needs to be fixed. It doesn't work properly.
 	 * 
@@ -749,24 +743,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			MyDBHelper dBHelper = new MyDBHelper(this);
 			EditText eText = (EditText) findViewById(R.id.idText);
 			eText.setText(value);
-			
-//			Long scannedId = null;
-//			
-//			try {
-////				scannedId = Long.parseLong(value); // idea is to catch the exception after here if it's not a number
-//				Log.i(TAG, "HERE");
-//					Cursor cursor = dBHelper.getFindsWithIdentifier(value);
-//					Log.i(TAG, cursor.getCount()+"");
-//					if (cursor.getCount() == 0) {
-//						EditText eText = (EditText) findViewById(R.id.idText);
-//						eText.setText(value);
-//					} else showDialog(NON_UNIQUE_ID);
-//					cursor.close();
-//			} catch(NumberFormatException e) {
-//				showDialog(NON_NUMERIC_ID);
-//			}
 			break;
-
 		case CAMERA_ACTIVITY: //for existing find: saves image to db when user clicks "attach"
 			rowId = data.getIntExtra("rowId", -1);
 			Bitmap tempImage = (Bitmap) data.getExtras().get("data");
@@ -793,6 +770,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			break;
 
 		case IMAGE_VIEW:
+			Log.i(TAG, "onActivityResult mFindId = " + mFindId);
 			finish();
 			break;
 		}
@@ -881,9 +859,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 *  @param id is the rowId of the find
 	 */
 	private void displayGallery(long id) {
-//	private void displayGallery(boolean newFind) {
+		Log.i(TAG, "displayGallery mFindId=" + mFindId);
 		if (id != 0) { //for existing finds
-//		if (!newFind) { //for existing finds
 			// Select just those images associated with this find.
 			if ((mCursor=mFind.getImages()).getCount()>0) {
 				finishActivity(FindActivity.IMAGE_VIEW);
@@ -921,6 +898,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					Intent intent = new Intent(Intent.ACTION_VIEW, uri, this, ImageViewActivity.class);
 					intent.putExtra("position",position);
 					intent.putExtra("findId", mFindId);
+					Log.i(TAG, "onItemClick mFindId = " + mFindId);
 					setResult(RESULT_OK,intent);
 					mCursor.close();
 					startActivityForResult(intent, IMAGE_VIEW);
@@ -936,19 +914,6 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			intent.putExtra("bitmap", bm);
 			startActivity(intent);
 		}
-	}
-
-	/**
-	 * This is another method to try to better handle the always
-	 * growing activity stack.  I am not sure if this is ever invoked
-	 * in the current state of the project.
-	 */
-	@Override
-	public void finishActivityFromChild(Activity child, int requestCode) {
-		super.finishActivityFromChild(child, requestCode);
-		Utils.showToast(this,"YOOOOOOOOO");
-		if(requestCode==IMAGE_VIEW)
-			finish();
 	}
 
 	/**

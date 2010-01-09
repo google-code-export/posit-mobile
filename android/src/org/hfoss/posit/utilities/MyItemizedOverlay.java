@@ -83,7 +83,8 @@ public class MyItemizedOverlay extends ItemizedOverlay {
 		long itemId = Long.parseLong(mOverlays.get(pIndex).getTitle());
 		Log.i(TAG, "itemID= " + itemId);
 
-		intent.putExtra(MyDBHelper.COLUMN_BARCODE, itemId); // Pass the RowID to FindActivity
+		intent.putExtra(MyDBHelper.COLUMN_ID, itemId); // Pass the RowID to FindActivity
+//		intent.putExtra(MyDBHelper.COLUMN_BARCODE, itemId); // Pass the RowID to FindActivity
 		mContext.startActivity(intent);
 		return true;
 	}

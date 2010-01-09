@@ -95,10 +95,10 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			Log.i(TAG, "RWG running");
 			Utils.showToast(this, "RWG running");
 		}
-		else {
-			Log.i(TAG, "RWG not running");
-			Utils.showToast(this, "RWG not running");
-		}
+//		else {
+//			Log.i(TAG, "RWG not running");
+//			Utils.showToast(this, "RWG not running");
+//		}
 	}
 
 	/**
