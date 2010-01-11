@@ -1,8 +1,8 @@
 <?php
-if(file_exists("config.php"))
-	require_once("config.php");
+if(file_exists("../../positconfig/config.php"))
+	require_once("../../positconfig/config.php");
 else
-	die("No configuration file found. Follow the instructions in config.sample.php and try again.");
+	die("[Error at server, main.php line 5]No configuration file found. Follow the instructions in config.sample.php and try again.");
 require_once("util/util.php");
 require_once("util/errors.php");
 require_once("util/constants.php");

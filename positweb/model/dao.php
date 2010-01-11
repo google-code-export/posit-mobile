@@ -150,9 +150,10 @@ class DAO {
 			"select id, name, description, create_time, permission_type
 			 from project ". $whereClause
 		);
-		
-		$stmt->execute();
+//		$stmt->execute();
+		$stmt->execute() or die("[Error MySQl dao.php line 154]" . mysql_error());
 		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		Log::getInstance()->log("getProjects: $result");
 
 		return $result;
 	}
@@ -242,6 +243,9 @@ class DAO {
 		$stmt->bindValue(":guid", $guid);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		
+		
+		
 		/**
 		foreach ($temp[0] as $key=>$value) {
 			Log::getInstance()->log("getFind temp: $key = $value");
@@ -690,7 +694,7 @@ class DAO {
 		$stmt.execute();
 		$audio = $stmt->fetch(PDO::FETCH_ASSOC);
 		$audio_path = $audio['data_path'];
-		$fh = fopen("uploads/$audio_path", 'w') or die("can't open file");
+		$fh = fopen("uploads/$audio_path", 'w') or die("[Error on server]Can't open file");
 		fclose($fh);
 		unlink($audio_path);
 		$stmt = $this->db->prepare(
