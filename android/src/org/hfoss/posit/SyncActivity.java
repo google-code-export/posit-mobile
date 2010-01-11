@@ -103,6 +103,7 @@ public class SyncActivity extends Activity  {
 
 		Log.i(TAG, "Stopping listener");
 		ncl.stopListening();
+		ncl.unregisterHandler(mHandler);
 		Log.i(TAG, "Sync thread is " + mSyncThread.getState().toString());
 	}
 
@@ -186,6 +187,8 @@ public class SyncActivity extends Activity  {
 			case SyncThread.SYNCERROR:
 				mProgressDialog.setMessage("An unknown error has occurred. "
 						+ PRESS_BACK);
+				mSyncThread.stopThread();
+//				mSyncThread.setConnected(false);
 //				finish();
 				break;
 			default:

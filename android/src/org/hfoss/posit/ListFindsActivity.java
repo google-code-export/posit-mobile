@@ -295,7 +295,8 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 		TextView tv = null; // = (TextView) view;
-		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_BARCODE));
+		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_ID));
+//		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_BARCODE));
 		switch (view.getId()) {
 	
 		case R.id.find_image:

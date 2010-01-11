@@ -747,6 +747,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		Cursor c = mDb.query(FIND_TABLE_NAME,null, PROJECT_ID +"="+project_id, null, null, null, null);
 		//Log.i("CURSOR","count = "+c.getCount());
 		c.getCount(); //This has to be here for some reason. Bug in Android?
+		Log.i(TAG,"Fetching all finds where " + PROJECT_ID + "=" + project_id + " count=" + c.getCount());
 		mDb.close();
 		return c;
 	}

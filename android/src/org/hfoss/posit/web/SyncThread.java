@@ -21,7 +21,6 @@
  */
 package org.hfoss.posit.web;
 
-import org.hfoss.posit.utilities.Utils;
 import java.util.StringTokenizer;
 
 import org.hfoss.posit.Find;
@@ -49,6 +48,19 @@ public class SyncThread extends Thread {
 	private Context mContext;
 	private boolean mConnected;
 	private boolean mStopRequested;
+	
+	private String mServerFindsNeedingSync;
+	
+	private MyDBHelper mdbh = new MyDBHelper(mContext);
+
+	private SharedPreferences sp; 
+	private String server;
+	private String authKey;
+	private int projectid;
+	private TelephonyManager manager; 
+	private String imei;
+	private Communicator comm;
+	
 	
 	/**
 	 * Constructor sets up the thread environment with references to the
@@ -94,6 +106,50 @@ public class SyncThread extends Thread {
 		Log.i(TAG,"Requesting a stop");
     }
 
+    /** 
+     * Called repeatedly during run() to make sure each synchronization
+     * step completes successfully.
+     */
+    private void waitHere() {
+		try {
+			synchronized(this) {
+				while (!mConnected) {
+					Log.i(TAG,"SyncThread starting its wait");
+					wait();
+					Log.i(TAG,"SyncThread ending its wait");
+				}
+				if (mStopRequested)
+					return;
+			}
+		} catch (InterruptedException e){
+			Log.i(TAG, "Interrupted thread " + e.getMessage());
+			e.printStackTrace();
+			mHandler.sendEmptyMessage(SYNCERROR);
+		}   	
+    }
+      
+    
+    /**
+     * Returns a list of guIds for server finds that need syncing.
+     * @return
+     */
+    private void getServerFindsNeedingSync() {
+   	    String response="";
+		String url = "";
+		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei;
+		Log.i(TAG, "getDeltaFindsIds URL=" + url);
+		try {
+			response = comm.doHTTPGET(url);
+		} catch (Exception e) {
+			Log.i(TAG, e.getMessage());
+			e.printStackTrace();
+			mHandler.sendEmptyMessage(SYNCERROR);
+		}
+		Log.i(TAG,"serverFindsNeedingSync = " + response);
+		mServerFindsNeedingSync = response;
+		return;
+    }
+    
 
 	/**
 	 * NOTE:  This method should be broken into sub methods.
@@ -117,52 +173,24 @@ public class SyncThread extends Thread {
 	 * 
 	 */
 	public void run() {
-		MyDBHelper mdbh = new MyDBHelper(mContext);
+		mdbh = new MyDBHelper(mContext);
 
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		//		sp.setDefaultValues(mContext, R.xml.posit_preferences, false);
-		String server=sp.getString("SERVER_ADDRESS", null);
-		String authKey = sp.getString("AUTHKEY", null);
-		int projectid = sp.getInt("PROJECT_ID", 0);
-		TelephonyManager manager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
-		String imei = manager.getDeviceId();
-		Communicator comm = new Communicator(mContext);
+		server=sp.getString("SERVER_ADDRESS", null);
+		authKey = sp.getString("AUTHKEY", null);
+		projectid = sp.getInt("PROJECT_ID", 0);
+		manager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+		imei = manager.getDeviceId();
+		comm = new Communicator(mContext);
 
 		// Get finds from the server since last sync with this device
 		// (NEEDED: should be made project specific)
 
 		// Wait here to make sure there is a WIFI connection
-		try {
-//			Log.i(TAG,"SyncThread going to sleep");
-//			Thread.currentThread().sleep(1000);
-//			Log.i(TAG,"SyncThread waking up after sleep");
-
-			synchronized(this) {
-				while (!mConnected) {
-					Log.i(TAG,"SyncThread starting its wait");
-					wait();
-					Log.i(TAG,"SyncThread ending its wait");
-				}
-				if (mStopRequested)
-					return;
-			}
-		} catch (InterruptedException e){
-		}
-
-		String url = "";
-		String serverFindsNeedingSync = "";
-		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei;
-		Log.i(TAG, "getDeltaFindsIds URL=" + url);
-
-	
-		try {
-			serverFindsNeedingSync = comm.doHTTPGET(url);
-		} catch (Exception e) {
-			Log.i(TAG, e.getMessage());
-			Utils.showToast(mContext, e.getMessage());
-			mHandler.sendEmptyMessage(NETWORKERROR);
-		}
-		Log.i(TAG,"serverFindsNeedingSync = " + serverFindsNeedingSync);
+		waitHere();
+		getServerFindsNeedingSync(); // Stored in mServerFindsNeedingSync
+//		waitForServer();
 
 		// Get finds from the client
 
@@ -183,27 +211,34 @@ public class SyncThread extends Thread {
 				Log.i(TAG, "Ignoring deletions");
 			} else {
 				Find find = new Find(mContext, find_guid);   // Create a Find object
+				boolean success=false;
 	
 				try {
-					comm.sendFind(find,action);                  //  Send it to server
+					success = comm.sendFind(find,action);                  //  Send it to server
 				} catch (Exception e) {
 					Log.i(TAG, e.getMessage());
+					e.printStackTrace();
 					//				Utils.showToast(mContext, e.getMessage());
 					mHandler.sendEmptyMessage(NETWORKERROR);				
+				}
+				if (!success) {
+					mHandler.sendEmptyMessage(SYNCERROR);
 				}
 			}
 		}
 		
 		// Get finds from the server and store in the DB
 
-		st = new StringTokenizer(serverFindsNeedingSync, ",");
+		st = new StringTokenizer(mServerFindsNeedingSync, ",");
 		while (st.hasMoreElements()) {
 			find_guid = st.nextElement().toString();
 
 			ContentValues cv = comm.getRemoteFindById(find_guid); 
-			if (cv != null) {
+			if (cv == null) {
+				mHandler.sendEmptyMessage(SYNCERROR);
+			}
+			else {
 				Log.i(TAG,cv.toString());
-				Find find = new Find(mContext, find_guid);
 				MyDBHelper dbh = new MyDBHelper(mContext);
 				
 				boolean success = false;
@@ -221,7 +256,7 @@ public class SyncThread extends Thread {
 				} else {
 					Log.i(TAG, "Recorded timestamp stamp");
 				}
-			}
+			} 
 		}
 		
 		// Record the synchronization in the client's sync_history table
@@ -238,7 +273,7 @@ public class SyncThread extends Thread {
 
 		// Record the synchronization in the server's sync_history table
 		
-		url = server + "/api/recordSync?authKey=" +authKey + "&imei=" + imei;
+		String url = server + "/api/recordSync?authKey=" +authKey + "&imei=" + imei;
 		Log.i(TAG, "recordSyncDone URL=" + url);
 		String responseString = "";
 			
@@ -246,6 +281,7 @@ public class SyncThread extends Thread {
 			responseString = comm.doHTTPGET(url);
 		} catch (Exception e) {
 			Log.i(TAG, e.getMessage());
+			e.printStackTrace();
 //			Utils.showToast(mContext, e.getMessage());
 			mHandler.sendEmptyMessage(NETWORKERROR);
 		}

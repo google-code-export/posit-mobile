@@ -114,7 +114,11 @@ public class Communicator {
 		projectId = projId;
 	}
 
+	
+	
 	/**
+	 * NOTE: Calls doHTTPGet
+	 * 
 	 * Get all open projects from the server.  Eventually, the goal is to be able to get different types
 	 * of projects depending on the privileges of the user.
 	 * @return a list of all the projects and their information, encoded as maps
@@ -122,17 +126,25 @@ public class Communicator {
 	 */
 	public ArrayList<HashMap<String,Object>> getProjects(){
 		String url = server + "/api/listOpenProjects?authKey=" + authKey;
+		ArrayList<HashMap<String, Object>> list;
 		responseString = doHTTPGET(url);
 		if(Utils.debug)
 			Log.i(TAG, responseString);
-
-		ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-		try {
-			list = (ArrayList<HashMap<String, Object>>) (new ResponseParser(responseString).parse());
-		} catch (JSONException e1) {
-			e1.printStackTrace();
-		}
-
+//		if (Utils.isSuccessfulHttpResultCode(responseString)) {
+//			responseString = Utils.stripHttpResultCode(responseString);
+			list = new ArrayList<HashMap<String, Object>>();
+			try {
+				list = (ArrayList<HashMap<String, Object>>) (new ResponseParser(responseString).parse());
+			} catch (JSONException e1) {
+				Log.i(TAG, "getProjects JSON exception " + e1.getMessage());
+				e1.printStackTrace();
+				return null;
+			}
+//		} else {
+//			// Should probably throw an exception
+//			return null;
+//		}
+//
 		return list;
 	}
 
@@ -166,7 +178,7 @@ public class Communicator {
 	 * @param find a reference to the Find object
 	 * @param action -- either  'create' or 'update'
 	 */
-	public void sendFind (Find find, String action) {
+	public boolean sendFind (Find find, String action) {
 		String url;
 		HashMap<String, String> sendMap = find.getContentMapGuid();
 		cleanupOnSend(sendMap);
@@ -189,8 +201,11 @@ public class Communicator {
 		}
 		if(Utils.debug)
 			Log.i(TAG, "sendFind.ResponseString: " + responseString);
-		if (responseString.indexOf("True") != -1)
+		if (responseString.indexOf("True") != -1) {
 			find.setSyncStatus(true);
+			return true;
+		} else
+			return false;
 
 		/**
 		try {
@@ -338,8 +353,10 @@ public class Communicator {
 			Log.i("doHTTPPost()","URI = "+Uri);
 		try {
 			post.setURI(new URI(Uri));
-		} catch (URISyntaxException e1) {
-			Log.e(TAG, "URISyntaxException " + e1.getMessage());
+		} catch (URISyntaxException e) {
+			Log.e(TAG, "URISyntaxException " + e.getMessage());
+			e.printStackTrace();
+			return e.getMessage();
 		}
 		List<NameValuePair> nvp = PositHttpUtils.getNameValuePairs(sendMap);
 		ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -351,14 +368,21 @@ public class Communicator {
 		try {
 			responseString = mHttpClient.execute(post, responseHandler);
 		} catch (ClientProtocolException e) {
-			if(Utils.debug)
 				Log.e(TAG, "ClientProtocolExcpetion" + e.getMessage());
+				e.printStackTrace();
+				return e.getMessage();
 		} catch (IOException e) {
-			if(Utils.debug)
-				Log.e(TAG, e.getMessage());	
+				Log.e(TAG, "IOException " + e.getMessage());	
+				e.printStackTrace();
+				return e.getMessage();
 		} catch (IllegalStateException e) {
-			if(Utils.debug)
 				Log.e(TAG, "IllegalStateException: "+ e.getMessage());
+				e.printStackTrace();
+				return e.getMessage();
+		} catch (Exception e) {
+				Log.e(TAG, "Exception on HttpPost " + e.getMessage());
+				e.printStackTrace();
+				return e.getMessage();
 		}
 
 		return responseString;
@@ -369,34 +393,45 @@ public class Communicator {
 	 * @param Uri
 	 * @return the request from the remote server
 	 */
-	//private String doHTTPGET(String Uri)
-	public String doHTTPGET(String Uri)
-	{
+	public String doHTTPGET(String Uri) {
 		if (Uri==null) throw new NullPointerException("The URL has to be passed");
 		String responseString = null;
 		HttpGet httpGet = new HttpGet();
 		try{
 			httpGet.setURI(new URI(Uri));
-		}catch (URISyntaxException e1) {
-			if(Utils.debug)
-				Log.e(TAG, e1.getMessage());
+		}catch (URISyntaxException e) {
+			Log.e(TAG, e.getMessage());
+			e.printStackTrace();
+			return "[Error]" + e.getMessage();
+		}
+		if (Utils.debug){
+			Log.i(TAG, "doHTTPGet Uri = " + Uri);
 		}
 		ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
 		try {
 			responseString = mHttpClient.execute(httpGet, responseHandler);
 		} catch (ClientProtocolException e) {
-			if(Utils.debug)
 				Log.e(TAG, "ClientProtocolException" + e.getMessage());
+				e.printStackTrace();
+				return "[Error]" + e.getMessage();
 		} catch (IOException e) {
-			if(Utils.debug)
 				Log.e(TAG, e.getMessage());	
+				e.printStackTrace();
+				return "[Error]" + e.getMessage();
+		} catch (Exception e) {
+			Log.e(TAG, e.getMessage());
+			e.printStackTrace();
+			return "[Error]" + e.getMessage();
 		}
-
 		if(Utils.debug)
-			Log.i(TAG, "Response: "+ responseString);
-
+			Log.i(TAG, "doHTTPGet Response: "+ responseString);
+//		if (!Utils.isSuccessfulHttpResultCode(responseString)) {
+//			return Utils.stripHttpResultCode(responseString); // Which will have an error message attached
+//		}
 		return responseString;
 	}
+	
 	/**
 	 * Get all the remote finds 
 	 * @return a HashMap of the Id and Revision of all the finds in the server
@@ -477,8 +512,8 @@ public class Communicator {
 				map.put("images", imagesMap);
 			}
 		} catch (JSONException e) {
-			if(Utils.debug)
 				Log.e(TAG, "JSONException" +  e.getMessage());
+				e.printStackTrace();
 		} 
 		if(Utils.debug)
 			Log.i(TAG, "The Finds "+ findsMap.toString());
@@ -516,6 +551,10 @@ public class Communicator {
 			return cv;
 		} catch (JSONException e) {
 			Log.i(TAG, e.getMessage());
+			e.printStackTrace();
+		} catch (Exception e) {
+			Log.i(TAG, e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -529,9 +568,15 @@ public class Communicator {
 		HashMap<String, String> sendMap = new HashMap<String,String>();
 		addRemoteIdentificationInfo(sendMap);
 		sendMap.put("id", remoteFindId+"");
-		String responseString = doHTTPPost(url, sendMap);
 		try {
-			HashMap<String, Object> responseMap = (new ResponseParser(responseString).parse()).get(0);
+			String responseString = doHTTPPost(url, sendMap);
+		} catch (Exception e) {
+			Log.i(TAG, "Exception " + e.getMessage());
+			e.printStackTrace();
+			return null;
+		} 
+		try {
+;			HashMap<String, Object> responseMap = (new ResponseParser(responseString).parse()).get(0);
 			//JSONArray finds = new JSONArray(responseMap.get("finds").toString());
 			/*
 			if (finds.length()>0) {
@@ -543,8 +588,8 @@ public class Communicator {
 			cleanupOnReceive(responseMap);
 			return MyDBHelper.getContentValuesFromMap(responseMap);
 		}catch (Exception e) {
-			if(Utils.debug)
-				Log.e(TAG, e.getMessage());
+			Log.e(TAG, e.getMessage());
+			e.printStackTrace();
 		}
 		return null;
 	}

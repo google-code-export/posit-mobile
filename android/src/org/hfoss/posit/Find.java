@@ -146,15 +146,17 @@ public class Find {
 	 * @return whether the DB operation succeeds
 	 */
 	public boolean insertToDB(ContentValues content, List<ContentValues> images) {
+		mId = 0;
+		Log.i(TAG, "insertToDB #images = " + images.size());
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		int projId = sp.getInt("PROJECT_ID", 0);
 		if (content != null) {
 			//		content.put(MyDBHelper.PROJECT_ID, projId);
 			content.put(POSITProvider.COLUMN_REVISION, 1);
-			mDbHelper.addNewFind(content, null);
+			mId = mDbHelper.addNewFind(content);
 		}
 
-		if (images != null && images.size() > 0) {
+		if (mId != -1 && images != null && images.size() > 0) {
 			ListIterator<ContentValues> it = images.listIterator();
 			while (it.hasNext()) {
 				ContentValues imageValues = it.next();
@@ -165,7 +167,7 @@ public class Find {
 				if (!imageValues.containsKey(POSITProvider.COLUMN_PROJECT_ID))
 					imageValues.put(POSITProvider.COLUMN_PROJECT_ID, projId);
 				mContext.getContentResolver().insert(POSITProvider.PHOTOS_CONTENT_URI, imageValues);
-				//mDbHelper.addNewPhoto(imageValues, mId);
+				mDbHelper.addNewPhoto(imageValues, mId);
 			}
 		}
 		return mId != -1;

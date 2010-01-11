@@ -35,6 +35,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -53,41 +54,71 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 
 	private static final String TAG = "ShowProjectsActivity";
 	private static final int CONFIRM_PROJECT_CHANGE = 0;
-	private ArrayList<HashMap<String, Object>> list;
-	private Communicator comm;
-	private RadioGroup mRadio;
 	private int mCheckedPosition = 0;
 
+	private ArrayList<HashMap<String, Object>> projectList;
+	private RadioGroup mRadio;	
+
 	/**
-	 * Called when the activity is first started.  Shows a list of radio buttons, each representing
+	 * Called when the activity is first started.  Shows a list of 
+	 * radio buttons, each representing
 	 * a different project on the server.
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.list_projects);
-		comm = new Communicator(this);
-		
-		try{
-		list = comm.getProjects();
-		mRadio = (RadioGroup) findViewById(R.id.projectsList);
-		Iterator<HashMap<String, Object>> it = list.iterator();
-		
-		for(int i = 0; it.hasNext(); i++) {
-			RadioButton button = new RadioButton(this);
-			button.setId(i);
+		setContentView(R.layout.list_projects); 
+	}
 
-			button.setOnClickListener(this);
-			button.setText((String)(it.next().get("name")));
-			mRadio.addView(button);
+
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		super.onResume();
+		tryToRegister();
+	}
+
+	private void tryToRegister() {
+		if (!Utils.isConnected(this, ConnectivityManager.TYPE_WIFI)) {
+			reportNetworkError("No WiFi connection");
+			return;
 		}
-		}catch(Exception e){
+		Communicator comm = new Communicator(this);
+		try{
+			projectList = comm.getProjects();
+		} catch(Exception e){
+			Log.i(TAG, "Communicator error " + e.getMessage());
+			e.printStackTrace();
+			this.reportNetworkError(e.getMessage());
 			finish();
-			Utils.showNetworkErrorDialog(this);
-			
 		}
-		
-		
+		if (projectList != null) {
+			mRadio = (RadioGroup) findViewById(R.id.projectsList);
+			Iterator<HashMap<String, Object>> it = projectList.iterator();
+
+			for(int i = 0; it.hasNext(); i++) {
+				RadioButton button = new RadioButton(this);
+				button.setId(i);
+
+				button.setOnClickListener(this);
+				button.setText((String)(it.next().get("name")));
+				mRadio.addView(button);
+			}
+		} else {
+			this.reportNetworkError("Null project list returned");
+		}
+	}
+
+	/**
+	 * Reports as much information as it can about the error.
+	 * @param str
+	 */
+	private void reportNetworkError(String str) {
+		Log.i(TAG, "Registration Failed: " + str);
+		Utils.showToast(this, "Registration Failed: " + str);
+		finish();
 	}
 
 	/**
@@ -96,20 +127,20 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 	 */
 	public void onClick(View v) {
 		mCheckedPosition  = mRadio.getCheckedRadioButtonId();
-		String projectId = (String) list.get(mCheckedPosition).get("id");
+		String projectId = (String) projectList.get(mCheckedPosition).get("id");
 		int id  = Integer.parseInt(projectId);
-		String projectName = (String) list.get(mCheckedPosition).get("name");
-		
+		String projectName = (String) projectList.get(mCheckedPosition).get("name");
+
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		Editor editor = sp.edit();
-		
+
 		editor.putInt("PROJECT_ID", id);
 		editor.putString("PROJECT_NAME", projectName);
 		editor.commit();
-		
+
 		showDialog(CONFIRM_PROJECT_CHANGE);
 	}
-		
+
 	/*
 	 * (non-Javadoc)
 	 * @see android.app.Activity#onCreateDialog(int)
@@ -122,24 +153,26 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 			return new AlertDialog.Builder(this)
 			.setIcon(R.drawable.alert_dialog_icon)
 			.setTitle("You have changed your project to: " 
-						+ (String) list.get(mCheckedPosition).get("name"))
-			.setPositiveButton(R.string.alert_dialog_ok, 
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(
-								ShowProjectsActivity.this);
-					boolean syncIsOn = sp.getBoolean("SYNC_ON_OFF", true);
-					if (syncIsOn) {
-						Intent intent = new Intent(ShowProjectsActivity.this, SyncActivity.class);
-						intent.setAction(Intent.ACTION_SYNC);
-						startActivity(intent);
-					}
-					finish();
-				}
-			}).create();
+					+ (String) projectList.get(mCheckedPosition).get("name"))
+					.setPositiveButton(R.string.alert_dialog_ok, 
+							new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int whichButton) {
+							SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(
+									ShowProjectsActivity.this);
+							boolean syncIsOn = sp.getBoolean("SYNC_ON_OFF", true);
+							if (syncIsOn) {
+								Intent intent = new Intent(ShowProjectsActivity.this, SyncActivity.class);
+								intent.setAction(Intent.ACTION_SYNC);
+								startActivity(intent);
+							}
+							finish();
+						}
+					}).create();
 
 		default:
 			return null;
 		}
 	}
+
+
 }
