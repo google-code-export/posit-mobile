@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import android.content.BroadcastReceiver;
+
 import android.R;
 import android.app.AlertDialog;
 import android.app.Notification;
@@ -94,6 +96,22 @@ public class Utils {
 	}
 	
 	public static boolean debug = true;
+	
+	
+    /**
+     * Removes '[Error]' or '[Success'] from the beginning of the response strings
+     * that are returned from http Post and Get.
+     * @param response
+     * @return
+     */
+    public static String stripHttpResultCode(String str) {
+    	return str.substring(str.indexOf(']') + 1);
+    }
+    
+    public static boolean isSuccessfulHttpResultCode(String str) {
+    	return str.indexOf("[Success]") != -1;
+    }
+	
 	/**
 	 * This is for showing the Toast on screen for notifications
 	 * 
@@ -270,6 +288,26 @@ public class Utils {
 	 * @param mContext the Context asking for the connection, in this case only the main activity
 	 * @return whether any connection exists
 	 */
+	public static boolean isConnected(Context mContext, int typeOfConnection) {
+		ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = cm.getActiveNetworkInfo();
+
+		if (info == null) {
+			Log.i(TAG,"isConnected info is null");
+			return false;
+		}
+		return info.getType() == typeOfConnection;
+	}
+	
+	/**
+	 * NOTE:  This method doesn't appear to work properly.
+	 * 
+	 * Checks if the phone has any connection at all, wifi or data.  Used at startup to see if the phone should
+	 * go into ad hoc mode or not.  
+	 * 
+	 * @param mContext the Context asking for the connection, in this case only the main activity
+	 * @return whether any connection exists
+	 */
 	public static boolean isConnected(Context mContext) {
 		ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = cm.getActiveNetworkInfo();
@@ -331,4 +369,21 @@ public class Utils {
 			}
 			return outputStream.toString();
 		}
+	  
+	  /**
+	   * Converts and IP address to an integer
+	   * @param addr
+	   * @return
+	   */
+	  public static int ipToInt(String addr) {
+	        String[] addrArray = addr.split("\\.");
+
+	        int num = 0;
+	        for (int i=0;i<addrArray.length;i++) {
+	            int power = 3-i;
+
+	            num += ((Integer.parseInt(addrArray[i])%256 * Math.pow(256,power)));
+	        }
+	        return num;
+	    }
 }

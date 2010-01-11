@@ -500,12 +500,6 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				sendAdhocFind(contentValues);
 			Log.i("after adhoc check", (System.currentTimeMillis()-start)+"");
 			
-			// Don't save to database if ID is zero.
-			// This indicates a non-numeric or invalid ID				
-			if (contentValues.getAsString(getString(R.string.idDB))==""|| contentValues.getAsString(getString(R.string.idDB))==null)
-				return false;
-//			Log.i("after nonnumeric check", (System.currentTimeMillis()-start)+"");
-
 			if (mState == STATE_INSERT) { //if this is a new find
 				mFind = new Find(this);
 				saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
@@ -551,8 +545,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 			intent.putExtra("rowId", mFindId);
 			if (mFind == null) {
+				Log.i(TAG,"New Find " + mFindId);
 				startActivityForResult(intent, NEW_FIND_CAMERA_ACTIVITY); //camera for new find
 			} else {
+				Log.i(TAG, "Existing FInd " + mFindId);
 				startActivityForResult(intent, CAMERA_ACTIVITY); //camera for existing find
 			}
 			break;
@@ -859,7 +855,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 *  @param id is the rowId of the find
 	 */
 	private void displayGallery(long id) {
-		Log.i(TAG, "displayGallery mFindId=" + mFindId);
+		Log.i(TAG, "displayGallery mFindId=" + id);
 		if (id != 0) { //for existing finds
 			// Select just those images associated with this find.
 			if ((mCursor=mFind.getImages()).getCount()>0) {
