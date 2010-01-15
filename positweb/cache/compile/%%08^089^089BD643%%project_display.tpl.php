@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2010-01-04 23:08:02
+<?php /* Smarty version 2.6.26, created on 2010-01-14 00:47:08
          compiled from project_display.tpl */ ?>
 <?php require_once(SMARTY_CORE_DIR . 'core.load_plugins.php');
 smarty_core_load_plugins(array('plugins' => array(array('modifier', 'date_format', 'project_display.tpl', 10, false),)), $this); ?>
@@ -24,8 +24,14 @@ unset($_smarty_tpl_vars);
 </a></div>
 		<div class="find_time">Found on: <?php echo ((is_array($_tmp=$this->_tpl_vars['find']['add_time'])) ? $this->_run_mod_handler('date_format', true, $_tmp, "%B %e, %Y %I:%M:%S") : smarty_modifier_date_format($_tmp, "%B %e, %Y %I:%M:%S")); ?>
 </div>
+		<div class="find_time">Updated on: <?php echo ((is_array($_tmp=$this->_tpl_vars['find']['modify_time'])) ? $this->_run_mod_handler('date_format', true, $_tmp, "%B %e, %Y %I:%M:%S") : smarty_modifier_date_format($_tmp, "%B %e, %Y %I:%M:%S")); ?>
+</div>
 		<div class="find_description"><?php echo $this->_tpl_vars['find']['description']; ?>
 </div>
+		<div class="find_id"><?php echo $this->_tpl_vars['find']['barcode_id']; ?>
+</div>
+		<div class="find_img"><IMG src=<?php echo $this->_tpl_vars['find']['img']; ?>
+ width="40" height="40"></div>
 	<!-- enable this for psychedelic color<div class="list-item"> -->
 	</div>
 	<?php endforeach; endif; unset($_from); ?>

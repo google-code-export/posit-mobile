@@ -132,9 +132,14 @@ legend { font-weight: bold }
   border-width:thin;
   }
 .list-item .find_description {
+	font-size:small;
 	background: #aecadc;;
 }
 
 .list-item .find_time {
+	font-size:small;
+}
+
+.list-item .find_id {
 	font-size:small;
 }
