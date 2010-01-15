@@ -58,8 +58,7 @@ class DAO {
 		
 		// Get the timestamp of the last sync with this device
 		$stmt = $this->db->prepare(
-			"SELECT MAX(sync_history.time) FROM sync_history WHERE imei = :imei"
-		); 
+			"SELECT MAX(sync_history.time) FROM sync_history WHERE imei = :imei"); 
 		$stmt->bindValue(":imei", $imei);
 		$stmt->execute();
 		$result = $stmt->fetch(PDO::FETCH_NUM);
@@ -70,8 +69,7 @@ class DAO {
 //        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei = '$imei' AND time < 'TIME($time)'") or die(mysql_error());  
         $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
 		while ($row = mysql_fetch_row($res)) {
-			$list .= "$row[0],";
-		}    				
+				}    				
 		Log::getInstance()->log("getDeltaFindsIds: $list");
 		return $list;
 	 }
@@ -191,17 +189,25 @@ class DAO {
 		$result = array();
 		
 		foreach ($temp as $find) {
-			$stmt = $this->db->prepare("select id from photo where find_id = :id");
-			$stmt->bindValue(":id", $find["id"]);
+//		echo "Find = " . $find["barcode_id"] . "<BR>";
+//			$stmt = $this->db->prepare("select id from photo where find_id = :id");
+			$stmt = $this->db->prepare("select imei, data_thumb from photo where guid = :id");
+//			$stmt->bindValue(":id", $find["id"]);
+			$stmt->bindValue(":id", $find["barcode_id"]);
 			$stmt->execute();
 			$imageResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
 			
+			$find["blah"] = "blah blah blah";
 			$find["images"] = array();
 			
 			foreach($imageResult as $image) {
-				$find["images"][] = $image["id"];
+				$img = "data:image/jpeg;base64," . base64_encode($image["data_thumb"]);
+				$find["img"] = $img;
+//                        echo "<img src=" . $img . ">";
+//				$find["images"][] = $image["id"];
+				$find["images"][] = $image["guid"];
 			}
-			
+
 			$stmt = $this->db->prepare("select id from video where find_id = :id");
 			$stmt->bindValue(":id", $find["id"]);
 			$stmt->execute();
@@ -246,16 +252,16 @@ class DAO {
 		
 		
 		
-		/**
+/*********
 		foreach ($temp[0] as $key=>$value) {
 			Log::getInstance()->log("getFind temp: $key = $value");
 		}    				
-*/
+***************/
 		$result = array();
 		$result[0]= $temp[0];
 		Log::getInstance()->log("getFind length of record: " . count($result[0]));
 
-/*
+/************
 		$result[0]["images"] = array();
 		
 		$stmt = $this->db->prepare("select id from photo where find_id = :id");
@@ -286,7 +292,7 @@ class DAO {
 		foreach($videoResult as $video) {
 			$result[0]["videos"][] = $video["id"];
 		}
-*/
+*********************/
 		return $result[0];
 	
 	}
@@ -340,14 +346,14 @@ class DAO {
 	 * get all the pictures associated to a find
 	 * @param unknown_type $findId
 	 */
-	function getPicturesByFind($findId){
-		Log::getInstance()->log("getPicturesByFind: $findId");
+	function getPicturesByFind($guid){
+		Log::getInstance()->log("getPicturesByFind: $guid");
 		$stmt = $this->db->prepare(
-			"select id,find_id,mime_type,data_full,data_thumb from photo
-			where find_id = :findId"
+			"select guid,mime_type,data_full,data_thumb, project_id, identifier from photo
+			where guid = :guid"
 			
 		);
-		$stmt->bindValue(":findId", $findId);
+		$stmt->bindValue(":guid", $guid);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		$result = array();
@@ -432,16 +438,19 @@ class DAO {
 	}
 	
 	function addExpeditionPoint($expeditionId, $latitude, $longitude, $altitude){
-		$stmt = $this->db->prepare("INSERT INTO expedition_point ( expedition_id, latitude, longitude , altitude, recorded_time)" 
+		$stmt = $this->db->prepare("INSERT INTO gps_sample ( expedition_id, latitude, longitude , altitude, sample_time)" 
 		."VALUES (:expeditionId, :latitude, :longitude, :altitude, now() )");
 		$stmt->bindValue(":expeditionId", $expeditionId);
 		$stmt->bindValue(":latitude", $latitude);
 		$stmt->bindValue(":longitude", $longitude);
 		$stmt->bindValue(":altitude", $altitude);
-		return $stmt->execute() > 0;
+		$stmt->execute();
+		return $this->db->lastInsertId();
+		//return $stmt->execute() > 0;
 	}
 	
 	function getExpeditions($projectId){
+		Log::getInstance()->log("getExpeditions: $projectId");
 		$stmt = $this->db->prepare("SELECT id, name, description, project_id FROM expedition WHERE project_id= :projectId ");
 		$stmt->bindValue(":projectId", $projectId);
 		$stmt->execute();
@@ -450,7 +459,7 @@ class DAO {
 	}
 	
 	function getExpeditionPoints($expeditionId){
-		$stmt = $this->db->prepare("SELECT latitude, longitude, altitude, expedition_id FROM expedition_point WHERE expedition_id= :expeditionId ");
+		$stmt = $this->db->prepare("SELECT latitude, longitude, altitude, expedition_id FROM gps_sample WHERE expedition_id= :expeditionId ");
 		$stmt->bindValue(":expeditionId", $expeditionId);
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -597,21 +606,33 @@ class DAO {
 	 * @param unknown_type $dataFull
 	 * @param unknown_type $dataThumb
 	 */
-	function addPictureToFind($id, $findId, $mimeType, $dataFull, $dataThumb) {
-		Log::getInstance()->log("addPictureToFind: $id, $findId, $mimeType");
+	 // $request["imei"], $request["guid"], $request["identifier"], $request["project_id"], 
+	//		    $request["mime_type"], $request["timestamp"], $imagedata, $imagethumbdata);
+
+	function addPictureToFind($imei, $guid, $identifier, $project_id,  $mime_type, $timestamp, $dataFull, $dataThumb) {
+		Log::getInstance()->log("addPictureToFind: $imei, $guid, $identifier, $mimeType");
+
 		$stmt = $this->db->prepare(
-			"insert into photo (id, find_id, mime_type, data_full, data_thumb)
-			VALUES (:id, :findId, :mimeType, :dataFull, :dataThumb)"
+			"insert into photo (imei, guid, identifier, project_id,  mime_type, timestamp, data_full, data_thumb)
+			           VALUES (:imei, :guid, :identifier, :project_id, :mime_type, :timestamp, :dataFull, :dataThumb)"
 		);
-		$stmt->bindValue(":id",$id);
-		$stmt->bindValue(":findId",$findId);
-		$stmt->bindValue(":mimeType",$mimeType);
+		$stmt->bindValue(":imei",$imei);
+		$stmt->bindValue(":guid",$guid);
+		$stmt->bindValue(":identifier",$identifier);
+		$stmt->bindValue(":project_id",$project_id);
+		$stmt->bindValue(":mime_type",$mime_type);
+		$stmt->bindValue(":timestamp",$timestamp);
 		$stmt->bindValue(":dataFull",$dataFull);
 		$stmt->bindValue(":dataThumb",$dataThumb);
-		
 		$stmt->execute();
-		return $stmt->fetch(PDO::FETCH_ASSOC);
+		Log::getInstance()->log("addPictureToFind: $imei, $guid, $identifier, $mimeType");
+		
+		$lastid = $this->db->lastInsertId();
+		Log::getInstance()->log("Updated photos for Find $guid, created record lastInsertId()=$lastid");
+		return "True Created photo record $guId in row=$lastid";  
+		//return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
+	
 	/**
 	 * Add video to the find
 	 * @param unknown_type $id
@@ -753,7 +774,7 @@ class DAO {
 	 * @param unknown_type $authKey
 	 */
 	function getDeviceByAuthKey($authKey) {
-		Log::getInstance()->log("getDeviceByAuthKey: $authKey");
+//		Log::getInstance()->log("getDeviceByAuthKey: $authKey");
 		$stmt = $this->db->prepare(
 			"SELECT imei, name, user_id, add_time, status
 			 FROM device

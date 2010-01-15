@@ -15,11 +15,11 @@ You need to have cache folder make writeable by the server
 Two ways:
  chown www-data:www-data cache -R
  chmod 777 cache -R
+ 
 I prefer the first one giving all write access is bad idea
 if you want to change this, do it in controller/main.php
 
 Installing on Mac MAMP.  
-
 
 It is necessary to change the default apache/httpd.conf to including
 the following to allow for the Virtual Host.

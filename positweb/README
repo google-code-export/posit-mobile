@@ -15,7 +15,7 @@ cache
 model
   - the DAO objects for working with the database
 view
-  - the templates are here
+  - the Smarty templates are here
 util
   - the authentication, constants, error values, etc. are here
 res

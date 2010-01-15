@@ -7,13 +7,17 @@
  * @param $files
  */
 function apiController($path, $request, $files = null) {
-	$log = Log::getInstance();
-	$log->log("$path, $request");
 
 	global $dao;
 	list($reqPath, $queryString) = explode('?', $path);
 	$pathParts = explode('/', substr($reqPath,1));
 	list($action) = $pathParts;
+	
+	if ($action != "addExpeditionPoint" && $action != "getDeviceByAuthKey") {
+    	$log = Log::getInstance();
+	    $log->log("$action");
+	    $log->log("$path, $request");
+	}
 	
 	$authKey = $request["authKey"];
 	
@@ -61,7 +65,7 @@ function apiController($path, $request, $files = null) {
 			break;
 		
 		case 'addExpeditionPoint':
-			echo $request["expeditionId"];
+			echo $request["expeditionId"].",";
 			echo $dao->addExpeditionPoint($request["expeditionId"],$request["lat"],
 											$request["lng"], $request["alt"]);
 			break;
@@ -83,7 +87,7 @@ function apiController($path, $request, $files = null) {
 			echo json_encode($result);
 			break;
 		case 'listFinds':
-			echo json_encode($dao->getFinds($request["projectId"]));
+			echo json_encode($dao->getFinds($request["project_id"]));
 			break;
 		case 'getFind':
 			$result = $dao->getFind($request["guid"]);
@@ -99,18 +103,22 @@ function apiController($path, $request, $files = null) {
 			$dao->deleteAllFinds($request["projectId"]);
 			break;
 		case 'createFind':
-			echo $dao->createFind($request["imei"], $request["barcode_id"], $request["projectId"], 
+			echo $dao->createFind($request["imei"], $request["guid"], $request["project_id"], 
 				$request["name"], $request["description"], $request["latitude"], $request["longitude"], $request["revision"]);
 			break;
 		case 'updateFind':
-			echo $dao->updateFind($request["imei"],$request["barcode_id"],$request["projectId"],$request["name"], $request["description"], $request["revision"]);
+			echo $dao->updateFind($request["imei"],$request["guid"],$request["project_id"],$request["name"], $request["description"], $request["revision"]);
 			break;
+			
 		case 'attachPicture':
-			$imagedata=base64_decode($request["dataFull"]);
-			$imagethumbdata=base64_decode($request["dataThumb"]);
-			$result=$dao->addPictureToFind($request["id"], $request["findId"], $request["mimeType"], $imagedata, $imagethumbdata);
+			$imagedata=base64_decode($request["data_full"]);
+			$imagethumbdata=base64_decode($request["data_thumbnail"]);
+			
+			$result=$dao->addPictureToFind($request["imei"], $request["guid"], $request["identifier"], $request["project_id"], 
+			    $request["mime_type"], $request["timestamp"], $imagedata, $imagethumbdata);
 			echo json_encode($result);
 			break;
+			
 		case 'attachVideo':
 			$video_data = $files['file']['tmp_name'];
 			$video_type = $request["mimeType"];
@@ -159,7 +167,7 @@ function apiController($path, $request, $files = null) {
 			else echo "false";
 			break;
 		case 'getPicturesByFind' :
-			$pictures = $dao->getPicturesByFind($request["findId"]);
+			$pictures = $dao->getPicturesByFind($request["guid"]);
 			$result = array();
 			foreach($pictures as $pic) {
 				$imageEncoded=base64_encode($pic["data_full"]);
