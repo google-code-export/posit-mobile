@@ -24,7 +24,7 @@ package org.hfoss.posit.utilities;
 import java.util.ArrayList;
 
 import org.hfoss.posit.FindActivity;
-import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.PositDbHelper;
 
 import android.content.Context;
 import android.content.Intent;
@@ -83,8 +83,8 @@ public class MyItemizedOverlay extends ItemizedOverlay {
 		long itemId = Long.parseLong(mOverlays.get(pIndex).getTitle());
 		Log.i(TAG, "itemID= " + itemId);
 
-		intent.putExtra(MyDBHelper.COLUMN_ID, itemId); // Pass the RowID to FindActivity
-//		intent.putExtra(MyDBHelper.COLUMN_BARCODE, itemId); // Pass the RowID to FindActivity
+		intent.putExtra(PositDbHelper.FINDS_ID, itemId); // Pass the RowID to FindActivity
+//		intent.putExtra(PositDbHelper.FINDS_GUID, itemId); // Pass the RowID to FindActivity
 		mContext.startActivity(intent);
 		return true;
 	}

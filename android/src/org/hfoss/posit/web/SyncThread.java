@@ -21,14 +21,21 @@
  */
 package org.hfoss.posit.web;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.hfoss.posit.Find;
-import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.PositDbHelper;
+import org.hfoss.posit.utilities.Utils;
+import org.hfoss.third.Base64Coder;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
@@ -40,18 +47,20 @@ import android.util.Log;
 public class SyncThread extends Thread {
 
 	private static final String TAG = "SyncThread";
-	public static final int DONE = 30;
+	public static final int DONE = 100;
 	public static final int NETWORKERROR = 20;
 	public volatile boolean shutdownRequested = false;
 	public static final int SYNCERROR = 10;
+	public static final int INTERRUPTED = 30;
+
 	private Handler mHandler;
 	private Context mContext;
 	private boolean mConnected;
 	private boolean mStopRequested;
 	
-	private String mServerFindsNeedingSync;
+//	private String mServerFindsNeedingSync;
 	
-	private MyDBHelper mdbh = new MyDBHelper(mContext);
+	private PositDbHelper mdbh; 
 
 	private SharedPreferences sp; 
 	private String server;
@@ -124,35 +133,11 @@ public class SyncThread extends Thread {
 		} catch (InterruptedException e){
 			Log.i(TAG, "Interrupted thread " + e.getMessage());
 			e.printStackTrace();
-			mHandler.sendEmptyMessage(SYNCERROR);
+			mHandler.sendEmptyMessage(INTERRUPTED);
 		}   	
     }
-      
     
-    /**
-     * Returns a list of guIds for server finds that need syncing.
-     * @return
-     */
-    private void getServerFindsNeedingSync() {
-   	    String response="";
-		String url = "";
-		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei;
-		Log.i(TAG, "getDeltaFindsIds URL=" + url);
-		try {
-			response = comm.doHTTPGET(url);
-		} catch (Exception e) {
-			Log.i(TAG, e.getMessage());
-			e.printStackTrace();
-			mHandler.sendEmptyMessage(SYNCERROR);
-		}
-		Log.i(TAG,"serverFindsNeedingSync = " + response);
-		mServerFindsNeedingSync = response;
-		return;
-    }
-    
-
 	/**
-	 * NOTE:  This method should be broken into sub methods.
 	 * Handles all syncing steps using the following algorithm:
 	 * 1) Get a list of GUIDs of all finds on the (registered) server 
 	 *    that have changed since last sync with this device
@@ -170,10 +155,13 @@ public class SyncThread extends Thread {
 	 *    including create, update, delete.
 	 * 2) The sync_history table records the timestamp of each sync with the server.
 	 * 
+	 * TODO:  Clean up the use of "success" by coordinating return
+     * messages with the server.
 	 * 
 	 */
 	public void run() {
-		mdbh = new MyDBHelper(mContext);
+		boolean success = false;
+		mdbh = new PositDbHelper(mContext);
 
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		//		sp.setDefaultValues(mContext, R.xml.posit_preferences, false);
@@ -184,90 +172,36 @@ public class SyncThread extends Thread {
 		imei = manager.getDeviceId();
 		comm = new Communicator(mContext);
 
-		// Get finds from the server since last sync with this device
-		// (NEEDED: should be made project specific)
-
 		// Wait here to make sure there is a WIFI connection
 		waitHere();
-		getServerFindsNeedingSync(); // Stored in mServerFindsNeedingSync
-//		waitForServer();
-
+		
+		// Get finds from the server since last sync with this device
+		// (NEEDED: should be made project specific)
+		
+		String serverFindGuIds = getServerFindsNeedingSync(); 
+		
 		// Get finds from the client
 
-		String phoneFindsNeedingSync = mdbh.getDeltaFindsIds();
-		Log.i(TAG, "phoneFindsNeedingSync = " + phoneFindsNeedingSync);
+		String phoneFindGuIds = mdbh.getDeltaFindsIds();
+		Log.i(TAG, "phoneFindsNeedingSync = " + phoneFindGuIds);
 
 		// Send finds to the server
 
-		StringTokenizer st = new StringTokenizer(phoneFindsNeedingSync,",");
-		String str, find_guid, action;
-		while (st.hasMoreElements()) {
-			str = st.nextElement().toString();
-			int indx = str.indexOf(':');
-			find_guid = str.substring(0,indx);
-			action = str.substring(indx+1);
-			Log.i(TAG, "Find="+find_guid+" action="+action);
-			if (action.equals("delete")) {
-				Log.i(TAG, "Ignoring deletions");
-			} else {
-				Find find = new Find(mContext, find_guid);   // Create a Find object
-				boolean success=false;
-	
-				try {
-					success = comm.sendFind(find,action);                  //  Send it to server
-				} catch (Exception e) {
-					Log.i(TAG, e.getMessage());
-					e.printStackTrace();
-					//				Utils.showToast(mContext, e.getMessage());
-					mHandler.sendEmptyMessage(NETWORKERROR);				
-				}
-				if (!success) {
-					mHandler.sendEmptyMessage(SYNCERROR);
-				}
-			}
-		}
-		
+		success = sendFindsToServer(phoneFindGuIds);
+
+
 		// Get finds from the server and store in the DB
 
-		st = new StringTokenizer(mServerFindsNeedingSync, ",");
-		while (st.hasMoreElements()) {
-			find_guid = st.nextElement().toString();
-
-			ContentValues cv = comm.getRemoteFindById(find_guid); 
-			if (cv == null) {
-				mHandler.sendEmptyMessage(SYNCERROR);
-			}
-			else {
-				Log.i(TAG,cv.toString());
-				MyDBHelper dbh = new MyDBHelper(mContext);
-				
-				boolean success = false;
-				if (dbh.containsFind(find_guid)) {
-					dbh.updateFind(find_guid, cv);       // Update the DB
-					Log.i(TAG,"Updating existing find");
-				} else {
-					success = dbh.addNewFind(cv, null);  // Add find to DB w/o images
-					Log.i(TAG,"Adding a new find");
-				}
-				if (!success) {
-					 Log.i(TAG, "Error recording sync stamp");
-//					 Utils.showToast(mContext, "Error recording timestamp");
-					 mHandler.sendEmptyMessage(SYNCERROR);
-				} else {
-					Log.i(TAG, "Recorded timestamp stamp");
-				}
-			} 
-		}
+		success = getFindsFromServer(serverFindGuIds);
 		
 		// Record the synchronization in the client's sync_history table
 
 		ContentValues values = new ContentValues();
-		values.put(MyDBHelper.SYNC_COLUMN_SERVER, server);
+		values.put(PositDbHelper.SYNC_COLUMN_SERVER, server);
 		
-		boolean success = mdbh.recordSync(values);
+		success = mdbh.recordSync(values);
 		if (!success) {
 			Log.i(TAG, "Error recording sync stamp");
-//			Utils.showToast(mContext, "Error recording timestamp");
 			mHandler.sendEmptyMessage(SYNCERROR);
 		}
 
@@ -282,11 +216,159 @@ public class SyncThread extends Thread {
 		} catch (Exception e) {
 			Log.i(TAG, e.getMessage());
 			e.printStackTrace();
-//			Utils.showToast(mContext, e.getMessage());
 			mHandler.sendEmptyMessage(NETWORKERROR);
 		}
 		Log.i(TAG,"HTTPGet recordSync response = " + responseString);
 
 		mHandler.sendEmptyMessage(DONE);
+		return;
 	}
+      
+	/**
+     * Returns a list of guIds for server finds that need syncing.
+     * @return
+     */
+    private String getServerFindsNeedingSync() {
+   	    String response="";
+		String url = "";
+		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei;
+		Log.i(TAG, "getDeltaFindsIds URL=" + url);
+		try {
+			response = comm.doHTTPGET(url);
+		} catch (Exception e) {
+			Log.i(TAG, e.getMessage());
+			e.printStackTrace();
+			mHandler.sendEmptyMessage(SYNCERROR);
+		}
+		Log.i(TAG,"serverFindsNeedingSync = " + response);
+		//mServerFindsNeedingSync = response;
+		return response;
+    } 
+    
+    /**
+     * Sends finds to the server.  Uses a Communicator.
+     * @param phoneGuids
+     * @return
+     */
+    private boolean sendFindsToServer(String phoneGuids) {
+    	boolean success = false;
+    	StringTokenizer st = new StringTokenizer(phoneGuids,",");
+    	String str, guid, action;
+    	while (st.hasMoreElements()) {
+    		str = st.nextElement().toString();
+    		int indx = str.indexOf(':');
+    		guid = str.substring(0,indx);
+    		action = str.substring(indx+1);
+    		Log.i(TAG, "Find="+guid+" action="+action);
+    		
+    		if (action.equals("delete")) {
+    			Log.i(TAG, "Ignoring deletions");
+    		} else {
+    			Find find = new Find(mContext, guid); // Create a Find object
+ 
+    			try {
+    				success = comm.sendFind(find,action); //  Send it to server
+    			} catch (Exception e) {
+   					Log.i(TAG, e.getMessage());
+   					e.printStackTrace();
+    				mHandler.sendEmptyMessage(NETWORKERROR);				
+    			}
+    			if (!success) {
+    				mHandler.sendEmptyMessage(SYNCERROR);
+    			}
+    		}
+    	}
+    	return success;
+    }
+    
+    /**
+     * 
+     * Retrieve finds from the server using a Communicator.
+     * @param serverGuids
+     * @return
+     */
+    private boolean getFindsFromServer(String serverGuids) {
+		List<ContentValues> photosList = null;
+		String guid;
+		boolean success = false;
+		StringTokenizer st = new StringTokenizer(serverGuids, ",");
+		while (st.hasMoreElements()) {
+			guid = st.nextElement().toString();
+
+			ContentValues cv = comm.getRemoteFindById(guid); 
+			
+			if (cv == null) {
+				mHandler.sendEmptyMessage(SYNCERROR);  // Shouldn't be null
+			}
+			else {
+				cv.put(PositDbHelper.FINDS_SYNCED, PositDbHelper.FIND_IS_SYNCED);
+				Log.i(TAG,cv.toString());
+				PositDbHelper dbh = new PositDbHelper(mContext);
+				
+				// Get the images for this find
+				ArrayList<HashMap<String, String>> images = comm.getRemoteFindImages(guid);
+
+				photosList = saveImages(images);
+				success = false;
+				
+				// Update the DB				
+				if (dbh.containsFind(guid)) {
+					success = dbh.updateFind(guid, cv, photosList); // Should use a Find? 
+					Log.i(TAG,"Updating existing find");
+				} else {
+					Find newFind = new Find(mContext, guid);
+					success = newFind.insertToDB(cv, photosList);
+					Log.i(TAG,"Adding a new find");
+				}
+				if (!success) {
+					Log.i(TAG, "Error recording sync stamp");
+					mHandler.sendEmptyMessage(SYNCERROR);
+				} else {
+					Log.i(TAG, "Recorded timestamp stamp");
+				}
+				dbh.close();
+			} 
+		}
+		return success;
+    }
+    
+    /**
+     * Saves downloaded images to the Database and returns their Uris in 
+     * a list that can be passed to the Db.
+     * @param images
+     */
+    private List<ContentValues> saveImages(ArrayList<HashMap<String, String>> images ){
+    	List<ContentValues> photosList = null;
+    	ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
+
+		if (images != null) {
+			Log.i(TAG, "remote find images = " + images.toString());
+			for (int j = 0; j < images.size(); j++) {
+				Log.i(TAG, "image=" + images.get(j).toString());
+				HashMap<String, String> image = images.get(j);  // Get the image
+				try {
+//					String guid = (String) image.get(PositDbHelper.FINDS_GUID);
+					ContentValues photoCv = new ContentValues();
+					photoCv.put(PositDbHelper.PHOTOS_MIME_TYPE, 
+							(String) image.get(PositDbHelper.PHOTOS_MIME_TYPE));
+					photoCv.put(PositDbHelper.FINDS_PROJECT_ID, 
+							(String) image.get(PositDbHelper.FINDS_PROJECT_ID));
+					Long identifier = Long.parseLong(image.get(PositDbHelper.PHOTOS_IDENTIFIER));
+					photoCv.put(PositDbHelper.PHOTOS_IDENTIFIER, identifier.longValue());
+					String fullData = (String) image.get("data_full");
+					//Log.i("The IMAGE DATA", fullData);
+					byte[] data = Base64Coder.decode(fullData);
+					Bitmap imageBM = BitmapFactory.decodeByteArray(data, 0, data.length);
+					Log.i("The Bitmap To Save", imageBM.toString());
+					bitmaps.add(imageBM);
+					Log.i(TAG, "bitmap saved!");	
+				}
+				catch (Exception e){
+					Log.d(TAG, ""+e);
+				}
+			}
+			photosList = Utils.saveImagesAndUris(mContext, bitmaps); // Utility method
+		}
+		return photosList;
+    }
 }

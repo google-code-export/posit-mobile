@@ -21,6 +21,8 @@
  */
 package org.hfoss.posit.web;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -48,8 +51,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.hfoss.posit.Find;
 import org.hfoss.posit.R;
-import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
+import org.hfoss.third.Base64Coder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,6 +61,10 @@ import org.json.JSONObject;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -75,6 +83,7 @@ public class Communicator {
 	 * DNS.
 	 */
 
+	public static final String RESULT_FAIL = "false";
 	private static String server;
 	private static String authKey;
 	private static String imei;
@@ -88,10 +97,14 @@ public class Communicator {
 	private HttpParams mHttpParams;
 	private HttpClient mHttpClient;
 	private ThreadSafeClientConnManager mConnectionManager;
+	public static long mTotalTime = 0;
+	private long mStart = 0;
 
 	public Communicator(Context _context) {
 		mContext = _context;
-
+		mTotalTime = 0;
+		mStart = 0;
+		
 		mHttpParams = new BasicHttpParams();
 		SchemeRegistry registry = new SchemeRegistry();
 		registry.register(new Scheme("http", new PlainSocketFactory(), 80));
@@ -130,8 +143,6 @@ public class Communicator {
 		responseString = doHTTPGET(url);
 		if(Utils.debug)
 			Log.i(TAG, responseString);
-//		if (Utils.isSuccessfulHttpResultCode(responseString)) {
-//			responseString = Utils.stripHttpResultCode(responseString);
 			list = new ArrayList<HashMap<String, Object>>();
 			try {
 				list = (ArrayList<HashMap<String, Object>>) (new ResponseParser(responseString).parse());
@@ -140,11 +151,6 @@ public class Communicator {
 				e1.printStackTrace();
 				return null;
 			}
-//		} else {
-//			// Should probably throw an exception
-//			return null;
-//		}
-//
 		return list;
 	}
 
@@ -169,21 +175,28 @@ public class Communicator {
 			Utils.showToast(mContext, e.getMessage());
 		}
 
-		if (responseString.equals("false"))
+		if (responseString.equals(RESULT_FAIL))
 			return false;
 		else return true;
 	}
+	
 	/*
-	 * Send one find to the server.
+	 * TODO: This method is a little long and could be split up.
+	 * Send one find to the server, including its images.
 	 * @param find a reference to the Find object
 	 * @param action -- either  'create' or 'update'
 	 */
 	public boolean sendFind (Find find, String action) {
+		boolean success = false;
 		String url;
 		HashMap<String, String> sendMap = find.getContentMapGuid();
+		//Log.i(TAG, "sendFind map = " + sendMap.toString());
 		cleanupOnSend(sendMap);
 		sendMap.put("imei", imei);
+		String guid = sendMap.get(PositDbHelper.FINDS_GUID);
 
+		// Create the url
+		
 		if (action.equals("create")) {
 			url = server +"/api/createFind?authKey="+authKey;
 		} else {
@@ -192,7 +205,8 @@ public class Communicator {
 		if(Utils.debug) {
 			Log.i(TAG,"SendFind=" + sendMap.toString());			
 		}
-		
+	
+		// Send the find
 		try {
 			responseString = doHTTPPost(url, sendMap);
 		} catch (Exception e) {
@@ -201,98 +215,120 @@ public class Communicator {
 		}
 		if(Utils.debug)
 			Log.i(TAG, "sendFind.ResponseString: " + responseString);
-		if (responseString.indexOf("True") != -1) {
-			find.setSyncStatus(true);
-			return true;
-		} else
+
+		// If the update failed return false
+		if (responseString.indexOf("True") == -1) {
+			Log.i(TAG, "sendFind result doesn't contain 'True'");
 			return false;
-
-		/**
-		try {
-			//this is for easiness, it would be more efficient to do in one query
-
-			//find.setServerId(1);
-			//find.setRevision(Integer.parseInt(responseMap.get(MyDBHelper.COLUMN_REVISION).toString()));
-			//find.setSyncStatus(true);
-			ContentValues cv = new ContentValues();
-			cv.put("synced", "1");
-			cv.put("sid", responseString);
-			//cv.put("sid", sendMap.get("identifier"));
-			find.updateToDB(cv);
-			//find.delete();
-
+		} else {
+			PositDbHelper dbh = new PositDbHelper(mContext);
+			long id = find.getId();
+			success = dbh.markFindSynced(id);
+			if (Utils.debug) Log.i(TAG, "sendfind synced " + id + " " + success);
 		}
-		catch (Exception e) {
-			Log.e(TAG, "Cannot send the find"+e.getMessage());
+		
+		if (!success)
+			return false;
+		
+		// Otherwise send the Find's images
+		
+		long id = Long.parseLong(sendMap.get(PositDbHelper.FINDS_ID));
+		PositDbHelper dbh = new PositDbHelper(mContext);
+		ArrayList<ContentValues> photosList = dbh.getImagesListSinceUpdate(id);
+		
+		Log.i(TAG, "sendFind, photosList=" + photosList.toString());
+		
+		Iterator<ContentValues> it = photosList.listIterator();
+		while (it.hasNext()) {
+			ContentValues imageData = it.next();
+			Uri uri = Uri.parse(imageData.getAsString(PositDbHelper.PHOTOS_IMAGE_URI));
+			String base64Data = convertUriToBase64(uri);
+			uri = Uri.parse(imageData.getAsString(PositDbHelper.PHOTOS_THUMBNAIL_URI));
+			String base64Thumbnail = convertUriToBase64(uri);
+			sendMap = new HashMap<String, String>();
+			sendMap.put(COLUMN_IMEI, Utils.getIMEI(mContext));
+			sendMap.put(PositDbHelper.FINDS_GUID, guid);
+
+			sendMap.put(PositDbHelper.PHOTOS_IDENTIFIER, 
+					imageData.getAsString(PositDbHelper.PHOTOS_IDENTIFIER));
+			sendMap.put(PositDbHelper.FINDS_PROJECT_ID, 
+					imageData.getAsString(PositDbHelper.FINDS_PROJECT_ID));
+			sendMap.put(PositDbHelper.FINDS_TIME, 
+					imageData.getAsString(PositDbHelper.FINDS_TIME));
+			sendMap.put(PositDbHelper.PHOTOS_MIME_TYPE, 
+					imageData.getAsString(PositDbHelper.PHOTOS_MIME_TYPE));
+			
+			sendMap.put("mime_type", "image/jpeg");
+			
+			sendMap.put(PositDbHelper.PHOTOS_DATA_FULL, 
+					base64Data);
+			sendMap.put(PositDbHelper.PHOTOS_DATA_THUMBNAIL, 
+					base64Thumbnail);
+			sendMedia(sendMap);
+			//it.next();
 		}
-		**/
+		
+		// Update the Synced attribute.
+		return true;
 	}
 
-	public void sendMedia(int identifier, long findId, String data, String mimeType) {
-		HashMap<String, String> sendMap = new HashMap<String, String>();
-		String url = null;
+	/**
+	 * Sends an image (or sound file or video) to the server.
+	 * @param identifier
+	 * @param findId  the guid of the associated find
+	 * @param data
+	 * @param mimeType
+	 */		
+	public void sendMedia(HashMap<String, String> sendMap) {
+		Log.i(TAG, "sendMedia, sendMap= " + sendMap);
 
-		if (mimeType == "image/jpeg") {
-			url = server + "/api/attachPicture?authKey=" +authKey;
-			sendMap.put("id", ""+identifier);
-			sendMap.put("findId", ""+findId);
-			sendMap.put("dataFull", data);
-			sendMap.put("mimeType", mimeType);
+		String url = server + "/api/attachPicture?authKey=" +authKey;
 
-			responseString = doHTTPPost(url, sendMap);
-			if(Utils.debug)
-				Log.i(TAG, "sendImage.ResponseString: " + responseString);
-		}
-	}
-
-	public void updateFind (Find find) {
-		HashMap<String, String> sendMap = find.getContentMapSID();
-		cleanupOnSend(sendMap);
-		String url = server +"/api/updateFind?authKey="+authKey;
-		if(Utils.debug) {
-			Log.i(TAG,sendMap.toString());
-		}
-		//SEND_FIND_URL += "&id="+sendMap.get("_id")
-		try {
-			responseString = doHTTPPost(url, sendMap);	
-		} catch (Exception e) {
-			Log.i(TAG, e.getMessage());
-			Utils.showToast(mContext, e.getMessage());
-		}
+		responseString = doHTTPPost(url, sendMap);
 		if(Utils.debug)
-			Log.i(TAG, "sendFind.ResponseString: " + responseString);
-		try {
-			//this is for easiness, it would be more efficient to do in one query
-
-			//find.setServerId(1);
-			//find.setRevision(Integer.parseInt(responseMap.get(MyDBHelper.COLUMN_REVISION).toString()));
-			//find.setSyncStatus(true);
-			ContentValues cv = new ContentValues();
-			cv.put("synced", "1");
-			cv.put("sid", sendMap.get("identifier"));
-			find.updateToDB(cv);
-			//find.delete();
-
-		}
-		catch (Exception e) {
-			Log.e(TAG, e.getStackTrace().toString());
-		}
+			Log.i(TAG, "sendImage.ResponseString: " + responseString);
 	}
+	
+	/**
+	 * Converts a uri to a base64 encoded String for transmission to server.
+	 * @param uri
+	 * @return
+	 */
+	private String convertUriToBase64(Uri uri) {
+		ByteArrayOutputStream imageByteStream= new ByteArrayOutputStream();
+		byte[] imageByteArray = null;
+		Bitmap bitmap = null;
+
+		try {
+			bitmap = android.provider.MediaStore.Images.Media.getBitmap
+			(mContext.getContentResolver(), uri);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}			
+
+		if (bitmap == null) {
+			Log.d(TAG, "No bitmap");
+		}
+		// Compress bmp to jpg, write to the byte output stream
+		bitmap.compress(Bitmap.CompressFormat.JPEG, 80, imageByteStream);
+		// Turn the byte stream into a byte array
+		imageByteArray = imageByteStream.toByteArray();
+		char[] base64 = Base64Coder.encode(imageByteArray);
+		String base64String = new String(base64);
+		return base64String;
+	}
+		
 
 	/**
 	 * cleanup the item key,value pairs so that we can send the data.
 	 * @param sendMap
 	 */
 	private void cleanupOnSend(HashMap<String, String> sendMap) {
-		sendMap.put("find_time", sendMap.get("time"));
-		sendMap.remove("time");
-		sendMap.put("projectId", projectId+"");
-//	sendMap.put("id",sendMap.get("identifier"));
-		sendMap.put("barcode_id",sendMap.get("identifier"));
-
 		addRemoteIdentificationInfo(sendMap);
-		latLongHack(sendMap);
 	}
+	
 	/**
 	 * Add the standard values to our request. We might as well use this as initializer for our 
 	 * requests.
@@ -304,37 +340,24 @@ public class Communicator {
 		sendMap.put(COLUMN_IMEI, Utils.getIMEI(mContext));
 	}
 
-	private void latLongHack(HashMap<String, String> sendMap) {
-		Log.i(TAG,"latlongHack " + sendMap.toString());
-		if (sendMap.get("latitude").toString().equals("")||
-				sendMap.get("latitude").toString().equals(""))
-			sendMap.put("latitude","-1");
-		if (sendMap.get("longitude").toString().equals("")||
-				sendMap.get("longitude").toString().equals(""))
-			sendMap.put("longitude","-1");
-	}
-
 	/**
 	 * cleanup the item key,value pairs so that we can receive and save to the internal database
 	 * @param rMap
 	 */
 	public static void cleanupOnReceive(HashMap<String,Object> rMap){
-		rMap.put(MyDBHelper.COLUMN_SYNCED,1);
-//		rMap.put("identifier", rMap.get("id"));
-		rMap.put("identifier", rMap.get("barcode_id"));
-		rMap.remove("barcode_id");
+		rMap.put(PositDbHelper.FINDS_SYNCED,PositDbHelper.FIND_IS_SYNCED);
+		rMap.put(PositDbHelper.FINDS_GUID, rMap.get("barcode_id"));		
+		//rMap.put(PositDbHelper.FINDS_GUID, rMap.get("barcode_id"));
 
-		rMap.put("sid", rMap.get("id")); //set the id from the server as sid
-		rMap.remove("id");
-		rMap.put("projectId", projectId);
+		rMap.put(PositDbHelper.FINDS_PROJECT_ID, projectId);
 		if (rMap.containsKey("add_time")) {
-			rMap.put("time", rMap.get("add_time"));
+			rMap.put(PositDbHelper.FINDS_TIME, rMap.get("add_time"));
 			rMap.remove("add_time");
 		}
 		if (rMap.containsKey("images")) {
 			if(Utils.debug)
 				Log.d(TAG, "contains image key");
-			rMap.put(MyDBHelper.COLUMN_IMAGE_URI, rMap.get("images"));
+			rMap.put(PositDbHelper.PHOTOS_IMAGE_URI, rMap.get("images"));
 			rMap.remove("images");
 		}
 	}
@@ -346,11 +369,12 @@ public class Communicator {
 	 * @return the response from the URL
 	 */
 	private String doHTTPPost(String Uri, HashMap<String,String> sendMap) {
+
 		if (Uri==null) throw new NullPointerException("The URL has to be passed");
 		String responseString=null;
 		HttpPost post = new HttpPost();
 		if(Utils.debug)
-			Log.i("doHTTPPost()","URI = "+Uri);
+			Log.i(TAG, "doHTTPPost() URI = "+Uri);
 		try {
 			post.setURI(new URI(Uri));
 		} catch (URISyntaxException e) {
@@ -365,6 +389,8 @@ public class Communicator {
 		} catch (UnsupportedEncodingException e) {
 			Log.e(TAG, "UnsupportedEncodingException " + e.getMessage());
 		}
+		mStart = System.currentTimeMillis();
+
 		try {
 			responseString = mHttpClient.execute(post, responseHandler);
 		} catch (ClientProtocolException e) {
@@ -384,7 +410,10 @@ public class Communicator {
 				e.printStackTrace();
 				return e.getMessage();
 		}
-
+		long time = System.currentTimeMillis()-mStart;
+		mTotalTime += time;
+		Log.i(TAG, "TIME = "+time + " millisecs");
+		
 		return responseString;
 	}
 	/**
@@ -397,6 +426,7 @@ public class Communicator {
 		if (Uri==null) throw new NullPointerException("The URL has to be passed");
 		String responseString = null;
 		HttpGet httpGet = new HttpGet();
+		
 		try{
 			httpGet.setURI(new URI(Uri));
 		}catch (URISyntaxException e) {
@@ -408,6 +438,7 @@ public class Communicator {
 			Log.i(TAG, "doHTTPGet Uri = " + Uri);
 		}
 		ResponseHandler<String> responseHandler = new BasicResponseHandler();
+		mStart = System.currentTimeMillis();
 
 		try {
 			responseString = mHttpClient.execute(httpGet, responseHandler);
@@ -424,105 +455,18 @@ public class Communicator {
 			e.printStackTrace();
 			return "[Error]" + e.getMessage();
 		}
+		
+		long time = System.currentTimeMillis()-mStart;
+		mTotalTime += time;
+		Log.i(TAG, "TIME = "+ time + " millisecs");
+
+		
 		if(Utils.debug)
 			Log.i(TAG, "doHTTPGet Response: "+ responseString);
-//		if (!Utils.isSuccessfulHttpResultCode(responseString)) {
-//			return Utils.stripHttpResultCode(responseString); // Which will have an error message attached
-//		}
 		return responseString;
 	}
 	
-	/**
-	 * Get all the remote finds 
-	 * @return a HashMap of the Id and Revision of all the finds in the server
-	 */
-	public List<HashMap<String,Object>> getAllRemoteFinds() {
-
-		String findUrl = server +"/api/listFinds?projectId="+projectId+"&authKey="+authKey;
-
-		//this is a List of all of the finds
-		//each find is represented by a HashMap
-		List<HashMap<String,Object>> findsMap = new ArrayList<HashMap<String,Object>>();
-		HashMap<String, String> sendMap = new HashMap<String,String>();
-		addRemoteIdentificationInfo(sendMap);
-
-		//responseString is the raw json string returned through php
-		String responseString = doHTTPPost(findUrl, sendMap);
-		Log.i(TAG,"getAllRemoteFinds() return = " + responseString);  
-		
-		try {
-			findsMap = (ArrayList<HashMap<String, Object>>) (new ResponseParser(responseString).parse());
-
-			Iterator<HashMap<String, Object>> it = findsMap.iterator();
-			long totalTime = 0;
-			while (it.hasNext()) {
-				ArrayList<HashMap<String, Object>> imagesMap = new ArrayList<HashMap<String, Object>>();
-
-				long start = System.currentTimeMillis();
-				HashMap<String, Object> map = it.next();
-				String findId = (String)map.get("id");
-				String imageUrl = server +"/api/getPicturesByFind?findId=" + findId + "&authKey=" +authKey;
-
-				
-				String imageResponseString = doHTTPPost(imageUrl, sendMap);
-				if(!imageResponseString.equals("false")) {
-					JSONArray jsonArr = new JSONArray(imageResponseString);
-					for(int i = 0; i < jsonArr.length(); i++) {
-						JSONObject jsonObj = jsonArr.getJSONObject(i);
-						if(Utils.debug)
-							Log.i(TAG, "JSON Image Response String: " + jsonObj.toString());
-
-						HashMap<String,Object> imageMap = new HashMap<String,Object>();
-						Iterator<String> iterKeys = jsonObj.keys();
-						while(iterKeys.hasNext()) {
-							String key = iterKeys.next();
-							imageMap.put(key, jsonObj.get(key));
-						}
-						imagesMap.add(imageMap);
-					}
-				}
-				
-				/*
-				JSONArray imageIds = (JSONArray) map.get("images");
-				if(Utils.debug)
-					Log.d(TAG, "image ids jsonarray: " + imageIds.toString());
-
-				for (int i=0; i<imageIds.length(); i++) {
-					int imageId = imageIds.getInt(i);
-					String imageUrl = server +"/api/getPicture?id=" + imageId + "&authKey=" +authKey;
-					String imageResponseString = doHTTPPost(imageUrl, sendMap);
-					if(Utils.debug)
-						Log.i(TAG, "Image Response String: " + imageResponseString);
-
-					JSONObject json = new JSONObject(imageResponseString);
-					if(Utils.debug)
-						Log.i(TAG, "JSON Image Response String: " + json.toString());
-
-					HashMap<String,Object> imageMap = new HashMap<String,Object>();
-					Iterator<String> iterKeys = json.keys();
-					while(iterKeys.hasNext()) {
-						String key = iterKeys.next();
-						imageMap.put(key, json.get(key));
-					}
-					imagesMap.add(imageMap);
-				}*/
-				totalTime+=System.currentTimeMillis()-start;
-				Log.i("TIME","time = "+(System.currentTimeMillis()-start));
-				Log.i("TIME","Total time = "+totalTime);		
-				map.put("images", imagesMap);
-			}
-		} catch (JSONException e) {
-				Log.e(TAG, "JSONException" +  e.getMessage());
-				e.printStackTrace();
-		} 
-		if(Utils.debug)
-			Log.i(TAG, "The Finds "+ findsMap.toString());
-		return findsMap;
-	}
-
-	public void updateFindFromServer(Find find) {
-		ContentValues vals = getRemoteFindById(find.getId());
-	}
+ 
 	/**
 	 * Pull the remote find from the server using the guid provided.
 	 * @param guid, a globally unique identifier
@@ -539,15 +483,15 @@ public class Communicator {
 		Log.i(TAG,"getRemoteFindById = " + responseString);
 		try {
 			JSONObject jobj = new JSONObject(responseString);
-			cv.put(MyDBHelper.COLUMN_BARCODE, jobj.getString("barcode_id"));
-			cv.put(MyDBHelper.PROJECT_ID, jobj.getInt("project_id"));
-			cv.put(MyDBHelper.COLUMN_NAME, jobj.getString("name"));
-			cv.put(MyDBHelper.COLUMN_DESCRIPTION, jobj.getString("description"));
-			cv.put(MyDBHelper.COLUMN_TIME, jobj.getString("add_time"));
-			cv.put(MyDBHelper.MODIFY_TIME, jobj.getString("modify_time"));
-			cv.put(MyDBHelper.COLUMN_LATITUDE, jobj.getDouble("latitude"));
-			cv.put(MyDBHelper.COLUMN_LONGITUDE, jobj.getDouble("longitude"));
-			cv.put(MyDBHelper.COLUMN_REVISION,jobj.getInt("revision"));
+			cv.put(PositDbHelper.FINDS_GUID, jobj.getString("barcode_id"));
+			cv.put(PositDbHelper.FINDS_PROJECT_ID, jobj.getInt("project_id"));
+			cv.put(PositDbHelper.FINDS_NAME, jobj.getString("name"));
+			cv.put(PositDbHelper.FINDS_DESCRIPTION, jobj.getString("description"));
+			cv.put(PositDbHelper.FINDS_TIME, jobj.getString("add_time"));
+			cv.put(PositDbHelper.FINDS_TIME, jobj.getString("modify_time"));
+			cv.put(PositDbHelper.FINDS_LATITUDE, jobj.getDouble("latitude"));
+			cv.put(PositDbHelper.FINDS_LONGITUDE, jobj.getDouble("longitude"));
+			cv.put(PositDbHelper.FINDS_REVISION,jobj.getInt("revision"));
 			return cv;
 		} catch (JSONException e) {
 			Log.i(TAG, e.getMessage());
@@ -558,41 +502,53 @@ public class Communicator {
 		}
 		return null;
 	}
+	
 	/**
-	 * Deprecated
-	 * @param remoteFindId
-	 * @return
+	 * Get an image from the server using the guid as Key.
+	 * @param guid the Find's globally unique Id
 	 */
-	public ContentValues getRemoteFindById(long remoteFindId) {
-		String url = server +"/api/getFind?id=" +remoteFindId +"&authKey=" +authKey;
+	public ArrayList<HashMap<String, String>> getRemoteFindImages(String guid) {
+		ArrayList<HashMap<String, String>> imagesMap = null;
+//		ArrayList<HashMap<String, String>> imagesMap = null;
+		String imageUrl = server +"/api/getPicturesByFind?findId=" + guid + "&authKey=" +authKey;
 		HashMap<String, String> sendMap = new HashMap<String,String>();
+		Log.i(TAG, "getRemoteFindImages, sendMap=" + sendMap.toString());
+		sendMap.put(PositDbHelper.FINDS_GUID, guid);
 		addRemoteIdentificationInfo(sendMap);
-		sendMap.put("id", remoteFindId+"");
 		try {
-			String responseString = doHTTPPost(url, sendMap);
-		} catch (Exception e) {
-			Log.i(TAG, "Exception " + e.getMessage());
-			e.printStackTrace();
-			return null;
-		} 
-		try {
-;			HashMap<String, Object> responseMap = (new ResponseParser(responseString).parse()).get(0);
-			//JSONArray finds = new JSONArray(responseMap.get("finds").toString());
-			/*
-			if (finds.length()>0) {
-				HashMap<String,Object> rMap = new ResponseParser(finds.getString(0)).parse().get(0);
+			String imageResponseString = doHTTPPost(imageUrl, sendMap);
+			Log.i(TAG, "getRemoteFindImages, response=" + imageResponseString);
 
-				return MyDBHelper.getContentValuesFromMap(rMap);
-			}*/
-			responseMap.put("_id", remoteFindId+"");
-			cleanupOnReceive(responseMap);
-			return MyDBHelper.getContentValuesFromMap(responseMap);
-		}catch (Exception e) {
-			Log.e(TAG, e.getMessage());
+			if(!imageResponseString.equals(RESULT_FAIL)) {
+				JSONArray jsonArr = new JSONArray(imageResponseString);
+				imagesMap = new ArrayList<HashMap<String, String>>();
+//				imagesMap = new ArrayList<HashMap<String, String>>();
+
+				for(int i = 0; i < jsonArr.length(); i++) {
+					JSONObject jsonObj = jsonArr.getJSONObject(i);
+					if(Utils.debug)
+						Log.i(TAG, "JSON Image Response String: " + jsonObj.toString());
+//					imagesMap.add((HashMap<String, String>) jsonArr.get(i));
+					Iterator<String> iterKeys = jsonObj.keys();
+					HashMap<String,String>map = new HashMap<String,String>();
+					while(iterKeys.hasNext()) {
+						String key = iterKeys.next();
+						map.put(key, jsonObj.getString(key));
+					}
+					imagesMap.add(map); 
+				}
+			}
+		} catch (Exception e) {
+			Log.i(TAG, e.getMessage());
 			e.printStackTrace();
-		}
-		return null;
+		}	
+		if (imagesMap != null && Utils.debug)
+			Log.i(TAG, "getRemoteFindImages, imagesMap=" + imagesMap.toString());
+		else 
+			Log.i(TAG, "getRemoteFindImages, imagesMap= null");
+		return imagesMap;
 	}
+	
 
 	/**
 	 * Checks if a given image already exists on the server.  Allows for quicker syncing to the server,
@@ -606,7 +562,7 @@ public class Communicator {
 		addRemoteIdentificationInfo(sendMap);
 		String imageUrl = server +"/api/getPicture?id=" + imageId + "&authKey=" +authKey;
 		String imageResponseString = doHTTPPost(imageUrl, sendMap);
-		if (imageResponseString.equals("false"))
+		if (imageResponseString.equals(RESULT_FAIL))
 			return false;
 		else return true;
 	}
@@ -616,9 +572,8 @@ public class Communicator {
 		return result;
 	}	
 
-
-
 	public String registerExpeditionPoint(double lat, double lng,  double alt, int expedition) {
+		if (Utils.debug) Log.i(TAG, "registerExpeditionPoint " + lat + " " + lng);
 		HashMap<String, String> sendMap  = new HashMap<String,String>();
 		addRemoteIdentificationInfo(sendMap);
 		String addExpeditionUrl = server+"/api/addExpeditionPoint?authKey="+authKey;
@@ -640,7 +595,7 @@ public class Communicator {
 		sendMap.put("projectId", ""+projectId );
 		String addExpeditionResponseString = doHTTPPost(addExpeditionUrl, sendMap);
 		if (Utils.debug){
-			Log.i(TAG, "response: " + addExpeditionResponseString);
+			Log.i(TAG, "registerExpeditionId, response: " + addExpeditionResponseString);
 		}
 		try {
 			Integer i = Integer.parseInt(addExpeditionResponseString);
@@ -649,6 +604,5 @@ public class Communicator {
 			Log.e(TAG, "Invalid response received");
 			return -1;
 		}
-
 	}
 }

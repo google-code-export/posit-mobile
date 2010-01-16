@@ -22,6 +22,7 @@
 package org.hfoss.posit;
 
 import org.hfoss.posit.utilities.Utils;
+import org.hfoss.posit.web.Communicator;
 import org.hfoss.posit.web.SyncThread;
 import org.hfoss.third.NetworkConnectivityListener;
 
@@ -49,6 +50,8 @@ public class SyncActivity extends Activity  {
 	private ConnectivityHandler mHandler;
 	private SyncThread mSyncThread;
 	private Context mContext;
+	private boolean result = false;
+	private long mStart = 0;
 	private static final String PRESS_BACK = " Press the back key TWICE to exit.";
 
 	@Override
@@ -63,6 +66,8 @@ public class SyncActivity extends Activity  {
 			ncl = new NetworkConnectivityListener();
 			ncl.registerHandler(mHandler, 0);
 			ncl.startListening(this);
+			
+			
 		}
 	}
 	
@@ -87,6 +92,8 @@ public class SyncActivity extends Activity  {
 	private void syncFinds() {
 		mProgressDialog = ProgressDialog.show(this, "Synchronizing",
 				"Please wait.", true, true);
+		mStart = System.currentTimeMillis();
+
 		mSyncThread = new SyncThread(this, mHandler);
 		Log.i(TAG,"SyncThread " + mSyncThread.getState().toString());
 		mSyncThread.start();
@@ -100,11 +107,15 @@ public class SyncActivity extends Activity  {
 	public void finish() {
 		// TODO Auto-generated method stub
 		super.finish();
+		Log.i(TAG, "TOTAL ACTIVITY TIME = " + (System.currentTimeMillis()-mStart) + " millisecs");
+		Log.i(TAG, "TOTAL COMM TIME = " + Communicator.mTotalTime);
 
 		Log.i(TAG, "Stopping listener");
 		ncl.stopListening();
 		ncl.unregisterHandler(mHandler);
 		Log.i(TAG, "Sync thread is " + mSyncThread.getState().toString());
+		mProgressDialog.dismiss();
+		
 	}
 
 	/**
@@ -155,11 +166,13 @@ public class SyncActivity extends Activity  {
 				mSyncThread.setConnected(true);
 				break;
 			case NetworkConnectivityListener.STATE_CONNECTED_MOBILE:
+				mProgressDialog.setMessage("Syncing over MOBILE");
 				Log.i(TAG, "Connectivity: CONNECTED on MOBILE");
-				mProgressDialog.setMessage("No WIFI connection. " 
-						+ PRESS_BACK);
+				mSyncThread.setConnected(true);
+//				mProgressDialog.setMessage("No WIFI connection. " 
+//						+ PRESS_BACK);
 //				Utils.showToast(mContext, "Sync Exiting: No WIFI connection");
-				mSyncThread.setConnected(false);
+//				mSyncThread.setConnected(false);
 //				finish();				
 				break;
 			case NetworkConnectivityListener.STATE_UNCONNECTED:
@@ -173,7 +186,7 @@ public class SyncActivity extends Activity  {
 			case SyncThread.DONE: 
 				mProgressDialog.setMessage("Sync completed successfully. " 
 						+ PRESS_BACK);
-				mProgressDialog.dismiss();
+				//mProgressDialog.dismiss();
 				Utils.showToast(mContext, "Sync completed successfully.");
 				finish();
 				break;
@@ -185,11 +198,11 @@ public class SyncActivity extends Activity  {
 //				finish();
 				break;
 			case SyncThread.SYNCERROR:
-				mProgressDialog.setMessage("An unknown error has occurred. "
+				mProgressDialog.setMessage("Sync failed. An unknown error has occurred. "
 						+ PRESS_BACK);
 				mSyncThread.stopThread();
 //				mSyncThread.setConnected(false);
-//				finish();
+				finish();
 				break;
 			default:
 				Log.i(TAG, "What does " + msg.what + " mean?");

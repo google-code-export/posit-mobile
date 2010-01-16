@@ -23,7 +23,7 @@ package org.hfoss.posit;
 
 import java.util.List;
 
-import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.MyItemizedOverlay;
 import org.hfoss.posit.utilities.Utils;
 
@@ -61,7 +61,7 @@ public class MapFindsActivity extends MapActivity {
 	private Drawable drawable;
 
 	private Cursor mCursor;  // Used for DB accesses
-	private MyDBHelper mDbHelper;
+	private PositDbHelper mDbHelper;
 
 	/* (non-Javadoc)
 	 * @see com.google.android.maps.MapActivity#onCreate(android.os.Bundle)
@@ -118,14 +118,14 @@ public class MapFindsActivity extends MapActivity {
 	}
 
 	private void mapFinds() {
-		mDbHelper = new MyDBHelper(this);
+		mDbHelper = new PositDbHelper(this);
 
 		String[] columns = mDbHelper.list_row_data;
 		int [] views = mDbHelper.list_row_views;
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		mCursor = mDbHelper.fetchAllFinds(sp.getInt("PROJECT_ID", 0));		
+		mCursor = mDbHelper.fetchFindsByProjectId(sp.getInt("PROJECT_ID", 0));		
 		if (mCursor.getCount() == 0) { // No finds
 			Utils.showToast(this, "No Finds to display");
 			finish();
@@ -150,15 +150,15 @@ public class MapFindsActivity extends MapActivity {
 
 		do {
 			latitude = (int) (c.getDouble(c
-					.getColumnIndex(MyDBHelper.COLUMN_LATITUDE))*1E6);
+					.getColumnIndex(PositDbHelper.FINDS_LATITUDE))*1E6);
 			longitude = (int) (c.getDouble(c
-					.getColumnIndex(MyDBHelper.COLUMN_LONGITUDE))*1E6);
+					.getColumnIndex(PositDbHelper.FINDS_LONGITUDE))*1E6);
 
-//			String itemIdStr = "" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_BARCODE));
-			String itemIdStr = "" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_ID));
+//			String itemIdStr = "" + c.getString(c.getColumnIndex(PositDbHelper.FINDS_GUID));
+			String itemIdStr = "" + c.getString(c.getColumnIndex(PositDbHelper.FINDS_ID));
 			String description = itemIdStr + "\n" 
-			+ c.getString(c.getColumnIndex(MyDBHelper.COLUMN_NAME));
-			description += "\n" + c.getString(c.getColumnIndex(MyDBHelper.COLUMN_DESCRIPTION));
+			+ c.getString(c.getColumnIndex(PositDbHelper.FINDS_NAME));
+			description += "\n" + c.getString(c.getColumnIndex(PositDbHelper.FINDS_DESCRIPTION));
 
 			Log.i(TAG, latitude+" "+longitude+" "+description);
 			mPoints.addOverlay(new OverlayItem(new GeoPoint(latitude,longitude),itemIdStr,description));

@@ -228,6 +228,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		mDb = getWritableDatabase();
 		Cursor c = mDb.rawQuery("SELECT * FROM sync_history", null);
 		if (DBG) Log.i(TAG,"SyncHistory rows: " + c.getCount());
+		c.close();
 		mDb.close();
 		return c;
 	}
@@ -248,11 +249,25 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		String[] args = new String[1];
 		args[0] = maxtime;
 		c.close();
-		c = mDb.rawQuery("SELECT DISTINCT find_guid, action FROM find_history WHERE time > ?", args);
+		// Note this query will select finds that were created and then deleted since last sync
+		// It is necessary to remove the created/updated if there's a deletion.
+
+		c = mDb.rawQuery("SELECT DISTINCT find_guid, action FROM find_history WHERE action='delete' AND time > ? " , args);
+		
 		String result = "";
 		c.moveToFirst();
 		for (int k = 0; k < c.getCount(); k++) {
 			result += c.getString(0) + ":" + c.getString(1) + ",";
+			c.moveToNext();
+		}
+		c = mDb.rawQuery("SELECT DISTINCT find_guid, action FROM find_history WHERE action != 'delete' AND time > ? " , args);
+		c.moveToFirst();
+		for (int k = 0; k < c.getCount(); k++) {
+			String id = c.getString(0);
+			String act = c.getString(1);
+			if (result.indexOf(id) == -1) { // the result does not contain a deletion for this record
+				result += id + ":" + act + ",";
+			}
 			c.moveToNext();
 		}
 		c.close();
@@ -538,8 +553,23 @@ public class MyDBHelper extends SQLiteOpenHelper {
 	public boolean deleteAllFinds() {
 		//deleteImages(mRowId);
 		mDb = getWritableDatabase();
+		Cursor c = mDb.query(FIND_TABLE_NAME,null, null, null, null, null, null);
+		ContentValues lfh = new ContentValues();
+		if (c.getCount() != 0) {
+			c.moveToFirst();
+			for (int k = 0; k < c.getCount(); k++) {
+				String guId = c.getString(c.getColumnIndex(COLUMN_GUID));
+				Log.i(TAG, "deleteAllFinds guid = " + guId);
+				lfh.put("find_guid", guId);
+				lfh.put("action", "delete"); 
+				logFindHistory(lfh);    // Timestamp the update
+				c.moveToNext();
+			}
+		}
+		mDb = getWritableDatabase();
 		boolean result = mDb.delete(FIND_TABLE_NAME,null,null) == 0;  // deletes all rows
 		deleteAllPhotos();
+		c.close();
 		mDb.close();
 		return result;
 	}
@@ -748,6 +778,21 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		//Log.i("CURSOR","count = "+c.getCount());
 		c.getCount(); //This has to be here for some reason. Bug in Android?
 		Log.i(TAG,"Fetching all finds where " + PROJECT_ID + "=" + project_id + " count=" + c.getCount());
+		mDb.close();
+		return c;
+	}
+
+	
+	/** 
+	 * This method will return a Cursor with rows of data for all Finds.
+	 * @return
+	 */
+	public Cursor fetchAllFinds() {
+		mDb = getReadableDatabase(); // Either open or create the DB.
+		Cursor c = mDb.query(FIND_TABLE_NAME,null, null, null, null, null, null);
+		//Log.i("CURSOR","count = "+c.getCount());
+		c.getCount(); //This has to be here for some reason. Bug in Android?
+		Log.i(TAG,"Fetching all finds, count=" + c.getCount());
 		mDb.close();
 		return c;
 	}
@@ -1003,6 +1048,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		mDb = getReadableDatabase();
 		Cursor c = mDb.query(PHOTO_TABLE_NAME, null, COLUMN_PHOTO_IDENTIFIER +"="+imageId, null, null, null, null);
 		int count = c.getCount();
+		c.close();
 		mDb.close();
 		if (count != 0) {
 			return true;
@@ -1011,6 +1057,29 @@ public class MyDBHelper extends SQLiteOpenHelper {
 		}
 	}
 
+	/**
+	 * Utility method to retrieve a Find's rowId from it's guId
+	 * @param guId
+	 * @return
+	 */
+	public long getRowIdFromGuId(String guId) {
+		mDb = getReadableDatabase();
+		Cursor c = mDb.query(FIND_TABLE_NAME, null, COLUMN_GUID + "=" + guId, null, null, null, null);
+		if ( c.getCount()== 0)
+			return  0;
+		else {
+			c.moveToFirst();
+			long id = (c.getLong(c.getColumnIndexOrThrow(COLUMN_ID)));
+			c.close();
+			return id;
+		}
+	}
+	
+	/**
+	 * Utility method to retrieve a find's guId from it's rowId
+	 * @param rowId
+	 * @return
+	 */
 	public String getGuIdFromRowId(long rowId) {
 		mDb = getReadableDatabase();
 		Cursor c = mDb.query(FIND_TABLE_NAME, null, COLUMN_ID + "=" + rowId, null, null, null, null);
@@ -1018,8 +1087,9 @@ public class MyDBHelper extends SQLiteOpenHelper {
 			return  "";
 		else {
 			c.moveToFirst();
-			return (c.getString(c.getColumnIndexOrThrow(COLUMN_GUID)));
-
+			String s =  (c.getString(c.getColumnIndexOrThrow(COLUMN_GUID)));
+			c.close();
+			return s;
 		}
 	}
 }

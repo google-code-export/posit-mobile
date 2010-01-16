@@ -30,8 +30,7 @@ import java.sql.Timestamp;
 
 import org.hfoss.posit.adhoc.AdhocClientActivity;
 import org.hfoss.posit.adhoc.RWGService;
-import org.hfoss.posit.provider.MyDBHelper;
-import org.hfoss.posit.provider.POSITProvider;
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.ImageAdapter;
 import org.hfoss.posit.utilities.Utils;
 import org.json.JSONException;
@@ -48,7 +47,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.location.Criteria;
@@ -92,13 +90,14 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private long mFindId;
 	private String mFindGuId = null;
 	private int mState;
-	private Cursor mCursor = null;
 	private Gallery mGallery;
 	private static boolean NEWFIND=true;
 	
 	//Temporary files representing pictures taken for a find
 	//but not yet added to the database
 	private ArrayList<Bitmap> mTempBitmaps = new ArrayList<Bitmap>();
+	private ArrayList<ContentValues> mImagesData = new ArrayList<ContentValues>();
+
 	//Uris of new images and thumbnails being attached to the find
 	private List<Uri> mNewImageUris = new LinkedList<Uri>();
 	private List<Uri> mNewImageThumbnailUris = new LinkedList<Uri>();
@@ -303,7 +302,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	private void doEditAction() {
 		mState = STATE_EDIT;
-		mFindId = getIntent().getLongExtra(MyDBHelper.COLUMN_ID, 0); 
+		mFindId = getIntent().getLongExtra(PositDbHelper.FINDS_ID, 0); 
 		Log.i(TAG,"Find id = " + mFindId);
 
 		// Instantiate a find object and retrieve its data from the DB
@@ -314,6 +313,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			Utils.showToast(this, "No values found for Find " + mFindId);
 			mState = STATE_INSERT;
 		} else {
+			mFind.setGuid(values.getAsString(PositDbHelper.FINDS_GUID));
 			displayContentInView(values);  
 		}
 		displayGallery(mFindId);
@@ -332,6 +332,27 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		//finishActivity(ListFindsActivity.FIND_FROM_LIST);
 	}	
 
+	@Override
+	protected void onStop() {
+		super.onStop();
+//		mDbHelper.close();
+	}
+
+	/* (non-Javadoc)
+	 * @see android.app.Activity#finish()
+	 */
+	@Override
+	public void finish() {
+		// TODO Auto-generated method stub
+		super.finish();
+	}
+
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+//		mDbHelper.close();
+	}
 
 	/**
 	 * This method is invoked by showDialog() when a dialog window is created. It displays
@@ -372,27 +393,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					// User clicked OK so do some stuff 
 					ContentValues contentValues = retrieveContentFromView();
-
-					if(contentValues.get(getString(R.string.idDB)) != null){
-						if (mState == STATE_INSERT) {            // if this is a new find
-							mFind = new Find(FindActivity.this);
-							saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
-							List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
-
-							if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
-								Utils.showToast(FindActivity.this, R.string.saved_to_database);
-							} else {
-								Utils.showToast(FindActivity.this, R.string.save_failed);
-							}
-						} else { 
-							if (mFind.updateToDB(contentValues)) {
-								Utils.showToast(FindActivity.this, R.string.saved_to_database);
-							} else {
-								Utils.showToast(FindActivity.this, R.string.save_failed);
-							}
-						}
-						finish();
-					}
+					doSave(contentValues);
 				}
 			}).setNeutralButton(R.string.closing, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
@@ -409,6 +410,40 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		} // switch
 	}
 
+	/**
+	 * Utility method to handle saving of the Find invoked from either 
+	 *  a menu selection or a alert dialog.
+	 */
+	private void doSave(ContentValues contentValues) {
+		String guid = contentValues.getAsString(PositDbHelper.FINDS_GUID);
+		Log.i(TAG, "doSave, values= " + contentValues.toString());
+		if(guid == null || guid.equals("")) {
+			Log.i(TAG, "doSave, ERROR: null content values");
+			return;
+		}
+		if (mState == STATE_INSERT) {            // if this is a new find
+			mFind = new Find(FindActivity.this, guid);
+			List<ContentValues> imageValues = Utils.saveImagesAndUris(this, mTempBitmaps);
+			
+			if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
+				Utils.showToast(FindActivity.this, R.string.saved_to_database);
+				// Is this correct, shouldn't we be setting the _id based on the result
+				// of the insertion?
+				mFind.setGuid(contentValues.getAsString(PositDbHelper.FINDS_GUID));
+				Log.i(TAG, "doSave, id= " + mFind.getguId());
+			} else {
+				Utils.showToast(FindActivity.this, R.string.save_failed);
+			}
+		} else { 
+			if (mFind.updateToDB(contentValues)) {
+				Utils.showToast(FindActivity.this, R.string.saved_to_database);
+			} else {
+				Utils.showToast(FindActivity.this, R.string.save_failed);
+			}
+		}
+		finish();
+	}
+	
 	/**
 	 * This code checks whether or not the data has been changed. If the data has
 	 * been changed, a dialog pops up when you push the back button, reminding you
@@ -458,15 +493,11 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		} 
 		if(keyCode == KeyEvent.KEYCODE_BACK && SAVE_CHECK == true) {
 			showDialog(CONFIRM_EXIT);
-			return true;
+//		return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-	}
 
 	/** 
 	 * Creates the menu for this activity by inflating a menu resource file.
@@ -500,33 +531,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 				sendAdhocFind(contentValues);
 			Log.i("after adhoc check", (System.currentTimeMillis()-start)+"");
 			
-			if (mState == STATE_INSERT) { //if this is a new find
-				mFind = new Find(this);
-				saveCameraImageAndUri(mFind, mTempBitmaps); //save all temporary media
-				mTempBitmaps.clear();
-				
-				List<ContentValues> imageValues = retrieveImagesFromUris(); //get uris for all new media
-				
-				if (mFind.insertToDB(contentValues, imageValues)) {//insert find into database
-					Log.i("after insert", (System.currentTimeMillis()-start)+"");
-					Utils.showToast(this, R.string.saved_to_database);
-				} else {
-					Utils.showToast(this, R.string.save_failed);
-				}
-				
-				finish();
-				//onCreate(null);
-				//TabMain.moveTab(1);
-			} 
-			else { 
-				if (mFind.updateToDB(contentValues)) {
-					Utils.showToast(this, R.string.saved_to_database);
-				} else {
-					Utils.showToast(this, R.string.save_failed);
-				}
-				finish();
-			}
-			
+			doSave(contentValues);
 			//Intent in = new Intent(this, ListFindsActivity.class); //redirect to list finds
 			//startActivity(in);
 			
@@ -611,59 +616,31 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 		EditText eText = (EditText) findViewById(R.id.nameText);
 		String value = eText.getText().toString();
-		result.put(getString(R.string.nameDB), value);
+		result.put(PositDbHelper.FINDS_NAME, value);
 		eText = (EditText) findViewById(R.id.descriptionText);
 		value = eText.getText().toString();
-		result.put(getString(R.string.descriptionDB), value);
+		result.put(PositDbHelper.FINDS_DESCRIPTION, value);
 		eText = (EditText) findViewById(R.id.idText);
 		value = eText.getText().toString();
-		result.put(getString(R.string.idDB), value);          // GuId
+		result.put(PositDbHelper.FINDS_GUID, value);         // guid 
 
 		TextView tView = (TextView) findViewById(R.id.longitudeText);
 		value = tView.getText().toString();
-		result.put(getString(R.string.longitudeDB), value);
+		result.put(PositDbHelper.FINDS_LONGITUDE, value);
 		tView = (TextView) findViewById(R.id.latitudeText);
 		value = tView.getText().toString();
-		result.put(getString(R.string.latitudeDB), value);
+		result.put(PositDbHelper.FINDS_LATITUDE, value);
 		tView = (TextView) findViewById(R.id.timeText);
 		value = tView.getText().toString();
-		result.put(getString(R.string.timeDB), value);
+//		result.put(PositDbHelper.FINDS_TIME, value);  // Timestamp added by Db
 		
 		// Mark the find unsynced
-		result.put(getString(R.string.syncedDB),"0");
-		//Add project id and the revision number
-		result.put(getString(R.string.projectId), PROJECT_ID);
+		result.put(PositDbHelper.FINDS_SYNCED,PositDbHelper.FIND_NOT_SYNCED);
+		//Add project id and the revision number (revision is autoincrement)
+		result.put(PositDbHelper.FINDS_PROJECT_ID, PROJECT_ID);
 		return result;
 	}
 
-	/**
-	 * Retrieves images and thumbnails from their uris stores them as <key,value> pairs in a ContentValues,
-	 * one for each image.  Each ContentValues is then stored in a list to carry all the images
-	 * @return the list of images stored as ContentValues
-	 */
-	private List<ContentValues> retrieveImagesFromUris() {
-		List<ContentValues> values = new LinkedList<ContentValues>();
-		ListIterator<Uri> imageIt = mNewImageUris.listIterator();
-		ListIterator<Uri> thumbnailIt = mNewImageThumbnailUris.listIterator();
-
-		while (imageIt.hasNext() && thumbnailIt.hasNext()) {
-			Uri imageUri = imageIt.next();
-			Uri thumbnailUri = thumbnailIt.next();
-
-			ContentValues result = new ContentValues();
-			String value = "";
-			if (imageUri != null) {
-				value = imageUri.toString();
-				result.put(MyDBHelper.COLUMN_IMAGE_URI, value);
-				value = thumbnailUri.toString();
-				result.put(MyDBHelper.COLUMN_PHOTO_THUMBNAIL_URI, value);
-			}
-			values.add(result);
-		}
-		mNewImageUris.clear();
-		mNewImageThumbnailUris.clear();
-		return values;
-	}
 
 	/**
 	 * Retrieves values from a ContentValues has table and puts them in the View.
@@ -671,24 +648,24 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	private void displayContentInView(ContentValues contentValues) {
 		EditText eText = (EditText) findViewById(R.id.nameText);
-		eText.setText(contentValues.getAsString(getString(R.string.nameDB)));
+		eText.setText(contentValues.getAsString(PositDbHelper.FINDS_NAME));
 		valueName=eText.getText().toString();
 		eText = (EditText) findViewById(R.id.descriptionText);
-		eText.setText(contentValues.getAsString(getString(R.string.descriptionDB)));
+		eText.setText(contentValues.getAsString(PositDbHelper.FINDS_DESCRIPTION));
 		valueDescription=eText.getText().toString();
 		eText = (EditText) findViewById(R.id.idText);
-		eText.setText(contentValues.getAsString(getString(R.string.idDB)));
+		eText.setText(contentValues.getAsString(PositDbHelper.FINDS_GUID));
 		eText.setFocusable(false);
 		valueId=eText.getText().toString();
 		TextView tView = (TextView) findViewById(R.id.timeText);
 
 		if (mState == STATE_EDIT) {
-			tView.setText(contentValues.getAsString(getString(R.string.timeDB)));
+			tView.setText(contentValues.getAsString(PositDbHelper.FINDS_TIME));
 		}
 		tView = (TextView) findViewById(R.id.longitudeText);
-		tView.setText(contentValues.getAsString(getString(R.string.longitudeDB)));
+		tView.setText(contentValues.getAsString(PositDbHelper.FINDS_LONGITUDE));
 		tView = (TextView) findViewById(R.id.latitudeText);
-		tView.setText(contentValues.getAsString(getString(R.string.latitudeDB)));
+		tView.setText(contentValues.getAsString(PositDbHelper.FINDS_LATITUDE));
 	}
 
 	/**
@@ -736,7 +713,6 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 		case BARCODE_READER:
 			String value = data.getStringExtra("SCAN_RESULT");
-			MyDBHelper dBHelper = new MyDBHelper(this);
 			EditText eText = (EditText) findViewById(R.id.idText);
 			eText.setText(value);
 			break;
@@ -744,16 +720,16 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			rowId = data.getIntExtra("rowId", -1);
 			Bitmap tempImage = (Bitmap) data.getExtras().get("data");
 			mTempBitmaps.add(tempImage);
-			saveCameraImageAndUri(mFind, mTempBitmaps);
-			List<ContentValues> imageValues = retrieveImagesFromUris();
-
-			if (mFind.insertToDB(null, imageValues)) {
+			
+			List<ContentValues> imageValues = Utils.saveImagesAndUris(this, mTempBitmaps);
+		
+			if (mFind.insertImagesToDB(imageValues)) {
 				Utils.showToast(this, R.string.saved_image_to_db);
 			} else { 
 				Utils.showToast(this, R.string.save_failed);
 			}
+			Log.i(TAG, "onActivityResult, inserted images to DB");
 			displayGallery(mFindId);
-//			displayGallery(false); // Not a new find
 			mTempBitmaps.clear();
 			break;
 
@@ -762,7 +738,6 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			tempImage = (Bitmap) data.getExtras().get("data");
 			mTempBitmaps.add(tempImage);
 			displayGallery(mFindId);
-//			displayGallery(true);  // New Find
 			break;
 
 		case IMAGE_VIEW:
@@ -771,85 +746,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			break;
 		}
 	}
-
-	/**
-	 * Saves the camera images and associated bitmaps to Media storage and
-	 *  save's their respective Uri's in aFind, which will save them to Db.
-	 * @param aFind  the current Find we are creating or editing
-	 * @param bm the bitmap from the camera
-	 */
-	private void saveCameraImageAndUri(Find aFind, List<Bitmap> bitmaps) {
-		if (bitmaps.size() == 0) {
-			if(Utils.debug)
-				Log.i(TAG, "No camera images to save ...exiting ");
-			return;
-		}
-
-		ListIterator<Bitmap> it = bitmaps.listIterator();
-		while (it.hasNext()) { 
-			Bitmap bm = it.next();
-
-			ContentValues values = new ContentValues();
-			values.put(MediaColumns.TITLE, "posit image");
-			values.put(ImageColumns.BUCKET_DISPLAY_NAME,"posit");
-			
-			values.put(ImageColumns.IS_PRIVATE, 0);
-			values.put(MediaColumns.MIME_TYPE, "image/jpeg");
-			Uri imageUri = getContentResolver()
-			.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-			if(Utils.debug)
-				Log.i(TAG, "Saved image uri = " + imageUri.toString());
-			OutputStream outstream;
-			try {
-				outstream = getContentResolver().openOutputStream(imageUri);
-				bm.compress(Bitmap.CompressFormat.JPEG, 70, outstream);
-				outstream.close();
-			} catch (Exception e) {
-				if(Utils.debug)
-					Log.i(TAG, "Exception during image save " + e.getMessage());
-			}
-
-			// Now create a thumbnail and save it
-			int width = bm.getWidth();
-			int height = bm.getHeight();
-			int newWidth = THUMBNAIL_TARGET_SIZE;
-			int newHeight = THUMBNAIL_TARGET_SIZE;
-
-			float scaleWidth = ((float)newWidth)/width;
-			float scaleHeight = ((float)newHeight)/height;
-
-			Matrix matrix = new Matrix();
-			matrix.setScale(scaleWidth, scaleHeight);
-			Bitmap thumbnailImage = Bitmap.createBitmap(bm, 0, 0,width,height,matrix,true);
-
-			int imageId = Integer.parseInt(imageUri.toString()
-					.substring(Media.EXTERNAL_CONTENT_URI.toString().length()+1));	
-
-			values = new ContentValues(4);
-			values.put(Images.Thumbnails.KIND, Images.Thumbnails.MINI_KIND);
-			values.put(Images.Thumbnails.IMAGE_ID, imageId);
-			values.put(Images.Thumbnails.HEIGHT, height);
-			values.put(Images.Thumbnails.WIDTH, width);
-			Uri thumbnailUri = getContentResolver()
-			.insert(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, values);
-			try {
-				outstream = getContentResolver().openOutputStream(thumbnailUri);
-				thumbnailImage.compress(Bitmap.CompressFormat.JPEG, 70, outstream);
-				outstream.close();
-			} catch (Exception e) {
-				if(Utils.debug)
-					Log.i(TAG, "Exception during thumbnail save " + e.getMessage());
-			}
-
-			// Save the Uri's
-//			aFind.setImageUri(imageUri);
-//			aFind.setImageThumbnailUri(thumbnailUri);
-
-			mNewImageUris.add(imageUri);
-			mNewImageThumbnailUris.add(thumbnailUri);
-		}
-	}
-
+	
 	/**
 	 * Queries for images for this Find and shows them in a Gallery at the bottom of the View.
 	 *  @param id is the rowId of the find
@@ -858,15 +755,13 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		Log.i(TAG, "displayGallery mFindId=" + id);
 		if (id != 0) { //for existing finds
 			// Select just those images associated with this find.
-			if ((mCursor=mFind.getImages()).getCount()>0) {
+			mImagesData = mFind.getImagesContentValuesList();
+			if (mImagesData.size() > 0) {
 				finishActivity(FindActivity.IMAGE_VIEW);
-				//mCursor = mFind.getImages();  // Returns the Uris of the images from the Posit Db
-				mCursor.moveToFirst();
-				ImageAdapter adapter = new ImageAdapter(mCursor, this);
+				ImageAdapter adapter = new ImageAdapter(mImagesData, this);
 				mGallery.setAdapter(adapter);
 				mGallery.setOnItemClickListener(this);
 			} else {
-				mCursor.close();
 				Utils.showToast(this, "No images to display.");
 			}
 			
@@ -881,14 +776,14 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	}
 
 	/**
-	 * To detect the user clicking on the displayed images. Displays all pictures attached to this
-	 * find by creating a new activity that shows
+	 * To detect the user clicking on the displayed images. Displays all pictures 
+	 * attached to this find by creating a new activity that shows
 	 */
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
 		if (mFind != null) {
+			Log.i(TAG, "onItemClick starting ImageViewActivity for existing find");
 			try {
-				mCursor.moveToPosition(position);
-				String s = mCursor.getString(mCursor.getColumnIndexOrThrow(getString(R.string.imageUriDB)));
+				String s = mImagesData.get(position).getAsString(PositDbHelper.PHOTOS_IMAGE_URI);
 				if (s != null) {
 					Uri uri = Uri.parse(s);
 					Intent intent = new Intent(Intent.ACTION_VIEW, uri, this, ImageViewActivity.class);
@@ -896,13 +791,13 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 					intent.putExtra("findId", mFindId);
 					Log.i(TAG, "onItemClick mFindId = " + mFindId);
 					setResult(RESULT_OK,intent);
-					mCursor.close();
 					startActivityForResult(intent, IMAGE_VIEW);
 				}
 			} catch (Exception e) {
 				Log.e(TAG, e.toString());
 			}
 		} else {
+			Log.i(TAG, "onItemClick starting ImageViewActivity for new find");
 			Bitmap bm = mTempBitmaps.get(position);
 			Intent intent = new Intent(this, ImageViewActivity.class);
 			intent.putExtra("position",position);

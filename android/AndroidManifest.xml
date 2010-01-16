@@ -48,7 +48,7 @@
 		<activity android:name=".NativeActivity"/>
 		<activity android:name="org.hfoss.posit.sms.SahanaSMSActivity"/>
 		<service android:name="org.hfoss.posit.adhoc.RWGService" />
-		<provider android:name="org.hfoss.posit.provider.POSITProvider" android:authorities="org.hfoss.provider.POSIT" />
+		<provider android:name="org.hfoss.posit.provider.PositContentProvider" android:authorities="org.hfoss.provider.POSIT" />
 	</application>
 </manifest>
 	
