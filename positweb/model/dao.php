@@ -69,7 +69,8 @@ class DAO {
 //        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei = '$imei' AND time < 'TIME($time)'") or die(mysql_error());  
         $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
 		while ($row = mysql_fetch_row($res)) {
-				}    				
+			$list .= "$row[0],";
+		}    				
 		Log::getInstance()->log("getDeltaFindsIds: $list");
 		return $list;
 	 }

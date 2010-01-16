@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-08-22 07:08:35
+<?php /* Smarty version 2.6.26, created on 2010-01-15 10:41:25
          compiled from project_mapdisplay.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => $this->_tpl_vars['project']['name'],'tab' => 'maps')));

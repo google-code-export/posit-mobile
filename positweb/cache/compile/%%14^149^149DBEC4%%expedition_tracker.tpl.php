@@ -1,4 +1,4 @@
-<?php /* Smarty version 2.6.26, created on 2009-12-12 00:19:10
+<?php /* Smarty version 2.6.26, created on 2010-01-15 11:22:41
          compiled from expedition_tracker.tpl */ ?>
 <?php $_smarty_tpl_vars = $this->_tpl_vars;
 $this->_smarty_include(array('smarty_include_tpl_file' => "header.tpl", 'smarty_include_vars' => array('title' => $this->_tpl_vars['expedition']['name'],'tab' => 'Expeditions')));
