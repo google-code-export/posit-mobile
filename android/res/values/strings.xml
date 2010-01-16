@@ -49,7 +49,7 @@
 	<string name="start">Start</string>
 	
     <!--  DB Field Names -->
-    <string name="idDB">identifier</string>
+    <string name="idDB">guid</string>
     <string name="nameDB">name</string>
     <string name="latitudeDB">latitude</string>
     <string name="longitudeDB">longitude</string>
@@ -62,7 +62,7 @@
     <string name="videoUriDB">videoUri</string>
     <string name="videoThumbnailUriDB">videoThumbnailUri</string>
     <string name="audioUriDB">audioUri</string>
-    <string name="projectId">projectId</string>
+    <string name="projectId">project_id</string>
     <string name="adhocDB">is_adhoc</string>
     
     <!-- Related to saving to the database -->
@@ -162,8 +162,14 @@
     
     <!-- Coverage tracking -->
 	<string name="trackItem">Coverage Tracker</string>
-    <string name="trackerLabel">Current location:</string>
-    <string name="trackerDefaultLocation">unknown</string>
+    <string name="trackerLabel">Current location (lat, long, alt): </string>
+    <string name="trackerStatusLabel">Status: </string>
+    <string name="trackerExpeditionLabel">Expedition: </string>
+    <string name="trackerPointsLabel">Points: </string> 
+    <string name="trackerPoints">0</string>
+    <string name="trackerStatus">Unknown </string>
+    <string name="trackerExpedition">Unknown </string>    
+    <string name="trackerDefaultLocation">Unknown</string>
     <string name="start_tracking_menu_item">Start tracking</string>
     <string name="stop_tracking_menu_item">Stop tracking</string>
     <string name="new_expedition_menu_item">New expedition</string>

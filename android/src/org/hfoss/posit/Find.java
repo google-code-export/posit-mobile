@@ -21,13 +21,15 @@
  */
 package org.hfoss.posit;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
 
-import org.hfoss.posit.provider.MyDBHelper;
-import org.hfoss.posit.provider.POSITProvider;
+import org.hfoss.posit.provider.PositContentProvider;
+import org.hfoss.posit.provider.PositDbHelper;
+import org.hfoss.posit.utilities.Utils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -44,9 +46,10 @@ import android.util.Log;
 public class Find {
 	private static final String TAG = "Find";
 
-	private MyDBHelper mDbHelper;  // Handles all the DB actions
-	private long mId;  	         // The Find's rowID (should be changed to DB ID)
-	private String mGuid;       // BARCODE -- globally unique ID
+//	private MyDBHelper mDbHelper;  // Handles all the DB actions
+	private PositDbHelper mDbHelper;  // Handles all the DB actions
+	private long mId = -1;  	         // The Find's rowID (should be changed to DB ID)
+	private String mGuid = "";       // BARCODE -- globally unique ID
 	public Cursor images = null;
 	private Context mContext;
 
@@ -55,14 +58,15 @@ public class Find {
 	 * @param context is the Activity
 	 */
 	public Find (Context context) {
-		mDbHelper = new MyDBHelper(context);
+		mDbHelper = new PositDbHelper(context);
 		mContext = context;
+		mId = -1;
 	}
 	
 	/**
 	 * This constructor is used for an existing Find.
 	 * @param context is the Activity
-	 * @param id is the Find's rowID (should be changed to its DB ID)
+	 * @param id is the Find's _id in the Sqlite DB
 	 */
 	public Find (Context context, long id) {
 		this(context);
@@ -86,6 +90,9 @@ public class Find {
 		mContext = context;
 	}
 
+	public void setGuid(String guid) {
+		mGuid = guid;
+	}
 	/**
 	 * 	getContent() returns the Find's <attr:value> pairs in a ContentValues array. 
 	 *  This method assumes the Find object has been instantiated with a context
@@ -93,16 +100,17 @@ public class Find {
 	 *  @return A ContentValues with <key, value> pairs
 	 */
 	public ContentValues getContent() {
-		ContentValues values = mDbHelper.fetchFindData(mId);
-		getMediaUrisFromDb(values);
+		ContentValues values = mDbHelper.fetchFindDataById(mId,null);
+//		getMediaUrisFromDb(values);
 		return values;
 	}
 	
 	private void getMediaUrisFromDb(ContentValues values) {
-		mDbHelper.getImages(mId, values);
+		//mDbHelper.getImages(mId, values);
 	}
 	
 	public Uri getImageUriByPosition(long findId, int position) {
+		//return null;
 		return mDbHelper.getPhotoUriByPosition(findId, position);
 	}
 	
@@ -116,7 +124,7 @@ public class Find {
 	 */
 	public HashMap<String,String> getContentMap(){
 		Log.i(TAG, "getContentMap " + mId);
-		return mDbHelper.fetchFindMap(mId);
+		return mDbHelper.fetchFindMapById(mId);
 	}
 	
 	/**
@@ -126,16 +134,7 @@ public class Find {
 	 */
 	public HashMap<String,String> getContentMapGuid(){
 		Log.i(TAG, "getContentMapGuid " + mGuid);
-		return mDbHelper.fetchFindMap(mGuid);
-	}
-	
-	/**
-	 * Deprecated
-	 * @return
-	 */
-	public HashMap<String,String> getContentMapSID(){
-		Log.i(TAG, "getContentMapSID " + mId);
-		return mDbHelper.fetchFindMapSID(mId);
+		return mDbHelper.fetchFindMapByGuid(mGuid);
 	}
 
 	/** 
@@ -146,31 +145,33 @@ public class Find {
 	 * @return whether the DB operation succeeds
 	 */
 	public boolean insertToDB(ContentValues content, List<ContentValues> images) {
-		mId = 0;
-		Log.i(TAG, "insertToDB #images = " + images.size());
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		int projId = sp.getInt("PROJECT_ID", 0);
+		String guid = content.getAsString(PositDbHelper.FINDS_GUID);
+		
 		if (content != null) {
 			//		content.put(MyDBHelper.PROJECT_ID, projId);
-			content.put(POSITProvider.COLUMN_REVISION, 1);
+			//content.put(PositDbHelper.FINDS_REVISION, 1); // Handled automatically
 			mId = mDbHelper.addNewFind(content);
 		}
-
-		if (mId != -1 && images != null && images.size() > 0) {
-			ListIterator<ContentValues> it = images.listIterator();
-			while (it.hasNext()) {
-				ContentValues imageValues = it.next();
-				if (!imageValues.containsKey(POSITProvider.COLUMN_FIND_ID))
-					imageValues.put(POSITProvider.COLUMN_FIND_ID,mId);
-				if (!imageValues.containsKey(POSITProvider.COLUMN_PHOTO_IDENTIFIER))
-					imageValues.put(POSITProvider.COLUMN_PHOTO_IDENTIFIER, new Random().nextInt(999999999));
-				if (!imageValues.containsKey(POSITProvider.COLUMN_PROJECT_ID))
-					imageValues.put(POSITProvider.COLUMN_PROJECT_ID, projId);
-				mContext.getContentResolver().insert(POSITProvider.PHOTOS_CONTENT_URI, imageValues);
-				mDbHelper.addNewPhoto(imageValues, mId);
-			}
-		}
-		return mId != -1;
+		
+		if (mId != -1)
+			return insertImagesToDB(images);
+		else 
+			return false;
+	}
+	
+	/**
+	 * Inserts images for this find
+	 * @param images
+	 * @return
+	 */
+	public boolean insertImagesToDB(List<ContentValues> images) {
+		if (Utils.debug) Log.i(TAG, "insertImagesToDB, mId=" + mId + " guId=" + mGuid);
+		if (images == null || images.size() == 0)
+			return true; // Nothing to do
+		if (mId != -1 && !mGuid.equals(""))
+			return mDbHelper.addPhotos(mId, mGuid, images);
+		else 
+			return false;
 	}
 
 	/** 
@@ -183,9 +184,9 @@ public class Find {
 	public boolean updateToDB(ContentValues content) {//, ContentValues images) {
 		if (isSynced()) { //TODO think of a better way to do this
 			//set it as unsynced
-			content.put(MyDBHelper.COLUMN_SYNCED, false);
+			content.put(PositDbHelper.FINDS_SYNCED, PositDbHelper.FIND_NOT_SYNCED);
 			//add revision only once. Don't count revisions for in-phone updates.
-			content.put(MyDBHelper.COLUMN_REVISION, getRevision()+1);
+			//content.put(PositDbHelper.FINDS_REVISION, getRevision()+1); // 
 		}
 		return mDbHelper.updateFind(mId, content);
 	}
@@ -195,18 +196,20 @@ public class Find {
 	 * @return whether the DB operation was successful
 	 */
 	public boolean delete() {
-		Log.i("FIND","deleteing find #"+mId);
+		Log.i(TAG,"deleteing find #"+mId);
 		return mDbHelper.deleteFind(mId);
-		
-		//mContext.getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_id/"+mId), null, null);
-		//return true;
 	}
 
 	/**
 	 * @return the mId
 	 */
 	public long getId() {
-		return mId;
+		if (mId != -1) 
+			return mId;
+		else {
+			mId = mDbHelper.getRowIdFromGuId(mGuid);
+			return mId;
+		}
 	}
 	
 	/**
@@ -218,26 +221,20 @@ public class Find {
 	
 	
 	/**
+	 * NOTE: This may cause a leak because the Cursor is not closed
 	 * Get all images attached to this find
 	 * @return the cursor that points to the images
 	 */
 	public Cursor getImages() {
-		Log.i("","find id = "+mId);
-		return 	mContext.getContentResolver().query(Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+mId), null, null,null,null);
-
+		Log.i(TAG,"GetImages find id = "+mId);
+		return mDbHelper.getImagesCursor(mId);
+		//return 	mContext.getContentResolver().query(Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+mId), null, null,null,null);
 	}
 	
-	/**
-	 * Delete all images from this find
-	 * @return whether or not the images have been deleted
-	 */
-	private boolean deleteImages(long mId) {
-		if ((images=getImages())!=null) {
-			return mDbHelper.deleteImages(images,mId);
-		}else {
-			return true;
-		}
+	public ArrayList<ContentValues> getImagesContentValuesList() {
+		return mDbHelper.getImagesList(mId);
 	}
+
 	
 	/**
 	 * @return whether or not there are images attached to this find
@@ -245,65 +242,52 @@ public class Find {
 	public boolean hasImages(){
 		return getImages().getCount() > 0;
 	}
-	
-	/**
-	 * Delete a particular image from this find
-	 * @param id the id of the photo to be deleted
-	 * @return whether the photo has been successfully deleted or not
-	 */
-	public boolean deleteImage(long id) {
-		return mDbHelper.deletePhoto(id);
-	}
-	
+
 	public boolean deleteImageByPosition(int position) {
-		return mDbHelper.deletePhotoByPosition(mId, position);
+		return false;
+		//return mDbHelper.deletePhotoByPosition(mId, position);
 	}
 	
-	
-	public void setServerId(int serverId){
-		ContentValues content = new ContentValues();
-		content.put(MyDBHelper.COLUMN_SID, serverId);
-		updateToDB(content);
-	}
-	
-	public void setRevision(int revision){
-		ContentValues content = new ContentValues();
-		content.put(MyDBHelper.COLUMN_REVISION, revision);
-		updateToDB(content);
-	}
-	
+
 	/**
 	 * Directly sets the Find as either Synced or not.
 	 * @param status
 	 */
 	public void setSyncStatus(boolean status){
 		ContentValues content = new ContentValues();
-		content.put(MyDBHelper.COLUMN_SYNCED, status);
+		content.put(PositDbHelper.FINDS_SYNCED, status);
 		if (mId != -1)
 			mDbHelper.updateFind(mId, content);
 		else 
-			mDbHelper.updateFind(mGuid, content);
+			mDbHelper.updateFind(mGuid, content,null); //photos=null
 //		updateToDB(content);
 	}
 	
 	// TODO: Test that this method works with GUIDs
 	public int getRevision() {
-		ContentValues value = mDbHelper.fetchFindColumns(mId, new String[] { MyDBHelper.COLUMN_REVISION});
-		return value.getAsInteger(MyDBHelper.COLUMN_REVISION);
+//		ContentValues value = mDbHelper.fetchFindColumns(mId, new String[] { PositDbHelper.FINDS_REVISION});
+		ContentValues value = mDbHelper.fetchFindDataById(mId, new String[] { PositDbHelper.FINDS_REVISION});
+		return value.getAsInteger(PositDbHelper.FINDS_REVISION);
 	}
 	
 	/**
 	 * Tests whether the Find is synced.  This method should work with
-	 * either GUIDs or row iDs. 
+	 * either GUIDs (Find from a server) or row iDs (Finds from the phone).
+	 * If neither is set, it returns false.
 	 * @return
 	 */
 	public boolean isSynced() {
 		ContentValues value=null;
+		Log.i(TAG, "isSynced mId = " + mId + " guId = " + mGuid);
 		if (mId != -1) {
-			value = mDbHelper.fetchFindColumns(mId, new String[] { MyDBHelper.COLUMN_SYNCED});
+//			value = mDbHelper.fetchFindColumns(mId, new String[] { PositDbHelper.FINDS_SYNCED});
+			value = mDbHelper.fetchFindDataById(mId, new String[] { PositDbHelper.FINDS_SYNCED});
+			return value.getAsInteger(PositDbHelper.FINDS_SYNCED)==PositDbHelper.FIND_IS_SYNCED;
 		} else if (!mGuid.equals("")){
-			value = mDbHelper.fetchFindColumnsByGuId(mGuid, new String[] { MyDBHelper.COLUMN_SYNCED});
-		}
-		return value.getAsInteger(MyDBHelper.COLUMN_SYNCED)==1;
+//			value = mDbHelper.fetchFindColumnsByGuId(mGuid, new String[] { PositDbHelper.FINDS_SYNCED});
+			value = mDbHelper.fetchFindDataByGuId(mGuid, new String[] { PositDbHelper.FINDS_SYNCED});
+			return value.getAsInteger(PositDbHelper.FINDS_SYNCED)==PositDbHelper.FIND_IS_SYNCED;
+		} else 
+			return false;
 	}	
 }

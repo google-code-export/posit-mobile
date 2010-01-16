@@ -90,7 +90,8 @@ public class POSITProvider extends ContentProvider{
 	public static final String COLUMN_IMAGE_URI = "imageUri";
 	public static final String COLUMN_PHOTO_THUMBNAIL_URI = "imageThumbnailUri";
 	public static final String COLUMN_PHOTO_IDENTIFIER = "photo_identifier";
-	public static final String COLUMN_FIND_ID = "findId";
+//	public static final String COLUMN_FIND_ID = "findId";
+	public static final String COLUMN_FIND_ID = "find_id";
 
 	
 	private static final String CREATE_FINDS_TABLE = "CREATE TABLE "

@@ -21,8 +21,13 @@
  */
 package org.hfoss.posit;
 
-import org.hfoss.posit.provider.MyDBHelper;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
+
+import com.google.googlenav.map.Map;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -42,9 +47,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
+import android.widget.ListAdapter;
 
 /**
  * Displays a summary of Finds on this phone in a clickable list.
@@ -53,15 +60,16 @@ import android.widget.SimpleCursorAdapter.ViewBinder;
 public class ListFindsActivity extends ListActivity implements ViewBinder{
 
 	private static final String TAG = "ListActivity";
-	private MyDBHelper mDbHelper;
+	private PositDbHelper mDbHelper;
 	private Cursor mCursor;  // Used for DB accesses
 
 	private static final int confirm_exit=1;
 
 	private static final int CONFIRM_DELETE_DIALOG = 0;
 	public static final int FIND_FROM_LIST = 0;
-	private static int PROJECT_ID;
-    private static final boolean DBG = false;
+	private int project_id;
+    private static final boolean DBG = true;
+	private ArrayList<HashMap<String,String>> mFindsData = new ArrayList<HashMap<String,String>>();
 
 
 	/** 
@@ -78,8 +86,8 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		super.onCreate(savedInstanceState);
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
-		mDbHelper = new MyDBHelper(this);
+		project_id = sp.getInt("PROJECT_ID", 0);
+		mDbHelper = new PositDbHelper(this);
 	}
 
 	/** 
@@ -93,7 +101,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		super.onResume();
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		PROJECT_ID = sp.getInt("PROJECT_ID", 0);
+		project_id = sp.getInt("PROJECT_ID", 0);
 		fillData();
 	}
 
@@ -133,16 +141,15 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	 *  causing an error.
 	 */
 	private void fillData() {
-		String[] columns = MyDBHelper.list_row_data;
-		int [] views = MyDBHelper.list_row_views;
-
-		mCursor = mDbHelper.fetchAllFinds(PROJECT_ID);	
-
+		String[] columns = PositDbHelper.list_row_data;
+		int [] views = PositDbHelper.list_row_views;
+	
+		mCursor = mDbHelper.fetchFindsByProjectId(project_id);	
 		//		Uri allFinds = Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID);
 		//	    mCursor = managedQuery(allFinds, null, null, null, null);
-
 		if (mCursor.getCount() == 0) { // No finds
 			setContentView(R.layout.list_finds);
+			mCursor.close();
 			return;
 		}
 		startManagingCursor(mCursor); // NOTE: Can't close DB while managing cursor
@@ -153,6 +160,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		// there must be a view and vice versa, although the column (data) doesn't
 		// necessarily have to go with the view, as in the case of the thumbnail.
 		// See comments in MyDBHelper.
+		
 		SimpleCursorAdapter adapter = 
 			new SimpleCursorAdapter(this, R.layout.list_row, mCursor, columns, views);
 		adapter.setViewBinder(this);
@@ -184,8 +192,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		Intent intent = new Intent(this, FindActivity.class);
 		intent.setAction(Intent.ACTION_EDIT);
 		if (DBG) Log.i(TAG,"id = " + id);
-		intent.putExtra(MyDBHelper.COLUMN_ID, id);
-//		intent.putExtra(MyDBHelper.COLUMN_GUID, mDbHelper.getGuIdFromRowId(id));
+		intent.putExtra(PositDbHelper.FINDS_ID, id);
 
 		startActivityForResult(intent, FIND_FROM_LIST);
 		FindActivity.SAVE_CHECK=false;
@@ -288,26 +295,23 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	//	}
 
 	/**
-	 * Part of ViewBinder interface. Binds the Cursor column defined 
-	 * by the specified index to the specified view. When binding is handled 
-	 * by this ViewBinder, this method must return true. If this method returns false, 
-	 * SimpleCursorAdapter will attempt to handle the binding on its own.
+	 * Called automatically by the SimpleCursorAdapte.  
 	 */
 	public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 		TextView tv = null; // = (TextView) view;
-		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_ID));
-//		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_BARCODE));
+		long findIden = cursor.getLong(cursor.getColumnIndexOrThrow(PositDbHelper.FINDS_ID));
 		switch (view.getId()) {
 	
 		case R.id.find_image:
 			if (DBG) Log.i(TAG,"setViewValue case find_image=" + view.getId() );
 			int rowId = cursor.getInt(cursor
-					.getColumnIndexOrThrow(MyDBHelper.COLUMN_ID));
-			MyDBHelper myDbHelper = new MyDBHelper(this);
-			ContentValues values = myDbHelper.getImages(rowId);
+					.getColumnIndexOrThrow(PositDbHelper.FINDS_ID));
+			PositDbHelper myDbHelper = new PositDbHelper(this);
+//			ContentValues values = myDbHelper.getImages(rowId);
+			ContentValues values = myDbHelper.getImages(findIden);
 			ImageView iv = (ImageView) view;
-			if (values != null && values.containsKey(getString(R.string.imageUriDB))) {
-				String strUri = values.getAsString(getString(R.string.imageUriDB));
+			if (values != null && values.containsKey(PositDbHelper.PHOTOS_IMAGE_URI)) {
+				String strUri = values.getAsString(PositDbHelper.PHOTOS_IMAGE_URI);
 				if (DBG) Log.i(TAG,"setViewValue strUri=" + strUri);
 				if (strUri != null) {
 					if (DBG) Log.i(TAG,"setViewValue strUri=" + strUri);
@@ -326,23 +330,26 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			return true;
 		case R.id.latitude_id:
 			tv = (TextView) view;
-			String lat = cursor.getString(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LATITUDE));
+//			String lat = map.get(PositDbHelper.FINDS_LATITUDE);
+			String lat = cursor.getString(cursor.getColumnIndexOrThrow(PositDbHelper.FINDS_LATITUDE));
 			tv.setText("Location: "+lat);
 			return true;
 		case R.id.longitude_id:
 			tv = (TextView) view;
-			String lon = cursor.getString(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_LONGITUDE));
+//			String lon = map.get(PositDbHelper.FINDS_LONGITUDE);
+			String lon = cursor.getString(cursor.getColumnIndexOrThrow(PositDbHelper.FINDS_LONGITUDE));
 			tv.setText(", "+lon);
 			return true;
 		case R.id.status:
 			tv = (TextView) view;
-			int status = cursor.getInt(cursor.getColumnIndexOrThrow(MyDBHelper.COLUMN_SYNCED));
+//			int status = Integer.parseInt(map.get(PositDbHelper.FINDS_SYNCED));
+			int status = cursor.getInt(cursor.getColumnIndexOrThrow(PositDbHelper.FINDS_SYNCED));
 			tv.setText(status==1?"Synced  ":"Not synced  ");
 			return true;
 		case R.id.num_photos:
 			tv = (TextView) view;
 			Uri findPhotos = Uri.parse("content://org.hfoss.provider.POSIT/photo_findid/"+findIden);
-			int count = managedQuery(findPhotos, null, null, null, null).getCount();
+			int count = mDbHelper.getImagesCount(findIden);
 			tv.setText(count+" photos  ");
 			return true;
 		default:
@@ -378,7 +385,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 					new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					// User clicked OK so do some stuff 
-					MyDBHelper mDbHelper = new MyDBHelper(ListFindsActivity.this);
+					PositDbHelper mDbHelper = new PositDbHelper(ListFindsActivity.this);
 					if (mDbHelper.deleteAllFinds()) {
 						mDbHelper.close();
 						Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
@@ -388,17 +395,6 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 						Utils.showToast(ListFindsActivity.this, R.string.delete_failed);
 						dialog.cancel();
 					}
-					/*
-					int count = getContentResolver().delete(Uri.parse("content://org.hfoss.provider.POSIT/finds_project/"+PROJECT_ID), null, null);
-					if (DBG) Log.i("PROVIDER", "deleted "+ count);
-					Utils.showToast(ListFindsActivity.this, R.string.deleted_from_database);
-					setContentView(R.layout.list_finds);
-					 */
-					//finish();
-					//Intent intent = new Intent(ListFindsActivity.this, ListFindsActivity.class);
-					//startActivity(intent);
-					//TabMain.moveTab(0);
-					//TabMain.moveTab(1);
 				}
 			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
@@ -429,5 +425,9 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 			return null;
 		}
 	}
+
+
+
+
 
 }

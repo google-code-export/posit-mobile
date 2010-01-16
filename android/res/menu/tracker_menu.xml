@@ -1,5 +1,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:title="@string/start_tracking_menu_item" android:id="@+id/start_tracking_menu_item" android:icon="@drawable/tracker_record"></item>
-<item android:title="@string/stop_tracking_menu_item" android:id="@+id/stop_tracking_menu_item" android:icon="@drawable/stop"></item>
-<item android:title="@string/new_expedition_menu_item" android:id="@+id/new_expedition_menu_item" android:icon="@drawable/app"></item>
+<item android:title="@string/start_tracking_menu_item" 
+	android:id="@+id/start_tracking_menu_item" 
+	android:icon="@drawable/tracker_record"></item>
+	
+<item android:title="@string/stop_tracking_menu_item" 
+	android:id="@+id/stop_tracking_menu_item" 
+	android:icon="@drawable/stop"></item>
+
 </menu>
+<!--  
+<item android:title="@string/new_expedition_menu_item" 
+android:id="@+id/new_expedition_menu_item" 
+android:icon="@drawable/app"></item>
+ -->

@@ -21,7 +21,7 @@
  */
 package org.hfoss.posit;
 
-import org.hfoss.posit.provider.MyDBHelper;
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
 
 import android.app.Activity;
@@ -59,6 +59,7 @@ public class ImageViewActivity extends Activity {
 	private static final int SWIPE_MIN_DISTANCE = 120;
 	private static final int SWIPE_MAX_OFF_PATH = 250;
 	private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+	private Intent intent;
 
 	/**
 	 * A new gesture detector and listener to listen for the swipe motions
@@ -79,8 +80,17 @@ public class ImageViewActivity extends Activity {
 	 @Override
 	 protected void onCreate(Bundle savedInstanceState) {
 		 super.onCreate(savedInstanceState);
-		 Intent intent = getIntent();
+		 intent = getIntent();
+	 }
 
+	 
+	 /* (non-Javadoc)
+	 * @see android.app.Activity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
 		 mBm = (Bitmap)intent.getExtras().get("bitmap");
 		 if (mBm != null) {
 			 setContentView(R.layout.image_view);
@@ -158,9 +168,13 @@ public class ImageViewActivity extends Activity {
 				 });
 			 }
 		 }
-	 }
 
-	 @Override
+	}
+
+
+
+
+	@Override
 	 public boolean onCreateOptionsMenu(Menu menu) {
 		 if(mBm==null) {
 			 MenuInflater inflater = getMenuInflater();
@@ -189,7 +203,7 @@ public class ImageViewActivity extends Activity {
 	 @Override
 	 protected Dialog onCreateDialog(int id) {
 		 final Intent intent = new Intent(ImageViewActivity.this, FindActivity.class);
-		 intent.putExtra(MyDBHelper.COLUMN_BARCODE, mFind.getId());
+		 intent.putExtra(PositDbHelper.FINDS_GUID, mFind.getId());
 		 intent.setAction(Intent.ACTION_EDIT);
 		 setResult(RESULT_OK,intent);
 		 setResult(RESULT_OK);
@@ -232,7 +246,7 @@ public class ImageViewActivity extends Activity {
 	 public boolean onKeyDown(int keyCode, KeyEvent event) {
 		 if(keyCode==KeyEvent.KEYCODE_BACK && mBm==null) {
 			 final Intent intent = new Intent(ImageViewActivity.this, FindActivity.class);
-			 intent.putExtra(MyDBHelper.COLUMN_ID, mFind.getId());
+			 intent.putExtra(PositDbHelper.FINDS_ID, mFind.getId());
 			 intent.setAction(Intent.ACTION_EDIT);
 			 setResult(RESULT_OK,intent);
 			 setResult(RESULT_OK);
@@ -314,5 +328,16 @@ public class ImageViewActivity extends Activity {
 			 //finish();
 			 startActivity(data);
 		 }
-	 } 
+	 }
+
+	/* (non-Javadoc)
+	 * @see android.app.Activity#finish()
+	 */
+	@Override
+	public void finish() {
+		super.finish();
+		if (mCursor != null) mCursor.close();
+	} 
+	 
+	 
 }

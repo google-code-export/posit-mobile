@@ -105,7 +105,6 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	 * Handles clicks on PositMain's buttons.
 	 */
 	public void onClick(View view) {
-		Log.i(TAG,"CLICK");
 		Intent intent = new Intent();
 
 		switch(view.getId()) {

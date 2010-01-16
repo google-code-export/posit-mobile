@@ -81,8 +81,8 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 	}
 
 	private void tryToRegister() {
-		if (!Utils.isConnected(this, ConnectivityManager.TYPE_WIFI)) {
-			reportNetworkError("No WiFi connection");
+		if (!Utils.isConnected(this)) {
+			reportNetworkError("No Network connection ... exiting");
 			return;
 		}
 		Communicator comm = new Communicator(this);
@@ -110,6 +110,8 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 			this.reportNetworkError("Null project list returned");
 		}
 	}
+	
+
 
 	/**
 	 * Reports as much information as it can about the error.
