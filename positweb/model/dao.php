@@ -64,9 +64,19 @@ class DAO {
 		$result = $stmt->fetch(PDO::FETCH_NUM);
 		$time = $result[0];
 		Log::getInstance()->log("getDeltaFindsIds: Max Time = $time");
+		
+		//  If there is no MAX time, this is a new device, so get all Finds from other phones
+
+//        if (strcmp($time,"") == 0) {
+		if ($time == NULL) {
+           Log::getInstance()->log("getDeltaFindsIds: IF time = $time");
+           $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei != '$imei'") or die(mysql_error());
+        } else {
+           Log::getInstance()->log("getDeltaFindsIds: ELSE time = $time");
+           $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());
+        }
 
 		// Get a list of the Finds (guids) that have changed since the last update
-//        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei = '$imei' AND time < 'TIME($time)'") or die(mysql_error());  
         $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
 		while ($row = mysql_fetch_row($res)) {
 			$list .= "$row[0],";
