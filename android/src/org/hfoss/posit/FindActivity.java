@@ -386,21 +386,27 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			.create();
 
 		case CONFIRM_EXIT:
+			Log.i(TAG, "CONFIRM_EXIT dialog");
 			return new AlertDialog.Builder(this)
 			.setIcon(R.drawable.alert_dialog_icon)
 			.setTitle(R.string.check_saving)
 			.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
+					Log.i(TAG, "CONFIRM_EXIT setOK onClick");
 					// User clicked OK so do some stuff 
 					ContentValues contentValues = retrieveContentFromView();
 					doSave(contentValues);
 				}
-			}).setNeutralButton(R.string.closing, new DialogInterface.OnClickListener() {
+			})
+			.setNeutralButton(R.string.closing, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
+					Log.i(TAG, "CONFIRM_EXIT setNeutral onClick");
 					finish();
 				}
-			}).setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
+			})
+			.setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
+					Log.i(TAG, "CONFIRM_EXIT setCancel onClick");
 					/* User clicked Cancel so do nothing */
 				}
 			})
@@ -488,12 +494,14 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (INTENT_CHECK==1) {
-			checkSave();
-		} 
-		if(keyCode == KeyEvent.KEYCODE_BACK && SAVE_CHECK == true) {
+		Log.i(TAG,"onKeyDown " + keyCode + " " + KeyEvent.KEYCODE_BACK);
+//		if (INTENT_CHECK==1) {
+//			checkSave();
+//		} 
+//		if(keyCode == KeyEvent.KEYCODE_BACK && SAVE_CHECK == true) {
+		if(keyCode == KeyEvent.KEYCODE_BACK) {
 			showDialog(CONFIRM_EXIT);
-//		return true;
+			return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
