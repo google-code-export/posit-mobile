@@ -10,7 +10,7 @@ android:orientation="vertical"
 <TableLayout 
 	android:id="@+id/tracker_view" 
 	android:layout_width="fill_parent" 
-	android:layout_height="192sp" android:orientation="vertical" 
+	android:layout_height="136sp" android:orientation="vertical" 
 	android:stretchColumns="0,1">
 					
 <TableRow 
@@ -127,5 +127,37 @@ android:layout_centerHorizontal="true"
 </LinearLayout>
 </TableRow>
 </TableLayout>
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:orientation="vertical"
+     android:layout_width="fill_parent"
+     android:layout_height="fill_parent">
+
+          <com.google.android.maps.MapView
+	          android:id="@+id/mapFinds"
+	          android:layout_width="fill_parent"
+	          android:layout_height="fill_parent"
+	          android:enabled="true"
+	          android:clickable="true"
+	          android:apiKey="0bvEMJ9m96_flCs4DFXRuaFy6UTZfOlZ7-xB1Sg" />
+	          
+          <LinearLayout
+    		android:id="@+id/zoomview"
+    		android:layout_width="wrap_content"
+    		android:layout_height="wrap_content"
+    		android:layout_alignBottom="@id/mapFinds"
+    		android:layout_centerHorizontal="true"/>
+          
+          <!--<com.google.android.maps.MapView
+          android:id="@+id/mapper"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent"          
+          android:apiKey="0jDofiyQNYc7eQi-rd0X6WM9re_SV0FgcYow6lg"/>
+          -->
+			
+</RelativeLayout>
+
+
 </LinearLayout>
 

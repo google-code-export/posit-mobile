@@ -41,10 +41,9 @@
 		<activity android:name=".ServerRegistrationActivity" />
 		<activity android:name=".SettingsActivity" />	
 		<activity android:name=".ShowProjectsActivity" />
-		<activity android:name=".StartMapActivity" />
 		<activity android:name=".SyncActivity" />
 		<activity android:name="org.hfoss.posit.adhoc.AdhocClientActivity" />
-		<activity android:name=".TrackerActivity"/>
+		<activity android:name=".BackgroundTrackerActivity"/>
 		<activity android:name=".NativeActivity"/>
 		<activity android:name="org.hfoss.posit.sms.SahanaSMSActivity"/>
 		<service android:name="org.hfoss.posit.adhoc.RWGService" />
