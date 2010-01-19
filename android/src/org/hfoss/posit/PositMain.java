@@ -39,6 +39,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -48,17 +49,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 /**
  *  Implements the main activity and the main screen for the POSIT application. 
  */
 public class PositMain extends Activity implements OnClickListener, RWGConstants{
 
-	private static final int confirm_exit=0;
+	private static final int CONFIRM_EXIT=0;
 	private static final String TAG = "PositMain";
 	public static AdhocClient mAdhocClient;
 	public static WifiManager wifiManager;
-
+	
 	/**
 	 * Called when the activity is first created.  Sets the UI layout, adds
 	 * the buttons, checks whether the phone is registered with a POSIT server.
@@ -78,14 +80,27 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			listFindButton.setOnClickListener(this);
 		}
 
-		final Button sahanaButton = (Button)findViewById(R.id.sahanaSMS);
-		if(sahanaButton!=null)
-			sahanaButton.setOnClickListener(this);
+//		final Button sahanaButton = (Button)findViewById(R.id.sahanaSMS);
+//		if(sahanaButton!=null)
+//			sahanaButton.setOnClickListener(this);
 
-		// If this is the first run on this device, let the user register the phone.
-		if(savedInstanceState==null)
-			checkPhoneRegistrationAndInitialSync();
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = sp.edit();
+		Log.i(TAG, "onCreate(), Preferences= " + sp.getAll().toString());
+		
+		// NOTE: If the shared preferences get left in a state with the Tracker's not set to IDLE,
+		//  it will be impossible to start the Tracker.  To do so, use the statements here to reset
+		//  Tracker State to IDLE.  
+		//  This is an area that could use a better algorithm based on Android's life cycle. 
+//			editor.putInt(BackgroundTrackerActivity.SHARED_STATE, BackgroundTrackerActivity.IDLE);
+//			editor.commit();
+
+
+		
+		// If this is the first run on this device, let the user register the phone.
+		if(savedInstanceState==null)  {
+			checkPhoneRegistrationAndInitialSync();
+		}
 
 		Utils.showToast(this, "Current Project: "+sp.getString("PROJECT_NAME", ""));
 		
@@ -95,10 +110,6 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			Log.i(TAG, "RWG running");
 			Utils.showToast(this, "RWG running");
 		}
-//		else {
-//			Log.i(TAG, "RWG not running");
-//			Utils.showToast(this, "RWG not running");
-//		}
 	}
 
 	/**
@@ -117,10 +128,10 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			intent.setClass(this, ListFindsActivity.class);
 			startActivity(intent);
 			break;
-		case R.id.sahanaSMS:
-			intent.setClass(this, SahanaSMSActivity.class);
-			startActivity(intent);
-			break;
+//		case R.id.sahanaSMS:
+//			intent.setClass(this, SahanaSMSActivity.class);
+//			startActivity(intent);
+//			break;
 		}	
 	}
 
@@ -150,6 +161,17 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			menu.findItem(R.id.rwg_start).setEnabled(true);
 			menu.findItem(R.id.rwg_end).setEnabled(false);
 		}
+
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);	
+		int trackerState = sp.getInt(BackgroundTrackerActivity.SHARED_STATE, -1);
+//		Log.i(TAG, " Preferences= " + sp.getAll().toString());
+//		Log.i(TAG, "onPrepareOptionsMenu trackerState = " + trackerState);
+		if (trackerState != BackgroundTrackerActivity.RUNNING &&
+				trackerState != BackgroundTrackerActivity.PAUSED) {
+			menu.findItem(R.id.track_menu_item).setEnabled(true);
+		} else {
+			menu.findItem(R.id.track_menu_item).setEnabled(false);
+		}
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -170,7 +192,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			startActivity(new Intent(this, ShowProjectsActivity.class));
 			break;
 		case R.id.track_menu_item:
-			startActivity(new Intent(this, TrackerActivity.class));
+			startActivity(new Intent(this, BackgroundTrackerActivity.class));
 			break;
 		case R.id.rwg_start:
 			wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
@@ -184,6 +206,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		}
 		return true;
 	}
+	
 
 	/**
 	 * Checks whether the phone is registered with POSIT server.
@@ -220,11 +243,12 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if(keyCode==KeyEvent.KEYCODE_BACK){
-			showDialog(confirm_exit);
-			return true;
-		}
-		Log.i("code", keyCode+"");
+//  REMOVED:  To allow navigating back to Tracker		
+//		if(keyCode==KeyEvent.KEYCODE_BACK){
+//			showDialog(confirm_exit);
+//			return true;
+//		}
+//		Log.i("code", keyCode+"");
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -239,7 +263,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
-		case confirm_exit:
+		case CONFIRM_EXIT:
 			return new AlertDialog.Builder(this)
 			.setIcon(R.drawable.alert_dialog_icon)
 			.setTitle(R.string.exit)

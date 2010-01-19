@@ -165,7 +165,8 @@ public class TrackerActivity extends Activity implements LocationListener {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if(keyCode == KeyEvent.KEYCODE_BACK) {
 			mIsRunning = false; // Stops the thread
-			mLocationManager.removeUpdates(this); // Stop location manager updates
+			if (mLocationManager != null)
+				mLocationManager.removeUpdates(this); // Stop location manager updates
 			finish();
 			Log.i(TAG, "Stopping tracking thread");
 			Utils.showToast(this, "Stopping tracking thread");
