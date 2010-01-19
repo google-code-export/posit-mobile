@@ -145,7 +145,7 @@ public class MapFindsActivity extends MapActivity {
 		int itemId = 0;
 
 		drawable = this.getResources().getDrawable(R.drawable.androidmarker);
-		MyItemizedOverlay mPoints = new MyItemizedOverlay(drawable, this);
+		MyItemizedOverlay mPoints = new MyItemizedOverlay(drawable, this, true);
 		c.moveToFirst();
 
 		do {

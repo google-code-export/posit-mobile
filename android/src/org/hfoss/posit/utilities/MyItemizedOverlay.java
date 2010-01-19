@@ -39,13 +39,15 @@ public class MyItemizedOverlay extends ItemizedOverlay {
 
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 	private Context mContext;
+	private boolean isTappable;
 
 	/**
 	 * @param defaultMarker
 	 */
-	public MyItemizedOverlay(Drawable defaultMarker, Context c) {
+	public MyItemizedOverlay(Drawable defaultMarker, Context c, boolean isTappable) {
 		super(boundCenterBottom(defaultMarker));
 		mContext = c;
+		this.isTappable = isTappable;
 	}
 
 	/* (non-Javadoc)
@@ -78,6 +80,8 @@ public class MyItemizedOverlay extends ItemizedOverlay {
 	protected boolean onTap(int pIndex) {
 		// show the description
 		// Toast.makeText(mContext, mOverlays.get(pIndex).getSnippet(), Toast.LENGTH_LONG).show();
+		if (!isTappable)
+			return false;
 		Intent intent = new Intent(mContext, FindActivity.class);
 		intent.setAction(Intent.ACTION_EDIT);
 		long itemId = Long.parseLong(mOverlays.get(pIndex).getTitle());
