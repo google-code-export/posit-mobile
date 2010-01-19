@@ -21,6 +21,7 @@
     <string name="exit">Are you sure you want to exit?</string>
     <string name="check_saving">Save the data before going back?</string>
     <string name="aboutItem">About</string>
+    <string name="backToMain">Return To Main</string>
     <string name="projects">Projects</string>
     <string name="aboutCopyright1">POSIT</string>
     <string name="aboutCopyright2">Portable Open Search and Identification Tool\n</string>

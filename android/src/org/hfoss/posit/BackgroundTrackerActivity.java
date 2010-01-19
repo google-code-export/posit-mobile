@@ -38,6 +38,9 @@ import com.google.android.maps.OverlayItem;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -108,6 +111,9 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	private Thread mThread;
 	private LocationManager mLocationManager;
 	private Location mLocation;
+	
+	private NotificationManager mNotificationManager;
+	public static final int NOTIFY_TRACKER_ID = 1001;
 	
 	private int mState; 
 	private int mExpeditionNumber;
@@ -224,6 +230,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 		Intent intent;
 		switch(item.getItemId()) {
 		case R.id.start_tracking_menu_item:
+			notifyUser();
 			updateState(RUNNING);
 			startTracking();
 			updateView();
@@ -244,6 +251,28 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 		return true;
 	}
 
+	/**
+	 * Places the Tracker notification icon in the status bar.
+	 */
+	private void notifyUser() {
+		int icon = R.drawable.radar;        // icon from resources
+		CharSequence tickerText = "Tracking";              // ticker-text
+		long when = System.currentTimeMillis();         // notification time
+		Context context = getApplicationContext();      // application Context
+		CharSequence contentTitle = "Tracker notification";  // expanded message title
+		CharSequence contentText = "Phone's location is being tracked.";      // expanded message text
+
+		Intent notificationIntent = new Intent(this, BackgroundTrackerActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+		// the next two lines initialize the Notification, using the configurations above
+		Notification notification = new Notification(icon, tickerText, when);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		
+		String ns = Context.NOTIFICATION_SERVICE;
+		mNotificationManager = (NotificationManager) getSystemService(ns);
+		mNotificationManager.notify(NOTIFY_TRACKER_ID, notification);  // 1 = ID for this notification
+	}
 
 	/** 
 	 * The only way to exit Tracker and destroy its state is to use the back 
@@ -306,6 +335,8 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 		
 		if (mLocationManager != null)
 			mLocationManager.removeUpdates(this); // Stop location manager updates
+		mNotificationManager.cancel(NOTIFY_TRACKER_ID);
+
 		Log.i(TAG, "Stopping tracking thread");
 		Utils.showToast(this, "Stopped tracking thread");
 	}
