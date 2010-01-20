@@ -95,8 +95,6 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 //			editor.putInt(BackgroundTrackerActivity.SHARED_STATE, BackgroundTrackerActivity.IDLE);
 //			editor.commit();
 
-
-		
 		// If this is the first run on this device, let the user register the phone.
 		if(savedInstanceState==null)  {
 			checkPhoneRegistrationAndInitialSync();
@@ -166,12 +164,12 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 		int trackerState = sp.getInt(BackgroundTrackerActivity.SHARED_STATE, -1);
 //		Log.i(TAG, " Preferences= " + sp.getAll().toString());
 //		Log.i(TAG, "onPrepareOptionsMenu trackerState = " + trackerState);
-		if (trackerState != BackgroundTrackerActivity.RUNNING &&
-				trackerState != BackgroundTrackerActivity.PAUSED) {
-			menu.findItem(R.id.track_menu_item).setEnabled(true);
-		} else {
-			menu.findItem(R.id.track_menu_item).setEnabled(false);
-		}
+//		if (trackerState != BackgroundTrackerActivity.RUNNING &&
+//				trackerState != BackgroundTrackerActivity.PAUSED) {
+//			menu.findItem(R.id.track_menu_item).setEnabled(true);
+//		} else {
+//			menu.findItem(R.id.track_menu_item).setEnabled(false);
+//		}
 		return super.onPrepareOptionsMenu(menu);
 	}
 
