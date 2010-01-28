@@ -572,7 +572,7 @@ public class Communicator {
 		return result;
 	}	
 
-	public String registerExpeditionPoint(double lat, double lng,  double alt, int expedition) {
+	public String registerExpeditionPoint(double lat, double lng,  double alt, long swath, int expedition) {
 		if (Utils.debug) Log.i(TAG, "registerExpeditionPoint " + lat + " " + lng);
 		HashMap<String, String> sendMap  = new HashMap<String,String>();
 		addRemoteIdentificationInfo(sendMap);
@@ -580,6 +580,7 @@ public class Communicator {
 		sendMap.put("lat", ""+lat );
 		sendMap.put("lng", lng+"");
 		sendMap.put("alt", ""+alt);
+		sendMap.put("swath", ""+swath);
 		sendMap.put("expeditionId", expedition+"");
 		String addExpeditionResponseString = doHTTPPost(addExpeditionUrl, sendMap);
 		if (Utils.debug){

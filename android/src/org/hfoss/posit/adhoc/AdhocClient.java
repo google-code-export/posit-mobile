@@ -382,8 +382,11 @@ public class AdhocClient {
     		buff = new char[1];
     		
     		while(!pipeOpen){
+    			Log.i(TAG, "Pipe not open");
     				try{	
 	    				if(br.ready()){
+	    	    			Log.i(TAG, "Pipe is ready");
+
 	    					pipeOpen = true;
 	    					break;
 	    				}

@@ -163,11 +163,13 @@
     
     <!-- Coverage tracking -->
 	<string name="trackItem">Coverage Tracker</string>
-    <string name="trackerLabel">Current location (lat, long, alt): </string>
+    <string name="trackerLabel">Location (lat, long, alt): </string>
     <string name="trackerStatusLabel">Status: </string>
     <string name="trackerExpeditionLabel">Expedition: </string>
     <string name="trackerPointsLabel">Points: </string> 
+    <string name="trackerSwathLabel">Swath: </string> 
     <string name="trackerPoints">0</string>
+    <string name="trackerSwath">0</string>
     <string name="trackerStatus">Unknown </string>
     <string name="trackerExpedition">Unknown </string>    
     <string name="trackerDefaultLocation">Unknown</string>

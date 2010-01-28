@@ -66,8 +66,6 @@ public class SyncActivity extends Activity  {
 			ncl = new NetworkConnectivityListener();
 			ncl.registerHandler(mHandler, 0);
 			ncl.startListening(this);
-			
-			
 		}
 	}
 	
@@ -115,7 +113,6 @@ public class SyncActivity extends Activity  {
 		ncl.unregisterHandler(mHandler);
 		Log.i(TAG, "Sync thread is " + mSyncThread.getState().toString());
 		mProgressDialog.dismiss();
-		
 	}
 
 	/**
@@ -168,12 +165,7 @@ public class SyncActivity extends Activity  {
 			case NetworkConnectivityListener.STATE_CONNECTED_MOBILE:
 				mProgressDialog.setMessage("Syncing over MOBILE");
 				Log.i(TAG, "Connectivity: CONNECTED on MOBILE");
-				mSyncThread.setConnected(true);
-//				mProgressDialog.setMessage("No WIFI connection. " 
-//						+ PRESS_BACK);
-//				Utils.showToast(mContext, "Sync Exiting: No WIFI connection");
-//				mSyncThread.setConnected(false);
-//				finish();				
+				mSyncThread.setConnected(true);				
 				break;
 			case NetworkConnectivityListener.STATE_UNCONNECTED:
 				Log.i(TAG, "Connectivity: UNCONNECTED");
@@ -186,7 +178,6 @@ public class SyncActivity extends Activity  {
 			case SyncThread.DONE: 
 				mProgressDialog.setMessage("Sync completed successfully. " 
 						+ PRESS_BACK);
-				//mProgressDialog.dismiss();
 				Utils.showToast(mContext, "Sync completed successfully.");
 				finish();
 				break;
