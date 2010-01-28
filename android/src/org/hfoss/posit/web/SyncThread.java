@@ -57,9 +57,7 @@ public class SyncThread extends Thread {
 	private Context mContext;
 	private boolean mConnected;
 	private boolean mStopRequested;
-	
-//	private String mServerFindsNeedingSync;
-	
+		
 	private PositDbHelper mdbh; 
 
 	private SharedPreferences sp; 

@@ -90,19 +90,23 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	public static final int RUNNING = 1;
 	public static final int PAUSED = 2;
 
-	private static final int SLEEP_INTERVAL = 3000; // milliseconds
-	private static final int UPDATES_INTERVAL = 3000; // 
+	private static final int SLEEP_INTERVAL = 5000; // milliseconds
+	private static final int UPDATES_INTERVAL = 5000; // 
+	private static final int DEFAULT_SWATH_WIDTH = 50;  // 50 meters
 	private static final String PROVIDER = "gps";
 
 	private double mLongitude = 0;
 	private double mLatitude = 0;
 	private double mAltitude = 0;
+	private long mSwath = DEFAULT_SWATH_WIDTH;
+	
 	private Communicator communicator;
 
 	private TextView mLocationTextView;
 	private TextView mStatusTextView;
 	private TextView mExpeditionTextView;
 	private TextView mPointsTextView;
+	private TextView mSwathTextView;
 
     private SharedPreferences mPreferences ;
     private SharedPreferences.Editor spEditor;
@@ -117,6 +121,9 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	private LocationManager mLocationManager;
 	private Location mLocation;
 	private String mProvider = NO_PROVIDER;
+	
+	private ConnectivityManager mConnectivityMgr;
+	private int mNetworkType;
 	
 	private NotificationManager mNotificationManager;
 	public static final int NOTIFY_TRACKER_ID = 1001;
@@ -159,14 +166,27 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 			mLatitude = mLocation.getLatitude();
 			mLongitude = mLocation.getLongitude();
 			mAltitude = mLocation.getAltitude();
-			String result = communicator.registerExpeditionPoint(mLatitude, mLongitude, mAltitude, mExpeditionNumber);
-			mPoints++;
+			
+			// Try to handle a change in network connectivity
+			// We may lose a few points, but try not to crash
+			try {
+				mNetworkType = mConnectivityMgr.getActiveNetworkInfo().getType();
+				
+				String result = communicator.registerExpeditionPoint(mLatitude, mLongitude, mAltitude, mSwath, mExpeditionNumber);
+				mPoints++;
 
-			// Calls updateDisplay in the main (UI) thread to update the View
-			// The tracking thread cannot update the view directly
-			post(updateDisplay); 
+				// Calls updateDisplay in the main (UI) thread to update the View
+				// The tracking thread cannot update the view directly
+				post(updateDisplay); 
 
-			Log.i(TAG, "handleMessage() " + mLongitude + " " + mLatitude);
+				Log.i(TAG, "handleMessage() " + mLongitude + " " + mLatitude);		
+				
+			} catch (Exception e) {
+				Log.i(TAG, "Error handleMessage " + e.getMessage());
+				e.printStackTrace();
+			}
+			
+			
 
 			switch (msg.what) {
 			case UPDATE_LOCATION:
@@ -201,7 +221,8 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 		mStatusTextView = (TextView)findViewById(R.id.trackerStatus);
 		mExpeditionTextView = (TextView)findViewById(R.id.trackerExpedition);
 		mPointsTextView = (TextView)findViewById(R.id.trackerPoints);
-		
+		mSwathTextView = (TextView)findViewById(R.id.trackerSwath);
+
 		linearLayout = (LinearLayout) findViewById(R.id.zoomview);
 		mMapView = (MapView) findViewById(R.id.mapFinds);
 		mZoom = (ZoomControls) mMapView.getZoomControls();
@@ -243,25 +264,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.start_tracking_menu_item:
-			// Try again for service
-			if (!hasService) {  
-				hasService = setProviderInitializeLocation();
-			}
-			if (hasService) {
-				hasService = startLocationUpdateService(mProvider);
-			}
-			if (hasService) {
-				mExpeditionNumber = registerExpedition();
-			}
-			if (hasService && mExpeditionNumber != -1) {
-				notifyUser();
-				updateState(RUNNING);
-				startTracking();
-				updateView();
-			} else {
-				Utils.showToast(this, "Exiting: Network error.\nCheck your network connection.");
-				stopTracking();
-			}
+			startTracking();
 			//Utils.showToast(this, "Expedition number " + mExpeditionNumber);
 			break;
 		case R.id.back_to_main_menu_item:
@@ -401,6 +404,23 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 * @param backgroundTrackerActivity
 	 */
 	private void startTracking() {
+		// Check that we have service
+		if (!hasService) {  
+			hasService = setProviderInitializeLocation();
+		}
+		if (hasService) {
+			hasService = startLocationUpdateService(mProvider);
+		}
+		if (hasService) {
+			mExpeditionNumber = registerExpedition();
+		}
+		if (!hasService || mExpeditionNumber == -1) {
+			Utils.showToast(this, "Exiting: Network error.\nCheck your network connection.");
+			stopTracking();
+		}
+		notifyUser();
+		updateState(RUNNING);
+		updateView();
 
 		new Thread() {
 			@Override public void run() {
@@ -465,13 +485,16 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 */
 	private void updateView() {
 		mExpeditionTextView.setText(" "+mExpeditionNumber);
-		String s = "Status = Idle ";
+		String s = " Idle ";
 		if (mState == RUNNING) 
-			s = "Status = Running ";
+			s = " Running ";
 		else if (mState == PAUSED)
-			s = "Status = Paused ";
-		mStatusTextView.setText(s + " Provider = " + mProvider);
-		mPointsTextView.setText("" + mPoints);
+			s = " Paused ";
+		String netStr = (mNetworkType == ConnectivityManager.TYPE_WIFI) ? " WIFI" : " MOBILE";
+ 		mStatusTextView.setText(s + " (Provider = " + mProvider 
+				+ ", Ntwk = " + netStr + ")");
+		mPointsTextView.setText("  " + mPoints);
+		mSwathTextView.setText(" " + mSwath);
 		mLocationTextView.setText(mLatitude + "," + mLongitude + "," + mAltitude);
 		
 		int lat = (int)(mLatitude * 1E6);
@@ -496,8 +519,12 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	    spEditor = mPreferences.edit();
 		mProjId = mPreferences.getInt("PROJECT_ID", 0);	
 		
+		mConnectivityMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+		mNetworkType = mConnectivityMgr.getActiveNetworkInfo().getType();
+
 		updateState(IDLE);
 		mPoints = 0;
+		mSwath = DEFAULT_SWATH_WIDTH;
 	}
 
 	/**
