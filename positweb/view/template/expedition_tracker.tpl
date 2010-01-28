@@ -17,11 +17,10 @@ google.load("maps", "2.x");
          ], "#ff0000", 10);  	  
         {literal}  
         map.addOverlay(polyline);
-            	
         map.setUIToDefault();
-    
+        map.setCenter(new GLatLng(41.71277, -72.67099), 10);
     }
-        	   google.setOnLoadCallback(initialize);
+ 	   google.setOnLoadCallback(initialize);
         	   
     </script> 
     {/literal}

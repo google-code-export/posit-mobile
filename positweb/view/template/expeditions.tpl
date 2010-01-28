@@ -5,7 +5,7 @@
 	{if $expeditions}
 	{foreach from=$expeditions item=expedition}
 	<div class="list-item">
-		<a href="expedition.tracker?id={$expedition.id}">{$expedition.name}</a> 
+                <a href="expedition.tracker?id={$expedition.id}">{$expedition.name} {$expedition.id}</a> 
 		<p class="description">{$expedition.description}</p>
 	</div>
 	{/foreach}
