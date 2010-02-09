@@ -591,7 +591,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		String name = contentValues.getAsString(getString(R.string.nameDB));
 		String description = contentValues.getAsString(getString(R.string.descriptionDB));
 		
-		Log.i("Adhoc", "Adhoc find: "+ new Long(findId).toString()+ ":"+ longitude+ ","+ latitude);
+//		Log.i("Adhoc", "Adhoc find: "+ new Long(findId).toString()+ ":"+ longitude+ ","+ latitude);
+		Log.i("Adhoc", "Adhoc find: " + findId + ":"+ longitude+ ","+ latitude);
 		
 		JSONObject obj = new JSONObject();
 		try {
@@ -885,8 +886,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			msg.what = UPDATE_LOCATION;
 			this.updateHandler.sendMessage(msg);
 		} catch (NullPointerException e) {
-			if(Utils.debug)
-				Log.e(TAG, e.toString());
+				mLongitude = mLatitude = 0;   // In case no network and no GPS
+			  	Log.e(TAG, e.toString());
+				e.printStackTrace();
 		}
 	}
 }
