@@ -37,9 +37,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
 
-public class AdhocClient {
-    /** Called when the activity is first created. */
-    
+public class AdhocClient {    
 	private Context mContext;
 	private ProgressDialog mProgressDialog;
 	private String status;
@@ -92,6 +90,7 @@ public class AdhocClient {
         }
     };
 
+    /** Called when the activity is first created. */
     public AdhocClient(Context c) {
 		/*
 		 * The Adhoc client needs several binaries installed to run. We check each time.
@@ -285,10 +284,10 @@ public class AdhocClient {
     	 status = "Wifi enabled, starting AdhocClient. Plz Wait";
     	 statusHandler.post(statusUpdate);
     	 
-    	 //disableAdhocClient();
-      	 //Log.i(TAG, "Enabling AdhocClient");
-      	 //enableAdhocClient();
-      	 //Log.i(TAG, "Enabled AdhocClient");
+    	 disableAdhocClient();
+      	 Log.i(TAG, "Enabling AdhocClient");
+      	 enableAdhocClient();
+      	 Log.i(TAG, "Enabled AdhocClient");
 
     		    	 
     	 status = "Wifi & AdhocClient enabled, Start the protocol (./data/rwg/rwgexec -i tiwlan0)";
@@ -382,7 +381,7 @@ public class AdhocClient {
     		buff = new char[1];
     		
     		while(!pipeOpen){
-    			Log.i(TAG, "Pipe not open");
+    			//Log.i(TAG, "Pipe not open");
     				try{	
 	    				if(br.ready()){
 	    	    			Log.i(TAG, "Pipe is ready");
@@ -441,11 +440,18 @@ public class AdhocClient {
 		try {
 			JSONObject obj = new JSONObject(incoming);
 			ContentValues content = new ContentValues();
+			String longStr = obj.getString("findLong");
 			
-			double longitude = Double.parseDouble(obj.getString("findLong"));
-			content.put(mContext.getString(R.string.longitudeDB), longitude);
-			double latitude = Double.parseDouble(obj.getString("findLat"));
-			content.put(mContext.getString(R.string.latitudeDB), latitude);
+			// HACK:  One dev phone sends null Long and lat
+			if (!longStr.equals("")) {
+				double longitude = Double.parseDouble(obj.getString("findLong"));
+				content.put(mContext.getString(R.string.longitudeDB), longitude);
+				double latitude = Double.parseDouble(obj.getString("findLat"));
+				content.put(mContext.getString(R.string.latitudeDB), latitude);
+			} else {
+				content.put(mContext.getString(R.string.latitudeDB), 0);
+				content.put(mContext.getString(R.string.longitudeDB), 0);
+			}
 			long findId = obj.getLong("findId");
 			content.put(mContext.getString(R.string.idDB), findId);
 			int projectId = obj.getInt("projectId");
@@ -455,7 +461,8 @@ public class AdhocClient {
 			content.put(mContext.getString(R.string.descriptionDB), description);
 			content.put(mContext.getString(R.string.projectId), projectId);
 			content.put(mContext.getString(R.string.adhocDB), 1);
-			content.put("sid", findId);
+//			content.put("sid", findId);
+			content.put("guid", findId);
 			
 			Log.i(TAG, content.toString());
 			Find find = new Find(mContext);
