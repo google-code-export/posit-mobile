@@ -489,9 +489,9 @@ public class RWGService extends Service implements RWGConstants {
     	 //status = "Wifi enabled, starting AdhocClient. Plz Wait";
     	 //statusHandler.post(statusUpdate);
     	 
-    	 //disableAdhocClient();
+    	 disableAdhocClient();
       	 Log.i(TAG, "Enabling AdhocClient");
-      	 //enableAdhocClient();
+      	 enableAdhocClient();
       	 Log.i(TAG, "Enabled AdhocClient");
 
     		    	 
@@ -589,7 +589,7 @@ public class RWGService extends Service implements RWGConstants {
     		
     		Log.i("THREAD",Thread.currentThread().getName());
     		while(!pipeOpen && !stopThread){
-    			Log.i("THREAD",Thread.currentThread().getName()+ " interrupted = "+netHandleIncomingThread.isInterrupted());
+    			//Log.i("THREAD",Thread.currentThread().getName()+ " interrupted = "+netHandleIncomingThread.isInterrupted());
     			//Log.i(TAG, "Pipe not open");
     				try{	
 	    				if(br.ready()){
@@ -610,7 +610,7 @@ public class RWGService extends Service implements RWGConstants {
         	while (!stopThread) { //
         		
         		
-        			Log.i("Listening...","GREAT");
+        			//Log.i("Listening...","GREAT");
         		try{
         		/*	
         		  if(br.ready()){
