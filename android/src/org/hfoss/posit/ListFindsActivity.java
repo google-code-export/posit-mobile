@@ -27,8 +27,6 @@ import java.util.HashMap;
 import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
 
-import com.google.googlenav.map.Map;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -47,11 +45,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
-import android.widget.ListAdapter;
 
 /**
  * Displays a summary of Finds on this phone in a clickable list.

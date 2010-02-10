@@ -500,7 +500,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 		int lat = (int)(mLatitude * 1E6);
 		int lon = (int)(mLongitude * 1E6);
 		
-		MyItemizedOverlay points = new MyItemizedOverlay(this.getResources().getDrawable(R.drawable.red_dot),this,false);
+		MyItemizedOverlay points = new MyItemizedOverlay(this.getResources().getDrawable(R.drawable.redbutton),this,false);
 		points.addOverlay(new OverlayItem(new GeoPoint(lat,lon),null,null));
 		
 		mapOverlays = mMapView.getOverlays();

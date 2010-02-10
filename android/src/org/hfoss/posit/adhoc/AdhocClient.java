@@ -60,7 +60,7 @@ public class AdhocClient {
         public void run() {
         	try{
         		if(AdhocClientActivity.sendView!=null) {
-        			File f = new File("/data/rwg/results.txt");
+        			File f = new File("/data/data/org.hfoss.posit/results.txt");
         			if(f.createNewFile()||f.exists()) {
 	        			FileWriter results = new FileWriter(f,true);
 	        			results.append("Received ("+Utils.getTimestamp()+"): "+ incoming+"\n");
@@ -204,14 +204,14 @@ public class AdhocClient {
     public void disableWifi() {
     	boolean done=false;
     	while (!done && !Thread.currentThread().isInterrupted()) {
-    		AdhocClientActivity.wifiManager.setWifiEnabled(false);
+    		PositMain.wifiManager.setWifiEnabled(false);
 			// Waiting for interface-shutdown
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				// nothing
 			}
-			if (AdhocClientActivity.wifiManager.isWifiEnabled())
+			if (PositMain.wifiManager.isWifiEnabled())
 				done=false;
 			else
 				done=true;
@@ -398,8 +398,10 @@ public class AdhocClient {
     		}
  
         	Looper.prepare();
-        	while (!Thread.currentThread().isInterrupted() && ret) { //
+        	while (!Thread.currentThread().isInterrupted()) { //
         		
+        		
+        			Log.i("Listening...","GREAT");
         		try{
         		/*	
         		  if(br.ready()){
@@ -421,7 +423,7 @@ public class AdhocClient {
      					parseAndSave(incoming);
         			}
         			
-    			Thread.sleep(300);
+    			Thread.sleep(1000);
         			
         		}catch(Exception e){
         			System.out.println(e.getClass().toString());
@@ -478,7 +480,7 @@ public class AdhocClient {
 	public void send(String sendMessage) {
 		try{
 			Log.i(TAG, "sending message:" + sendMessage);
-			File f = new File("/data/rwg/results.txt");
+			File f = new File("/data/data/org.hfoss.posit/files/results.txt");
 			if(f.createNewFile()||f.exists()) {
 				FileWriter results = new FileWriter(f,true);
 		        results.append("Sent ("+Utils.getTimestamp()+"): "+sendMessage+"\n");
@@ -498,6 +500,7 @@ public class AdhocClient {
 		netStartUpThread.interrupt();
 		netHandleIncomingThread.interrupt();
 		ret = false;
+		disableWifi();
 		if (rwgService == null)
 			rwgService = new Intent(mContext, RWGService.class);
 		

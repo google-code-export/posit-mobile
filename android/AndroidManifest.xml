@@ -42,7 +42,7 @@
 		<activity android:name=".SettingsActivity" />	
 		<activity android:name=".ShowProjectsActivity" />
 		<activity android:name=".SyncActivity" />
-		<activity android:name="org.hfoss.posit.adhoc.AdhocClientActivity" />
+		<!-- <activity android:name="org.hfoss.posit.adhoc.AdhocClientActivity" />-->
 		<activity android:name=".BackgroundTrackerActivity"/>
 		<activity android:name=".NativeActivity"/>
 		<activity android:name="org.hfoss.posit.sms.SahanaSMSActivity"/>
