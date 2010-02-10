@@ -21,14 +21,11 @@
  */
 package org.hfoss.posit;
 
-import java.io.OutputStream;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
-import java.sql.Timestamp;
 
-import org.hfoss.posit.adhoc.AdhocClientActivity;
 import org.hfoss.posit.adhoc.RWGService;
 import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.ImageAdapter;
@@ -48,7 +45,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -58,11 +54,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.provider.MediaStore.Images;
-import android.provider.MediaStore.MediaColumns;
-import android.provider.MediaStore.Images.ImageColumns;
-import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -92,6 +83,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private int mState;
 	private Gallery mGallery;
 	private static boolean NEWFIND=true;
+	
+	private boolean stopThread;
 	
 	//Temporary files representing pictures taken for a find
 	//but not yet added to the database
@@ -274,6 +267,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 
 		setCurrentGpsLocation(null);   
 		mThread = new Thread(new MyThreadRunner());
+		stopThread = false;
 		mThread.start();
 	}
 
@@ -282,7 +276,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	class MyThreadRunner implements Runnable {
 		public void run() {
-			while (!Thread.currentThread().isInterrupted()) {
+			while (!stopThread) {
 				Message m = Message.obtain();
 				m.what = 0;
 				FindActivity.this.updateHandler.sendMessage(m);
@@ -335,6 +329,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	@Override
 	protected void onStop() {
 		super.onStop();
+		stopThread = true;
 //		mDbHelper.close();
 	}
 
@@ -607,10 +602,11 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		}
 		Log.i("Adhoc", "Sending:"+ obj.toString());
 		
-		if(AdhocClientActivity.adhocClient!=null)
+		/*if(AdhocClientActivity.adhocClient!=null)
 			AdhocClientActivity.adhocClient.send(obj.toString());
 		else if(PositMain.mAdhocClient!=null)
-			PositMain.mAdhocClient.send(obj.toString());
+			PositMain.mAdhocClient.send(obj.toString());*/
+		RWGService.send(obj.toString());
 	}
 
 

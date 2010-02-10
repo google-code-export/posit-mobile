@@ -21,13 +21,10 @@
  */
 package org.hfoss.posit;
 
-import org.hfoss.posit.adhoc.AdhocClient;
 import org.hfoss.posit.adhoc.RWGConstants;
 import org.hfoss.posit.adhoc.RWGService;
 import org.hfoss.posit.extension.InstanceSettingsReader;
-import org.hfoss.posit.sms.SahanaSMSActivity;
 import org.hfoss.posit.utilities.Utils;
-import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -36,10 +33,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -49,7 +44,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Toast;
 
 /**
  *  Implements the main activity and the main screen for the POSIT application. 
@@ -58,8 +52,10 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 
 	private static final int CONFIRM_EXIT=0;
 	private static final String TAG = "PositMain";
-	public static AdhocClient mAdhocClient;
+	//public static AdhocClient mAdhocClient;
 	public static WifiManager wifiManager;
+	public RWGService rwgService;
+	public Intent rwg;
 	
 	/**
 	 * Called when the activity is first created.  Sets the UI layout, adds
@@ -68,6 +64,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		rwgService =new RWGService();
 		setContentView(R.layout.main);
 
 		final Button addFindButton = (Button)findViewById(R.id.addFindButton);
@@ -194,11 +191,22 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			break;
 		case R.id.rwg_start:
 			wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
-			mAdhocClient = new AdhocClient(this);		
+			//mAdhocClient = new AdhocClient(this);		
+			rwg = new Intent(this, RWGService.class);
+	        //rwgService.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	        RWGService.setActivity(this);
+
+			startService(rwg);
 			break;
 		case R.id.rwg_end:
-			if(mAdhocClient!=null)  // Kill RWG if already running
-				mAdhocClient.end();
+			if(RWGService.isRunning())  // Kill RWG if already running
+				stopService(rwg);
+			try{
+				rwgService.killProcessRunning("./rwgexec");
+			}
+			catch(Exception e) {
+				Log.e(TAG,e.getClass().toString(),e);
+			}
 			Utils.showToast(this, "RWG Service Stopped");
 			break;
 		}
@@ -289,8 +297,8 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	 */
 	@Override
 	public void finish() {
-		if (mAdhocClient != null) {
-			mAdhocClient.end();
+		if (RWGService.isRunning()) {
+			stopService(rwg);
 			Utils.showToast(this, "RWGService stopped");
 		}
 		super.finish();
