@@ -63,21 +63,21 @@ class DAO {
 		$stmt->execute();
 		$result = $stmt->fetch(PDO::FETCH_NUM);
 		$time = $result[0];
-		Log::getInstance()->log("getDeltaFindsIds: Max Time = $time");
-		
-		//  If there is no MAX time, this is a new device, so get all Finds from other phones
+		Log::getInstance()->log("getDeltaFindsIds: Max Time = |$time|");
+                
+                //  If there is no MAX time, this is a new device, so get all Finds from other phones
 
-//        if (strcmp($time,"") == 0) {
+//		if (strcmp($time,"") == 0) {
 		if ($time == NULL) {
-           Log::getInstance()->log("getDeltaFindsIds: IF time = $time");
-           $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei != '$imei'") or die(mysql_error());
-        } else {
-           Log::getInstance()->log("getDeltaFindsIds: ELSE time = $time");
-           $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());
-        }
+			Log::getInstance()->log("getDeltaFindsIds: IF time = $time");	
+		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei != '$imei'") or die(mysql_error());  
+                } else {
+			Log::getInstance()->log("getDeltaFindsIds: ELSE time = $time");	
+       		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
+                }
 
 		// Get a list of the Finds (guids) that have changed since the last update
-        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
+
 		while ($row = mysql_fetch_row($res)) {
 			$list .= "$row[0],";
 		}    				
@@ -261,7 +261,20 @@ class DAO {
 		$stmt->execute();
 		$temp = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		
+/********* Try to return the thumbnail
+		$stmt = $this->db->prepare("select imei, data_thumb from photo where guid = :id");
+		$stmt->bindValue(":id", $guid);
+		$stmt->execute();
+		$imageResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			
+		$find["images"] = array();
+		foreach($imageResult as $image) {
+			$img = "data:image/jpeg;base64," . base64_encode($image["data_thumb"]);
+			$find["img"] = $img;
+			$find["images"][] = $image["guid"];
+		}
 		
+**************/
 		
 /*********
 		foreach ($temp[0] as $key=>$value) {
@@ -272,11 +285,12 @@ class DAO {
 		$result[0]= $temp[0];
 		Log::getInstance()->log("getFind length of record: " . count($result[0]));
 
-/************
 		$result[0]["images"] = array();
 		
-		$stmt = $this->db->prepare("select id from photo where find_id = :id");
-		$stmt->bindValue(":id", $id);
+//		$stmt = $this->db->prepare("select id from photo where find_id = :id");
+//		$stmt->bindValue(":id", $id);
+		$stmt = $this->db->prepare("select id from photo where guid = :id");
+		$stmt->bindValue(":id", $guid);
 		$stmt->execute();
 		$imageResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -284,6 +298,7 @@ class DAO {
 			$result[0]["images"][] = $image["id"];
 		}
 		
+/************
 		$result[0]["audios"] = array();
 		$stmt = $this->db->prepare("select id from audio where find_id = :id");
 		$stmt->bindValue(":id", $id);
@@ -448,13 +463,14 @@ class DAO {
 		return $this->db->lastInsertId();
 	}
 	
-	function addExpeditionPoint($expeditionId, $latitude, $longitude, $altitude){
-		$stmt = $this->db->prepare("INSERT INTO gps_sample ( expedition_id, latitude, longitude , altitude, sample_time)" 
-		."VALUES (:expeditionId, :latitude, :longitude, :altitude, now() )");
+	function addExpeditionPoint($expeditionId, $latitude, $longitude, $altitude, $swath){
+		$stmt = $this->db->prepare("INSERT INTO gps_sample ( expedition_id, latitude, longitude , altitude, swath, sample_time)" 
+		."VALUES (:expeditionId, :latitude, :longitude, :altitude, :swath, now() )");
 		$stmt->bindValue(":expeditionId", $expeditionId);
 		$stmt->bindValue(":latitude", $latitude);
 		$stmt->bindValue(":longitude", $longitude);
 		$stmt->bindValue(":altitude", $altitude);
+		$stmt->bindValue(":swath", $swath);
 		$stmt->execute();
 		return $this->db->lastInsertId();
 		//return $stmt->execute() > 0;
@@ -801,12 +817,15 @@ class DAO {
 	 * @param unknown_type $authKey
 	 */
 	function registerDevicePending($userId, $authKey) {
+		print_r(array($userId, $authKey));
 		Log::getInstance()->log("registerDevicePending: $userId, $authKey");
 		if(!$userId || !$authKey) return false;
 		$stmt = $this->db->prepare(
 			"INSERT INTO device (user_id, auth_key, add_time)
 			 VALUES (:userId, :authKey, now())"
 		);
+		print_r(mysql_error());
+
 		$stmt->bindValue(":userId", $userId);
 		$stmt->bindValue(":authKey", $authKey);
 		$stmt->execute();
