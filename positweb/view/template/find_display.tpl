@@ -1,22 +1,29 @@
 {include file="header.tpl" title=$find.name tab="projects"}
-<h2>{$find.name}</h2>
 <p><a href="project.display?id={$find.project_id}">All Finds</a></p>
+<h2>Name: {$find.name}</h2>
 <div class="find_details">
-	<h3>Description:</h3>
-	<div class="find_description">{$find.description}</div>
+<!-- 	<div class="find_img"><IMG src={$find.img} width="40" height="40"></div>  -->
+	<p><b>GUID: </b>{$find.barcode_id}
+	<br><b>Description: </b>{$find.description}
+	<br><b>Project: </b>{$project.name}
+	<br><b>Time Added: </b>{$find.add_time}
+	<br><b>Location: </b> [Longitude={$find.longitude},  Latitude={$find.latitude}]
+
+<!-- 	<div class="find_description">{$find.description}</div> 
 	
-	<h3>Project:</h3>
-	<div class="find_project">{$project.name}</div>
+	<h3>Project:
+	<div class="find_project">{$project.name}</div></h3>
 	
 	<h3>Time Added:</h3>
 	<div class="find_add_time">{$find.add_time}</div>
-	<h3> Barcode:</h3>
+	<h3> GUID:</h3>
 	<div class="associated_barcode">{$find.barcode_id}</div>
 	<h3>Location:</h3>
 	<div class="find_location">
 		Longitude: {$find.longitude}
 		Latitude: {$find.latitude}
 	</div>
+--------  -->
 	<div class="map-display">
 	<img src="http://maps.google.com/maps/api/staticmap?zoom=14&size=256x256&markers=color:red|{$find.latitude},{$find.longitude}&sensor=false&key={$smarty.const.GOOGLE_MAPS_KEY}"/>
 	
