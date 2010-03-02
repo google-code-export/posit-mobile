@@ -37,7 +37,8 @@
     	Please go to settings/register_device on the POSIT server site, then click on 
     	the button below to register your device.</string>
     <string name="registered">This device has already been registered to the server below.  
-    	If you would like to change which server you would like to be registered to, go to that server's register device page and then click on the button below.</string>
+    	If you would like to change which server you would like to be registered to, go to that 
+    	server\'s register device page and then click on the button below.</string>
     
     <!-- Tab Strings -->
     <string name="tt_view_finds">Finds</string>
