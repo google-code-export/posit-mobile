@@ -453,10 +453,11 @@ public class Utils {
 	public static boolean isConnected(Context mContext) {
 		ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = cm.getActiveNetworkInfo();
-		return info.isConnected();
-//		if (info ==  null)
-//			return false;
-//		else return true;
+		
+		if (info ==  null)
+			return false;
+		else 
+			return info.isConnected();
 	}
 	
 	  public static String getTimestamp() {
