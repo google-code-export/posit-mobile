@@ -81,10 +81,12 @@ function webController($path, $request) {
 				if($result === REGISTRATION_EMAILEXISTS)
 					errorMessage("That email address already exists.");
 				$_SESSION["loggedIn"] = true;
+				$_SESSION["loginId"] = $result[0];
 				$_SESSION["loginEmail"] = $email;
 				header("Location: main");
 				break;
 			case 'projects':
+//			        print_r($_SESSION);
 				$projects = $dao->getProjects();
 				$smarty->assign("projects", $projects);
 				$smarty->display("projects.tpl");
@@ -139,9 +141,9 @@ function webController($path, $request) {
 				$project = $dao->getProject($project_id);;
 				
 				
-				$smarty->assign("images",$find["images"]);
-				$smarty->assign("videos",$find["videos"]);
-				$smarty->assign("audioClips",$find["audioClips"]);
+//				$smarty->assign("images",$find["images"]);
+//				$smarty->assign("videos",$find["videos"]);
+//				$smarty->assign("audioClips",$find["audioClips"]);
 				$smarty->assign("project", $project);
 				$smarty->assign("find", $find);
 				$smarty->display("find_display.tpl");
