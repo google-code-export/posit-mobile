@@ -107,7 +107,7 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 				mRadio.addView(button);
 			}
 		} else {
-			this.reportNetworkError("Null project list returned");
+			this.reportNetworkError("Null project list returned.\nCheck network connection.");
 		}
 	}
 	

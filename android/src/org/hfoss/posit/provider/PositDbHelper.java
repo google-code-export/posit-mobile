@@ -489,7 +489,7 @@ public class PositDbHelper extends SQLiteOpenHelper {
 
 			// Select the revision number and increment it
 			Cursor c = mDb.rawQuery("SELECT " + FINDS_REVISION + " FROM " + FINDS_TABLE
-					+ " WHERE " + FINDS_GUID + "=" + guId, null);
+					+ " WHERE " + FINDS_GUID + "='" + guId + "'", null);
 			c.moveToFirst();
 			int revision = c.getInt(c.getColumnIndex(FINDS_REVISION));
 			++revision;
@@ -504,7 +504,7 @@ public class PositDbHelper extends SQLiteOpenHelper {
 
 			// Timestamp the time_modify field in the Find table (by default)
 			mDb.execSQL(TIMESTAMP_FIND_UPDATE 
-  			+ " WHERE " + FINDS_GUID + " = " + guId); 
+  			+ " WHERE " + FINDS_GUID + " = '" + guId + "'"); 
 			
 			// Timestamp the update action in the find_history table
 			boolean logOk = logFindHistory(guId, "update");    
