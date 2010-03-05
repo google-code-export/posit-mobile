@@ -138,6 +138,12 @@ public class Communicator {
 	 * @throws JSONException 
 	 */
 	public ArrayList<HashMap<String,Object>> getProjects(){
+		if (authKey.equals("")) {
+			Log.e(TAG, "getProjects() authKey == ");
+			Utils.showToast(mContext, "Aborting Communicator:\nPhone does not have a valid authKey."
+					+ "\nUse settings menu to register phone.");
+			return null;
+		}
 		String url = server + "/api/listOpenProjects?authKey=" + authKey;
 		ArrayList<HashMap<String, Object>> list;
 		responseString = doHTTPGET(url);
