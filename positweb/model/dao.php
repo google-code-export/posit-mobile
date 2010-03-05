@@ -360,10 +360,11 @@ class DAO {
 		Log::getInstance()->log("getPicture: $pictureId");
 
 		$stmt = $this->db->prepare(
-			"select id,find_id,mime_type,data_full,data_thumb from photo
+			"select id,guid,mime_type,data_full,data_thumb from photo
 			where id = :id"
 			
 		);
+//		print_r($this->db->errorInfo());
 		$stmt->bindValue(':id', $pictureId);
 		$stmt->execute();
 		return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -778,7 +779,8 @@ class DAO {
 		$stmt->bindValue(":email", $email);
 		$stmt->bindValue(":password", $password);
 		$stmt->execute();
-		return true;
+//		return true;
+		return array($this->db->lastInsertId());
 	}
 	/**
 	 * get all the devices the user has registered
@@ -817,7 +819,7 @@ class DAO {
 	 * @param unknown_type $authKey
 	 */
 	function registerDevicePending($userId, $authKey) {
-		print_r(array($userId, $authKey));
+//		print_r(array($userId, $authKey));
 		Log::getInstance()->log("registerDevicePending: $userId, $authKey");
 		if(!$userId || !$authKey) return false;
 		$stmt = $this->db->prepare(
