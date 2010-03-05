@@ -84,7 +84,7 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 		if (!Utils.isConnected(this)) {
 			reportNetworkError("No Network connection ... exiting");
 			return;
-		}
+		} 
 		Communicator comm = new Communicator(this);
 		try{
 			projectList = comm.getProjects();

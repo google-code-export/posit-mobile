@@ -46,6 +46,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.res.Configuration;
 import android.location.Criteria;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -100,7 +101,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	private double mAltitude = 0;
 	private long mSwath = DEFAULT_SWATH_WIDTH;
 	
-	private Communicator communicator;
+	private Communicator mCommunicator;
 
 	private TextView mLocationTextView;
 	private TextView mStatusTextView;
@@ -132,7 +133,8 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	private int mExpeditionNumber;
 	private int mProjId;
 	private int mPoints;
-	private boolean hasService;
+	private boolean hasNetworkService;
+	private boolean hasGpsService;
 
 	/**
 	 * Handles GPS updates.  The handleMessage() method is called repeatedly from
@@ -172,7 +174,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 			try {
 				mNetworkType = mConnectivityMgr.getActiveNetworkInfo().getType();
 				
-				String result = communicator.registerExpeditionPoint(mLatitude, mLongitude, mAltitude, mSwath, mExpeditionNumber);
+				String result = mCommunicator.registerExpeditionPoint(mLatitude, mLongitude, mAltitude, mSwath, mExpeditionNumber);
 				mPoints++;
 
 				// Calls updateDisplay in the main (UI) thread to update the View
@@ -184,6 +186,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 			} catch (Exception e) {
 				Log.i(TAG, "Error handleMessage " + e.getMessage());
 				e.printStackTrace();
+				finish();
 			}
 			
 			
@@ -215,23 +218,144 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		Log.i(TAG, "onCreate()");
+			
 		setContentView(R.layout.tracker);
 		mLocationTextView = (TextView)findViewById(R.id.trackerLocation);
 		mStatusTextView = (TextView)findViewById(R.id.trackerStatus);
 		mExpeditionTextView = (TextView)findViewById(R.id.trackerExpedition);
 		mPointsTextView = (TextView)findViewById(R.id.trackerPoints);
 		mSwathTextView = (TextView)findViewById(R.id.trackerSwath);
-
 		linearLayout = (LinearLayout) findViewById(R.id.zoomview);
 		mMapView = (MapView) findViewById(R.id.mapFinds);
 		mZoom = (ZoomControls) mMapView.getZoomControls();
 		linearLayout.addView(mZoom);
+		if (!doSetup()) {
+			finish();
+			return;
+		}
+		else if (!checkAllServices()) {
+			finish();
+			return;
+		}
+		else 
+			updateView();
+	}
+	
+	
+	
+	/**
+	 * Intercepts configuration change notices so the Activity does not restart when the
+	 *  phone's orientation (horizontal, vertical) is changed.
+	 * @see android.app.Activity#onConfigurationChanged(android.content.res.Configuration)
+	 */
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		Log.i(TAG,"onConfigChanged()");
+//		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)
+//			setContentView(R.layout-land.tracker);
+//		else
+//			setContentView(R.layout.tracker);
+		// TODO Auto-generated method stub
+		super.onConfigurationChanged(newConfig);
+	}
 
-		doSetup();
-		boolean hasService = setProviderInitializeLocation();
+	/**
+	 * Checks for network service, location provider, and that the phone's current
+	 *  location can be determined, returning false if any of those fail.
+	 * @return
+	 */
+	private boolean checkAllServices() {
+		Log.i(TAG,"checkAllServices()");
+		hasNetworkService = setNetworkType();
+		if (!hasNetworkService)
+			return false;
+		else if (!(hasGpsService = setLocationProvider()))
+			return false;
+//		else if ((mLocation = setInitialLocation()) == null){
+//			return false;
+//		} 
+		else {
+			mLocation = setInitialLocation();
+			return true;
+		}
+	}
+	
+	
+	/* (non-Javadoc)
+	 * Deal here with the user leaving the Tracker. Most importantly, 
+	 * any changes made by the user should at this point be committed
+	 * @see com.google.android.maps.MapActivity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+	}
+
+
+
+
+	/* (non-Javadoc)
+	 * @see com.google.android.maps.MapActivity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		Log.i(TAG,"onResume()");
+		// TODO Auto-generated method stub
+		super.onResume();
 		updateView();
 	}
+
+//  NOTE: Couldn't get this to work properly at starting/stopping the background
+//  thread. Instead we implement onConfigurationChanged() to intercept orientation
+//  changes. 	
+//	/**
+//	 * Saves the Tracker's state when the keyboard is open or the orientation
+//	 *  is changed (horizontal, vertical) on Nexus.
+//	 */
+//	@Override
+//	protected void onSaveInstanceState(Bundle outState) {
+//		Log.i(TAG, "onSave()");
+//
+//		outState.putDouble("longitude", mLongitude);
+//		outState.putDouble("latitude", mLatitude);
+//		outState.putDouble("altitude", mAltitude);
+//		outState.putInt("projid", mProjId);
+//		outState.putInt("points", mPoints);
+//		outState.putInt("expedition", mExpeditionNumber);
+//		outState.putInt("state",mState);
+//		outState.putBoolean("service", hasNetworkService);
+//		outState.putBoolean("gps", hasGpsService);
+//		outState.putParcelable("location", mLocation);
+//		updateState(PAUSED);
+//
+//		//stopTracking();
+//		super.onSaveInstanceState(outState);
+//	}
+//	
+//	/**
+//	 * Restores the Tracker's state after the keyboard is opened/closed or
+//	 *  orientation (horizontal, vertical) is changed in Nexus.
+//	 */
+//	@Override
+//	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+//		super.onRestoreInstanceState(savedInstanceState);
+//		Log.i(TAG, "onRestore()");
+//		mLongitude = savedInstanceState.getDouble("longitude");
+//		mLatitude = savedInstanceState.getDouble("latitude");
+//		mAltitude = savedInstanceState.getDouble("altitude");
+//		mProjId = savedInstanceState.getInt("projid");
+//		mPoints = savedInstanceState.getInt("points");
+//		mState = savedInstanceState.getInt("state");
+//		hasNetworkService = savedInstanceState.getBoolean("service");
+//		hasGpsService = savedInstanceState.getBoolean("gps");
+//		mExpeditionNumber = savedInstanceState.getInt("expedition");
+//		mLocation = (Location)savedInstanceState.getParcelable("location");
+//	    mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+//		updateState(RUNNING);
+//		startTracking();
+//	} 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -264,16 +388,17 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.start_tracking_menu_item:
+			mExpeditionNumber = registerExpedition();
 			startTracking();
 			//Utils.showToast(this, "Expedition number " + mExpeditionNumber);
 			break;
-		case R.id.back_to_main_menu_item:
-			// TODO: This should be handled in a better way, utilizing the Android lifecycle
-			// This approach appears to add another instance of PositMain to the Activity stack
-			// rather than returning to the parent.  Possible approach:  Have the Tracker save
-			// it's state and then return.
-			startActivity(new Intent(this,PositMain.class));
-			break;
+//		case R.id.back_to_main_menu_item:
+//			// TODO: This should be handled in a better way, utilizing the Android lifecycle
+//			// This approach appears to add another instance of PositMain to the Activity stack
+//			// rather than returning to the parent.  Possible approach:  Have the Tracker save
+//			// it's state and then return.
+//			startActivity(new Intent(this,PositMain.class));
+//			break;
 			//			case R.id.new_expedition_menu_item:
 			////				registerExpedition();
 			//				break;
@@ -292,8 +417,8 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 * @return
 	 */
 	private int registerExpedition() {
-		communicator = new Communicator(this);
-		return communicator.registerExpeditionId(mProjId);
+		mCommunicator = new Communicator(this);
+		return mCommunicator.registerExpeditionId(mProjId);
 	}
 
 	/**
@@ -375,8 +500,10 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 */
 	@Override
 	public void finish() {
+		Log.i(TAG,"finish()");
 		super.finish();
-		stopTracking();
+		if (mState != IDLE)
+			stopTracking();
 	}
 
 	/**
@@ -390,7 +517,8 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 			Utils.showToast(this, "Stopped tracking thread");
 //			this.unregisterReceiver(this);  // Unsuccessful attempt to get rid of Intent leak
 			mLocationManager.removeUpdates(this); // Stop location manager updates
-		}
+		} else
+			Log.i(TAG,"stopTacking() mLocationManager = null");
 		if (mNotificationManager != null) {
 			mNotificationManager.cancel(NOTIFY_TRACKER_ID);
 		}
@@ -405,19 +533,12 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 */
 	private void startTracking() {
 		// Check that we have service
-		if (!hasService) {  
-			hasService = setProviderInitializeLocation();
+		if (!checkAllServices()) {
+			finish();
+			return;
 		}
-		if (hasService) {
-			hasService = startLocationUpdateService(mProvider);
-		}
-		if (hasService) {
-			mExpeditionNumber = registerExpedition();
-		}
-		if (!hasService || mExpeditionNumber == -1) {
-			Utils.showToast(this, "Exiting: Network error.\nCheck your network connection.");
-			stopTracking();
-		}
+
+		startLocationUpdateService(mProvider);
 		notifyUser();
 		updateState(RUNNING);
 		updateView();
@@ -459,7 +580,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	/**
 	 * Updates the Tracker's state and saves the state in SharedPreferences.  It is 
 	 * important that this method be called with argument IDLE before exiting in order
-	 *  to enable the Tracker menue when PositMain starts up again.
+	 *  to enable the Tracker menu when PositMain starts up again.
 	 *  
 	 * @param state an integer representation of the state (IDLE, PAUSED or RUNNING)
 	 */
@@ -484,6 +605,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 * Updates the Tracker's View, including the MapView portion. 
 	 */
 	private void updateView() {
+		Log.i(TAG,"updateView(), mPoints = " + mPoints);
 		mExpeditionTextView.setText(" "+mExpeditionNumber);
 		String s = " Idle ";
 		if (mState == RUNNING) 
@@ -491,7 +613,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 		else if (mState == PAUSED)
 			s = " Paused ";
 		String netStr = (mNetworkType == ConnectivityManager.TYPE_WIFI) ? " WIFI" : " MOBILE";
- 		mStatusTextView.setText(s + " (Provider = " + mProvider 
+ 		mStatusTextView.setText(s + " (GPS = " + mProvider 
 				+ ", Ntwk = " + netStr + ")");
 		mPointsTextView.setText("  " + mPoints);
 		mSwathTextView.setText(" " + mSwath);
@@ -514,60 +636,92 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 * Location service. Called from onCreate().
 	 * 
 	 */
-	private void doSetup() {
+	private boolean doSetup() {
+		Log.i(TAG, "doSetup()");
 	    mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 	    spEditor = mPreferences.edit();
 		mProjId = mPreferences.getInt("PROJECT_ID", 0);	
-		
-		mConnectivityMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-		mNetworkType = mConnectivityMgr.getActiveNetworkInfo().getType();
+		if (mProjId == 0) {
+			Utils.showToast(this, "Aborting Tracker:\nDevice must be registered with a project.");
+			return false;
+		}
 
 		updateState(IDLE);
 		mPoints = 0;
 		mSwath = DEFAULT_SWATH_WIDTH;
+		return true;
 	}
 
+	/**
+	 * Sets the connectivity to WIFI or MOBILE or returns false.
+	 * @return
+	 */
+	private boolean setNetworkType() {
+		// Check for network connectivity
+		mConnectivityMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+		NetworkInfo info = mConnectivityMgr.getActiveNetworkInfo();
+		if (info == null) {
+			Log.e(TAG, "setNetworkType() unable to acquire CONNECTIVITY_SERVICE");
+			Utils.showToast(this, "Aborting Tracker: No Active Network.\nYou must have WIFI or MOBILE enabled.");
+			return false;
+		}
+		mNetworkType = info.getType();
+		Log.i(TAG, "setNetworkType(), active network type = " + mConnectivityMgr.getActiveNetworkInfo().getTypeName());
+		return true;
+	}
+	
 	/**
 	 * Sets the Find's location to the last known location and sets the
 	 * provider to either GPS, if enabled, or network, if enabled.
 	 */
-	private boolean setProviderInitializeLocation() {
-		ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-		NetworkInfo info = cm.getActiveNetworkInfo();
-		if (info == null) {
-			Log.e(TAG, "setProviderInitializeLocation unable to acquire CONNECTIVITY_SERVICE");
-			Utils.showToast(this, "Exiting: No Active Network.");
-			return false;
-		}
-		Log.i(TAG, "setProvider, active network type = " + cm.getActiveNetworkInfo().getTypeName());
+	private boolean setLocationProvider() {
+		Log.i(TAG, "setLocationProvider...()");
+	
+		// Check for Location service
 		mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		
 		List<String> providers = mLocationManager.getProviders(ENABLED_ONLY);
 		mProvider = NO_PROVIDER;
 		if (providers.contains(LocationManager.GPS_PROVIDER)) {
 			mProvider = LocationManager.GPS_PROVIDER;
-		} else if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+		} 
+		else if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
 			mProvider = LocationManager.NETWORK_PROVIDER;
 		}
 		if (mProvider.equals(NO_PROVIDER)) {
-			Utils.showToast(this, "Exiting: " + NO_PROVIDER);
+			Utils.showToast(this, "Aborting Tracker: " +  
+					NO_PROVIDER +  "\nYou must have GPS enabled. ");
 			return false;
 		}
+		Log.i(TAG, "setLocationProvider()= " + mProvider);
+		return true;
+	}
 
+	/**
+	 * Sets the phone's last known location.
+	 * @return
+	 */
+	private Location setInitialLocation() {
+		Log.i(TAG, "setInitialLocation() " + mProvider);
+		mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		mLocation = mLocationManager.getLastKnownLocation(mProvider);
 		if (mLocation != null) {
 			mLongitude = mLocation.getLongitude();
 			mLatitude = mLocation.getLatitude();
 			mAltitude = mLocation.getAltitude();
 			Log.i(TAG, "Location= " + mLatitude + "," + mLongitude);
+		} else {
+			Log.e(TAG, "Location= NULL" + mLatitude + "," + mLongitude);
+//			Utils.showToast(this,"Aborting Tracker:\nUnable to obtain current location");
 		}
-		Log.i(TAG, "setProviderInitializeLocation " + mProvider + " " + mLocation.toString());
-		return true;
+		return mLocation;
 	}
 
 	/**
 	 * Starts the update service unless there is no provider available.
 	 */
 	private boolean startLocationUpdateService(String provider) {
+		Log.i(TAG, "startLocationUpdateService()");
 		if (provider.equals(NO_PROVIDER))
 			return false;
 
@@ -591,7 +745,7 @@ public class BackgroundTrackerActivity extends MapActivity implements LocationLi
 	 */
 	private void setCurrentGpsLocation(Location location) {
 		if (location == null) {
-			setProviderInitializeLocation(); // This sets the global mLocation used below
+			mLocation = setInitialLocation(); // This sets the global mLocation used below
 		}
 		if (Utils.debug) Log.i(TAG, "setCurrentGpsLocation , Provider = |" + mProvider + "|");
 
