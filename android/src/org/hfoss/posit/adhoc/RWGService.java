@@ -66,6 +66,10 @@ public class RWGService extends Service implements RWGConstants {
 	private char[] buff;
 	private String incoming ="";
 	
+	NotificationManager mNotificationManager;
+	
+	public static int newFindsNum = 0;
+	
 	
 	@Override
 	public void onCreate() {
@@ -321,10 +325,11 @@ public class RWGService extends Service implements RWGConstants {
 		super.onStart(intent, startId);
 		Log.i(TAG, "starting RWG");
 		//initRWG();
-		
+		long start = System.currentTimeMillis();
+		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		 Log.i(TAG, "Creating AdhocClient");
 	        mContext = ACTIVITY;
-	    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Random-Walk Gossip-Based Manycast", true,true);
+	    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Ad-hoc mode with RWG", true,true);
 			coretask = new CoreTask();
 			coretask.setPath(mContext.getApplicationContext().getFilesDir().getParent());
 			this.checkDirs();
@@ -579,6 +584,7 @@ public class RWGService extends Service implements RWGConstants {
     	//status = "Random-Walk Gossip-Based Manycast Active";
     	//statusHandler.post(statusUpdate);
     	mProgressDialog.dismiss();
+    	notifyRWGOn();
     	 return;     	
         }
     }
@@ -592,6 +598,7 @@ public class RWGService extends Service implements RWGConstants {
     		buff = new char[1];
     		
     		Log.i("THREAD",Thread.currentThread().getName());
+    		
     		while(!pipeOpen && !stopThread){
     			//Log.i("THREAD",Thread.currentThread().getName()+ " interrupted = "+netHandleIncomingThread.isInterrupted());
     			//Log.i(TAG, "Pipe not open");
@@ -682,7 +689,7 @@ public class RWGService extends Service implements RWGConstants {
 			Log.i(TAG, content.toString());
 			Find find = new Find(mContext);
 			find.insertToDB(content, null);
-			notifyUser(name,description);
+			notifyNewFind(name,description);
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		} catch (NumberFormatException e) {
@@ -690,15 +697,39 @@ public class RWGService extends Service implements RWGConstants {
 		}
 	}   
     
-    public void notifyUser(String name, String description) {
-    	NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    public void notifyRWGOn() {
+    	//int icon = R.drawable.notification_icon;        // icon from resources
+    	CharSequence tickerText = "Ad-hoc Mode On";              // ticker-text
+    	long when = System.currentTimeMillis();         // notification time
+    	Context context = getApplicationContext();      // application Context
+    	CharSequence contentTitle = "Ad-hoc mode";  // expanded message title
+
+    	Intent notificationIntent = new Intent(this, ListFindsActivity.class);
+    	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+    	// the next two lines initialize the Notification, using the configurations above
+    	Notification notification = new Notification(R.drawable.ic_menu_share, tickerText, when);
+    	notification.setLatestEventInfo(context, contentTitle, "RWG is running", contentIntent);
+    	notification.flags |= Notification.FLAG_ONGOING_EVENT;
+    	notification.flags |= Notification.FLAG_NO_CLEAR;
+    	mNotificationManager.notify(Utils.ADHOC_ON_ID, notification);
+    }
+    
+    public void notifyNewFind(String name, String description) {
+    	newFindsNum++;
+    	
     	//int icon = R.drawable.notification_icon;        // icon from resources
     	CharSequence tickerText = "New RWG Find";              // ticker-text
     	long when = System.currentTimeMillis();         // notification time
     	Context context = getApplicationContext();      // application Context
     	CharSequence contentTitle = "New RWG Find";  // expanded message title
-    	CharSequence contentText = "Name: "+name;      // expanded message text
-
+    	CharSequence contentText= "";
+    	if(newFindsNum==1) {
+    		contentText = "Name: "+name+" | Description: "+description;      // expanded message text
+    	}
+    	else {
+    		contentText = newFindsNum+" unviewed RWG Finds";
+    	}
     	Intent notificationIntent = new Intent(this, ListFindsActivity.class);
     	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 

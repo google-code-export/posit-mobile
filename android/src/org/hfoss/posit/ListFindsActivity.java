@@ -24,6 +24,7 @@ package org.hfoss.posit;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.hfoss.posit.adhoc.RWGService;
 import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
 
@@ -66,7 +67,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	private static final int CONFIRM_DELETE_DIALOG = 0;
 	public static final int FIND_FROM_LIST = 0;
 	private int project_id;
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 	private ArrayList<HashMap<String,String>> mFindsData = new ArrayList<HashMap<String,String>>();
 
 
@@ -103,6 +104,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		fillData();
 		NotificationManager nm = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
     	nm.cancel(Utils.NOTIFICATION_ID);
+    	RWGService.newFindsNum = 0;
 	}
 
 	/**

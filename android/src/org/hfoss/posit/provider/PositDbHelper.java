@@ -50,7 +50,7 @@ public class PositDbHelper extends SQLiteOpenHelper {
 	/*
 	 * Add new tables here.
 	 */
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 	private static final String DBName ="posit";
 	public static final int DBVersion = 2;
 	private static final String TAG = "PositDbHelper";
