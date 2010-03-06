@@ -30,7 +30,9 @@ import org.hfoss.posit.utilities.Utils;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.NotificationManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -99,6 +101,8 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		project_id = sp.getInt("PROJECT_ID", 0);
 		fillData();
+		NotificationManager nm = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+    	nm.cancel(Utils.NOTIFICATION_ID);
 	}
 
 	/**

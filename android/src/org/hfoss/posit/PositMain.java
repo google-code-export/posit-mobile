@@ -199,7 +199,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			startService(rwg);
 			break;
 		case R.id.rwg_end:
-			if(RWGService.isRunning())  // Kill RWG if already running
+			if(RWGService.isRunning() && rwg!=null)  // Kill RWG if already running
 				stopService(rwg);
 			try{
 				rwgService.killProcessRunning("./rwgexec");
@@ -297,10 +297,15 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	 */
 	@Override
 	public void finish() {
-		if (RWGService.isRunning()) {
+		if(RWGService.isRunning() && rwg!=null)  // Kill RWG if already running
 			stopService(rwg);
-			Utils.showToast(this, "RWGService stopped");
+		try{
+			rwgService.killProcessRunning("./rwgexec");
 		}
+		catch(Exception e) {
+			Log.e(TAG,e.getClass().toString(),e);
+		}
+		Utils.showToast(this, "RWG Service Stopped");
 		super.finish();
 	}
 

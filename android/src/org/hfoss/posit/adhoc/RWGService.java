@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.hfoss.posit.Find;
+import org.hfoss.posit.ListFindsActivity;
 import org.hfoss.posit.PositMain;
 import org.hfoss.posit.R;
 import org.hfoss.posit.utilities.Utils;
@@ -26,6 +27,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.ContentValues;
@@ -678,13 +682,39 @@ public class RWGService extends Service implements RWGConstants {
 			Log.i(TAG, content.toString());
 			Find find = new Find(mContext);
 			find.insertToDB(content, null);
-			
+			notifyUser(name,description);
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		} catch (NumberFormatException e) {
 			Log.e(TAG, e.toString());
 		}
 	}   
+    
+    public void notifyUser(String name, String description) {
+    	NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    	//int icon = R.drawable.notification_icon;        // icon from resources
+    	CharSequence tickerText = "New RWG Find";              // ticker-text
+    	long when = System.currentTimeMillis();         // notification time
+    	Context context = getApplicationContext();      // application Context
+    	CharSequence contentTitle = "New RWG Find";  // expanded message title
+    	CharSequence contentText = "Name: "+name;      // expanded message text
+
+    	Intent notificationIntent = new Intent(this, ListFindsActivity.class);
+    	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+    	// the next two lines initialize the Notification, using the configurations above
+    	Notification notification = new Notification(R.drawable.icon, tickerText, when);
+    	notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+    	notification.defaults |= Notification.DEFAULT_SOUND;
+    	notification.defaults |= Notification.DEFAULT_VIBRATE;
+    	notification.defaults |= Notification.DEFAULT_LIGHTS;
+    	notification.ledARGB = 0xff0000ff;
+    	notification.ledOnMS = 300;
+    	notification.ledOffMS = 1000;
+    	notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+    	notification.flags |= Notification.FLAG_AUTO_CANCEL;
+    	mNotificationManager.notify(Utils.NOTIFICATION_ID, notification);
+    }
 
 	public static void send(String sendMessage) {
 		try{
