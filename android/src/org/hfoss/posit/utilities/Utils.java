@@ -81,6 +81,7 @@ public class Utils {
 	private static final String TAG = "Utils";
 	public static ConnectivityManager conManage;
 	public static final int THUMBNAIL_TARGET_SIZE = 320;
+	public static final int NOTIFICATION_ID = 1234;
 	
 
 	
