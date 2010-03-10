@@ -23,9 +23,18 @@ package org.hfoss.posit;
 
 import java.util.List;
 
+//import org.hfoss.posit.TrackActivity.MyThreadRunner;
 import org.hfoss.posit.utilities.MyItemizedOverlay;
 import org.hfoss.posit.utilities.Utils;
 import org.hfoss.posit.web.Communicator;
+
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapController;
+import com.google.android.maps.MapView;
+import com.google.android.maps.Overlay;
+import com.google.android.maps.OverlayItem;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -36,10 +45,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
+import android.location.Criteria;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -55,13 +68,6 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ZoomControls;
-
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapActivity;
-import com.google.android.maps.MapController;
-import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
 
 /**
  * Tracks the phone's location in a background thread, sending period updates to 
