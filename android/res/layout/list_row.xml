@@ -21,9 +21,10 @@ android:orientation="horizontal">
 	android:id="@+id/name_id"  
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:singleLine="true"
 	android:textSize="20dp"
 	android:layout_marginLeft="3dp"
-	android:layout_marginRight="3dp"
+	android:layout_marginRight="70dp"
 	android:layout_toRightOf="@id/find_image"
 	android:layout_alignParentTop="true"/>
 	
@@ -39,9 +40,10 @@ android:orientation="horizontal">
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
 	android:layout_below="@id/name_id"
+	android:singleLine="true"
 	android:textSize="13dp"
 	android:layout_marginLeft="3dp"
-	android:layout_marginRight="3dp"
+	android:layout_marginRight="70dp"
 	android:layout_toRightOf="@id/find_image"
 	android:layout_marginBottom="3dp"/>
 		

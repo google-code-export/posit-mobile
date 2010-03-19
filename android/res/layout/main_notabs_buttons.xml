@@ -19,7 +19,7 @@
 			android:layout_height="wrap_content"
 			android:textSize="14sp"
 			android:textColor="#ffffff"
-			android:text="Version 0.5.0r alpha"
+			android:text="Version 0.6.0r alpha"
 			android:layout_marginBottom="10dp"/>
 		<Button
 			android:id="@+id/listFindButton"
