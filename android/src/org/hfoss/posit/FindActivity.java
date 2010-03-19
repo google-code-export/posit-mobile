@@ -21,6 +21,7 @@
  */
 package org.hfoss.posit;
 
+import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -30,6 +31,7 @@ import org.hfoss.posit.adhoc.RWGService;
 import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.ImageAdapter;
 import org.hfoss.posit.utilities.Utils;
+import org.hfoss.third.Base64Coder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -84,6 +86,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private Gallery mGallery;
 	private static boolean NEWFIND=true;
 	
+	
+	private String imageBase64String = null;
 	private boolean stopThread;
 	
 	//Temporary files representing pictures taken for a find
@@ -531,7 +535,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			Log.i("after retrive", (System.currentTimeMillis()-start)+"");
 			//if (IS_ADHOC)
 			if (RWGService.isRunning())
-				sendAdhocFind(contentValues);
+				sendAdhocFind(contentValues,null);//imageBase64String);
 			Log.i("after adhoc check", (System.currentTimeMillis()-start)+"");
 			
 			doSave(contentValues);
@@ -576,7 +580,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * network.  
 	 * @param contentValues
 	 */
-	private void sendAdhocFind(ContentValues contentValues) {
+	private void sendAdhocFind(ContentValues contentValues, String image) {
 		Utils.showToast(this, "sending ad hoc find");
 		
 		String longitude = contentValues.getAsString(getString(R.string.longitudeDB));
@@ -597,6 +601,8 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			obj.put("name", name);
 			obj.put("description", description);
 			obj.put("projectId", PROJECT_ID);
+			if(image!=null)
+				obj.put("image",image);
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		}
@@ -724,6 +730,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		case CAMERA_ACTIVITY: //for existing find: saves image to db when user clicks "attach"
 			rowId = data.getIntExtra("rowId", -1);
 			Bitmap tempImage = (Bitmap) data.getExtras().get("data");
+			
 			mTempBitmaps.add(tempImage);
 			
 			List<ContentValues> imageValues = Utils.saveImagesAndUris(this, mTempBitmaps);
@@ -741,6 +748,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		case NEW_FIND_CAMERA_ACTIVITY: //for new finds: stores temporary images in a list
 			rowId = data.getIntExtra("rowId", -1);
 			tempImage = (Bitmap) data.getExtras().get("data");
+			
+			//ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+			//tempImage.compress(Bitmap.CompressFormat.JPEG, 80, baos);  
+			//imageBase64String = new String(baos.toByteArray()); 
 			mTempBitmaps.add(tempImage);
 			displayGallery(mFindId);
 			break;

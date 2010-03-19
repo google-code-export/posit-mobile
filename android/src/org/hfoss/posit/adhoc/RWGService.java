@@ -21,7 +21,9 @@ import org.hfoss.posit.Find;
 import org.hfoss.posit.ListFindsActivity;
 import org.hfoss.posit.PositMain;
 import org.hfoss.posit.R;
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
+import org.hfoss.third.Base64Coder;
 import org.hfoss.third.CoreTask;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +39,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.os.Looper;
@@ -332,6 +336,7 @@ public class RWGService extends Service implements RWGConstants {
 	    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Ad-hoc mode with RWG", true,true);
 			coretask = new CoreTask();
 			coretask.setPath(mContext.getApplicationContext().getFilesDir().getParent());
+			Log.i("path",coretask.DATA_FILE_PATH);
 			this.checkDirs();
 			boolean filesetOutdated = coretask.filesetOutdated();
 	        if (binariesExists() == false || filesetOutdated) {
@@ -653,13 +658,29 @@ public class RWGService extends Service implements RWGConstants {
     	 }
     }
     
+    String bigFind = "";
+    boolean isBig = false;
     private void parseAndSave(String incoming) {
     	Log.i(TAG, "Parsing string:"+incoming);
-    	int index = incoming.indexOf("{");
-    	if(index!=-1)
-    		incoming = incoming.substring(index);
-    	Log.i(TAG, "Parsing string:"+incoming);
+    	if(incoming.charAt(0)=='<'){
+    		int index = incoming.indexOf("{");
+    		if(index!=-1)
+    			incoming = incoming.substring(index);
+    		Log.i(TAG, "Parsing string:"+incoming);
+    	}
+    	/*Log.i(TAG,incoming.charAt(incoming.length()-1)+"");
+    	if(incoming.charAt(incoming.length()-1)!=')') {
+    		isBig = true;
+    	}
+    	if(isBig) {
+    		bigFind+=incoming;
+    		Log.i(TAG,"receiving find");
+    		return;
+    	}*/
+    	
 		try {
+			/*if(isBig)
+				incoming = bigFind;*/
 			JSONObject obj = new JSONObject(incoming);
 			ContentValues content = new ContentValues();
 			String longStr = obj.getString("findLong");
@@ -686,10 +707,41 @@ public class RWGService extends Service implements RWGConstants {
 //			content.put("sid", findId);
 			content.put("guid", findId);
 			
-			Log.i(TAG, content.toString());
+//			ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
+//			Log.i(TAG, content.toString());
+//			String imageEncoded = null;
+//			try {
+//				 imageEncoded = obj.getString("image");
+//			}
+//			catch(Exception e) {
+//				Log.e(TAG, "error",e);
+//			}
+//			
+//			
+//			try {
+////				String guid = (String) image.get(PositDbHelper.FINDS_GUID);
+//				ContentValues photoCv = new ContentValues();
+//				photoCv.put(PositDbHelper.PHOTOS_MIME_TYPE, "image/jpeg");
+//				photoCv.put(PositDbHelper.FINDS_PROJECT_ID, projectId+"");
+//				photoCv.put(PositDbHelper.PHOTOS_IDENTIFIER, findId);
+//
+//				//Log.i("The IMAGE DATA", fullData);
+//				byte[] data = Base64Coder.decode(imageEncoded);
+//				Bitmap imageBM = BitmapFactory.decodeByteArray(data, 0, data.length);
+//				Log.i("The Bitmap To Save", imageBM.toString());
+//				bitmaps.add(imageBM);
+//				Log.i(TAG, "bitmap saved!");	
+//			}
+//			catch (Exception e){
+//				Log.d(TAG, ""+e);
+//			}
+		
 			Find find = new Find(mContext);
 			find.insertToDB(content, null);
+//			Utils.saveImagesAndUris(mContext, bitmaps);
 			notifyNewFind(name,description);
+//			if(incoming.charAt(incoming.length()-1)==')')
+//	    		isBig=false;
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		} catch (NumberFormatException e) {
