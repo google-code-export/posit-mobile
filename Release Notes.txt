@@ -1,4 +1,31 @@
-Version 0.5 Alpha
+
+=== Version 0.6 Alpha ===
+
+New Features
+
+    * RWG performance is more robust and it has an improved user interface.  In RWG mode an icon appears in the notification bar. The UI provides 
+notification when Finds are received in ad-hoc mode (vibrates, lights up, sound).
+    * Synchronization is now down in a separate thread and is a bit faster.
+    * Coverage Tracker runs in a separate thread and can run in the background while using other POSIT and phone features. 
+    * Positweb contains addition features to display projects, finds, maps, coverage tracks.
+
+Resolved Issues
+
+    * Projects menu is now scrollable and indicates which project you currently have selected.
+    * Projects menu is no longer populated with duplicate entries when you resume POSIT after leaving the application.
+    * The Finds display truncates long names and descriptions.
+    * Find IDs are now represented as strings and no longer fail for long numbers.
+
+Known Issues
+
+    * RWG occasionally hangs on start up because of an unresolved buffer issue.  The workaround is to restart POSIT and/or the phone itself if start 
+up takes more than 2 minutes.
+    * The synchronization module downloads duplicate copies of photos usually on the first time the phone is synched with the server.
+    * RWG still requires a rooted dev phone with a  non-standard kernel.  It currently does not run on Android 2.1.  
+    * Finds that have IDs containing letters are not correctly reported as synced.
+
+
+=== Version 0.5 Alpha ====
 
 	Features:
 		Application automatically selects the sandbox project
@@ -17,7 +44,9 @@ Version 0.5 Alpha
 	Known Problems:
 		The RWG implementation isn't stable yet.
 		
-	Developers (no particular order):
+
+
+Contributors (no particular order):
 		Prasanna Gautam
 		Christopher Fei
 		Antonio Alcorn
@@ -26,5 +55,6 @@ Version 0.5 Alpha
 		Phil Fritzche
 		James Jackson
 		Knah Pham
-	
+		Trishan de Lanerolle
+		Ralph Morelli	
 
