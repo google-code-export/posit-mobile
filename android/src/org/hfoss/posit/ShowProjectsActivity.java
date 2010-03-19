@@ -58,6 +58,7 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 
 	private ArrayList<HashMap<String, Object>> projectList;
 	private RadioGroup mRadio;	
+	private int currentProjectId;
 
 	/**
 	 * Called when the activity is first started.  Shows a list of 
@@ -67,7 +68,10 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		currentProjectId = sp.getInt("PROJECT_ID", 0);
 		setContentView(R.layout.list_projects); 
+		tryToRegister();
 	}
 
 
@@ -77,7 +81,7 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 	@Override
 	protected void onResume() {
 		super.onResume();
-		tryToRegister();
+	//	tryToRegister();
 	}
 
 	private void tryToRegister() {
@@ -97,13 +101,16 @@ public class ShowProjectsActivity extends Activity implements View.OnClickListen
 		if (projectList != null) {
 			mRadio = (RadioGroup) findViewById(R.id.projectsList);
 			Iterator<HashMap<String, Object>> it = projectList.iterator();
-
 			for(int i = 0; it.hasNext(); i++) {
+				HashMap<String,Object> next = it.next();
 				RadioButton button = new RadioButton(this);
 				button.setId(i);
-
 				button.setOnClickListener(this);
-				button.setText((String)(it.next().get("name")));
+				button.setText((String)(next.get("name")));
+				int buttonProjectId = Integer.parseInt((String)next.get("id"));
+				// Toggle the radio button if it is the current project
+				if (buttonProjectId==currentProjectId)
+					button.toggle(); 
 				mRadio.addView(button);
 			}
 		} else {

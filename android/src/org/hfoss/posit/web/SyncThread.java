@@ -63,7 +63,7 @@ public class SyncThread extends Thread {
 	private SharedPreferences sp; 
 	private String server;
 	private String authKey;
-	private int projectid;
+	private int mProjectid;
 	private TelephonyManager manager; 
 	private String imei;
 	private Communicator comm;
@@ -160,15 +160,16 @@ public class SyncThread extends Thread {
 	public void run() {
 		boolean success = false;
 		mdbh = new PositDbHelper(mContext);
-
+ 
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		//		sp.setDefaultValues(mContext, R.xml.posit_preferences, false);
 		server=sp.getString("SERVER_ADDRESS", null);
 		authKey = sp.getString("AUTHKEY", null);
-		projectid = sp.getInt("PROJECT_ID", 0);
+		mProjectid = sp.getInt("PROJECT_ID", 0);
 		manager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		imei = manager.getDeviceId();
 		comm = new Communicator(mContext);
+		Log.i(TAG,"server="+server+" key="+authKey+" pid="+mProjectid+" imei="+imei);
 
 		// Wait here to make sure there is a WIFI connection
 		waitHere();
@@ -229,7 +230,7 @@ public class SyncThread extends Thread {
     private String getServerFindsNeedingSync() {
    	    String response="";
 		String url = "";
-		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei;
+		url = server + "/api/getDeltaFindsIds?authKey=" +authKey + "&imei=" + imei + "&projectId=" + mProjectid;
 		Log.i(TAG, "getDeltaFindsIds URL=" + url);
 		try {
 			response = comm.doHTTPGET(url);
