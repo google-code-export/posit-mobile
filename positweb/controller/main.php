@@ -1,6 +1,6 @@
 <?php
-if(file_exists("../../positconfig/config.php"))
-	require_once("../../positconfig/config.php");
+if(file_exists("config.php"))
+	require_once("config.php");
 else
 	die("[Error at server, main.php line 5]No configuration file found. Follow the instructions in config.sample.php and try again.");
 require_once("util/util.php");
