@@ -1,38 +1,22 @@
-====== Installation Info on POSIT ======
+==Installing Positweb==
 
-Things needed
+This guide assumes you have:
+- a webserver that supports URL rewriting; the standard Apache HTTPD is recommended
+- a MySQL database server
 
-Apache 2.0+ with mod_rewrite and mod_php5
-MySQL 5.0+
+1. Unpack the positweb archive somewhere in your server's document root.
+2. Set permissions so your server can write to the following folders:
+	positweb
+	positweb/cache
+	positweb/cache/compile
 
-Things to do
+	You can do this, for example, by issuing
+		$ chmod a+w positweb
+		$ chmod a+w positweb/cache
+		$ chmod a+w positweb/cache/compile
 
-- Copy the config.sample.php file as config.php
-- Create the username and password in the mysql database
-- dump the file positweb.sql into the database you create
-
-You need to have cache folder make writeable by the server
-Two ways:
- chown www-data:www-data cache -R
- chmod 777 cache -R
- 
-I prefer the first one giving all write access is bad idea
-if you want to change this, do it in controller/main.php
-
-Installing on Mac MAMP.  
-
-It is necessary to change the default apache/httpd.conf to including
-the following to allow for the Virtual Host.
-
-<Directory "/Applications/MAMP/htdocs">
-    Options All MultiViews
-    AllowOverride All 
-    RewriteEngine On
-    RewriteBase /
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php?q=$1 [L,QSA]
-
-    Order allow,deny
-    Allow from all
-</Directory>
+3. Create a MySQL user to be used by positweb
+3. Create a MySQL database for positweb, which the user can access
+	You can complete these steps using a MySQL interface such as MySQL Query Browser or PhpMyAdmin.
+4. In your web browser, browse to the URL corresponding to where you unpacked the positweb archive
+5. Follow the instructions to complete the installation.
