@@ -16,7 +16,7 @@ This guide assumes you have:
 		$ chmod a+w positweb/cache/compile
 
 3. Create a MySQL user to be used by positweb
-3. Create a MySQL database for positweb, which the user can access
+4. Create a MySQL database for positweb, which the user can access
 	You can complete these steps using a MySQL interface such as MySQL Query Browser or PhpMyAdmin.
-4. In your web browser, browse to the URL corresponding to where you unpacked the positweb archive
-5. Follow the instructions to complete the installation.
+5. In your web browser, browse to the URL corresponding to where you unpacked the positweb archive
+6. Follow the instructions on the webpage to complete the installation.
