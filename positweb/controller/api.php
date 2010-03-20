@@ -45,7 +45,8 @@ function apiController($path, $request, $files = null) {
 	
 	switch($action) {
 	    case 'getDeltaFindsIds':
-			echo $dao->getDeltaFindsIds($deviceIdentifier);
+//			echo $dao->getDeltaFindsIds($deviceIdentifier);
+			echo $dao->getDeltaFindsIds($deviceIdentifier, $request["projectId"]);
 			break;
 		case 'recordSync':
 			echo $dao->recordSync($deviceIdentifier);
@@ -67,7 +68,7 @@ function apiController($path, $request, $files = null) {
 		case 'addExpeditionPoint':
 			echo $request["expeditionId"].",";
 			echo $dao->addExpeditionPoint($request["expeditionId"],$request["lat"],
-				$request["lng"], $request["alt"], $request["swath"]);
+			$request["lng"], $request["alt"], $request["swath"]);
 			break;
 			
 			

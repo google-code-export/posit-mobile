@@ -53,7 +53,7 @@ class DAO {
 	 *  returns a comma-delimited list of all finds since last sync for a given device
 	 *  @param unknown_type $imei the device's id
 	 */
-	 function getDeltaFindsIds($imei) {
+	 function getDeltaFindsIds($imei, $pid) {
 	 	Log::getInstance()->log("getDeltaFindsIds: $imei");
 		
 		// Get the timestamp of the last sync with this device
@@ -70,11 +70,20 @@ class DAO {
 //		if (strcmp($time,"") == 0) {
 		if ($time == NULL) {
 			Log::getInstance()->log("getDeltaFindsIds: IF time = $time");	
-		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei != '$imei'") or die(mysql_error());  
+//		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei != '$imei'") or die(mysql_error());  
+		        $res = mysql_query(
+			"SELECT DISTINCT find_history.find_guid FROM find_history,find WHERE imei != '$imei' AND find.barcode_id=find_history.find_guid AND find.project_id = '$pid'") 
+			or die(mysql_error());  
                 } else {
 			Log::getInstance()->log("getDeltaFindsIds: ELSE time = $time");	
-       		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
+//       		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0") or die(mysql_error());  
+       		        $res = mysql_query(
+			"SELECT DISTINCT find_history.find_guid FROM find_history,find WHERE TIMESTAMPDIFF(SECOND,'$time',time) > 0 AND find.barcode_id=find_history.find_guid AND find.project_id = '$pid'") 
+			or die(mysql_error());  
                 }
+
+//SELECT DISTINCT find_history.find_guid FROM find_history, find WHERE find_history.imei != '351677030043731' AND find.barcode_id = find_history.find_guid AND find.project_id = 6
+
 
 		// Get a list of the Finds (guids) that have changed since the last update
 
