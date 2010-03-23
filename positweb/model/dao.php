@@ -72,7 +72,7 @@ class DAO {
 			Log::getInstance()->log("getDeltaFindsIds: IF time = $time");	
 //		        $res = mysql_query("SELECT DISTINCT find_guid FROM find_history WHERE imei != '$imei'") or die(mysql_error());  
 		        $res = mysql_query(
-			"SELECT DISTINCT find_history.find_guid FROM find_history,find WHERE imei != '$imei' AND find.barcode_id=find_history.find_guid AND find.project_id = '$pid'") 
+			"SELECT DISTINCT find_history.find_guid FROM find_history,find WHERE find_history.imei != '$imei' AND find.barcode_id=find_history.find_guid AND find.project_id = '$pid'") 
 			or die(mysql_error());  
                 } else {
 			Log::getInstance()->log("getDeltaFindsIds: ELSE time = $time");	
