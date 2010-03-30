@@ -54,6 +54,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -129,7 +131,23 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private static final int CONFIRM_EXIT=3;
 	private static final boolean ENABLED_ONLY = true;
 	private static final int THUMBNAIL_TARGET_SIZE = 320;
+	/* Listener for checking if the text has changed in any fields */
+	private TextWatcher textChangedWatcher= new TextWatcher(){
+		public void afterTextChanged(Editable s){
+			SAVE_CHECK=true;
+			Log.i(TAG, "Text Changed called");
+			}
 
+		public void beforeTextChanged(CharSequence arg0,
+				int arg1, int arg2, int arg3) {
+				//needed by the class
+			
+		}
+
+		public void onTextChanged(CharSequence s, int start,
+				int before, int count) {
+			//needed by the class
+		}};
 	/**
 	 * Handles GPS updates.  
 	 * Source: Android tutorials
@@ -196,7 +214,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			INTENT_CHECK=1;
 		} else if (action.equals(Intent.ACTION_INSERT)) {
 			doInsertAction();
-			SAVE_CHECK=true;
+
 		}
 	} // onCreate()
 
@@ -241,14 +259,19 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 */
 	public void doInsertAction() {
 		mState = STATE_INSERT;
+		Log.i(TAG, "doInsertAction");
 		TextView tView = (TextView) findViewById(R.id.timeText);
 		tView.setText(getDateText());
+		tView.addTextChangedListener(textChangedWatcher);
 		TextView idView = (TextView) findViewById(R.id.idText);
 		idView.setText("");
+		idView.addTextChangedListener(textChangedWatcher);
 		TextView nameView = (TextView) findViewById(R.id.nameText);
 		nameView.setText("");
+		nameView.addTextChangedListener(textChangedWatcher);
 		TextView descView = (TextView) findViewById(R.id.descriptionText);
 		descView.setText("");
+		descView.addTextChangedListener(textChangedWatcher);
 		initializeLocationAndStartGpsThread();
 	}
 
@@ -310,7 +333,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			mFind.setGuid(values.getAsString(PositDbHelper.FINDS_GUID));
 			displayContentInView(values);  
 		}
+		
+		
 		displayGallery(mFindId);
+		
 	}
 
 
@@ -445,30 +471,10 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 		finish();
 	}
 	
-	/**
-	 * This code checks whether or not the data has been changed. If the data has
-	 * been changed, a dialog pops up when you push the back button, reminding you
-	 * to save the data.
-	 */
-	private void checkSave(){
-		//action.equals(Intent.ACTION_EDIT)
 
-		EditText eText = (EditText) findViewById(R.id.nameText);
-		String value = eText.getText().toString();
-
-		eText = (EditText) findViewById(R.id.descriptionText);
-		String description = eText.getText().toString();
-
-		eText = (EditText) findViewById(R.id.idText);
-		String ID = eText.getText().toString();
-
-		if (valueName != null && valueName.equals(value) && valueDescription.equals(description) && valueId.equals(ID)) {
-			SAVE_CHECK=false;
-		} else {
-			SAVE_CHECK=true;
-		}
-	}
-
+	
+	
+	
 	/**
 	 * This method is used to close the current find activity
 	 * when the back button is hit.  We ran into problems with
@@ -493,8 +499,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 //		if (INTENT_CHECK==1) {
 //			checkSave();
 //		} 
-//		if(keyCode == KeyEvent.KEYCODE_BACK && SAVE_CHECK == true) {
-		if(keyCode == KeyEvent.KEYCODE_BACK) {
+
+		if(keyCode == KeyEvent.KEYCODE_BACK && SAVE_CHECK == true) {
+//		if(keyCode == KeyEvent.KEYCODE_BACK) {
 			showDialog(CONFIRM_EXIT);
 			return true;
 		}
