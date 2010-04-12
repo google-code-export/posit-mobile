@@ -25,9 +25,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.NetworkInfo.State;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
 
 /**
  * A wrapper for a broadcast receiver that provides network connectivity

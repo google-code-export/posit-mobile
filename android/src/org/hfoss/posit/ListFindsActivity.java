@@ -24,13 +24,16 @@ package org.hfoss.posit;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.hfoss.posit.adhoc.RWGService;
 import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.NotificationManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -64,7 +67,7 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 	private static final int CONFIRM_DELETE_DIALOG = 0;
 	public static final int FIND_FROM_LIST = 0;
 	private int project_id;
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 	private ArrayList<HashMap<String,String>> mFindsData = new ArrayList<HashMap<String,String>>();
 
 
@@ -99,6 +102,9 @@ public class ListFindsActivity extends ListActivity implements ViewBinder{
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		project_id = sp.getInt("PROJECT_ID", 0);
 		fillData();
+		NotificationManager nm = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+    	nm.cancel(Utils.NOTIFICATION_ID);
+    	RWGService.newFindsNum = 0;
 	}
 
 	/**

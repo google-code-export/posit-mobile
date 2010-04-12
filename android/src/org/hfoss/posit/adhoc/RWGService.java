@@ -18,14 +18,20 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.hfoss.posit.Find;
+import org.hfoss.posit.ListFindsActivity;
 import org.hfoss.posit.PositMain;
 import org.hfoss.posit.R;
+import org.hfoss.posit.provider.PositDbHelper;
 import org.hfoss.posit.utilities.Utils;
+import org.hfoss.third.Base64Coder;
 import org.hfoss.third.CoreTask;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.ContentValues;
@@ -33,6 +39,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.os.Looper;
@@ -61,6 +69,10 @@ public class RWGService extends Service implements RWGConstants {
 	private static BufferedWriter bw;
 	private char[] buff;
 	private String incoming ="";
+	
+	NotificationManager mNotificationManager;
+	
+	public static int newFindsNum = 0;
 	
 	
 	@Override
@@ -317,12 +329,14 @@ public class RWGService extends Service implements RWGConstants {
 		super.onStart(intent, startId);
 		Log.i(TAG, "starting RWG");
 		//initRWG();
-		
+		long start = System.currentTimeMillis();
+		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		 Log.i(TAG, "Creating AdhocClient");
 	        mContext = ACTIVITY;
-	    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Random-Walk Gossip-Based Manycast", true,true);
+	    	mProgressDialog = ProgressDialog.show(mContext, "Please wait", "Enabling Ad-hoc mode with RWG", true,true);
 			coretask = new CoreTask();
 			coretask.setPath(mContext.getApplicationContext().getFilesDir().getParent());
+			Log.i("path",coretask.DATA_FILE_PATH);
 			this.checkDirs();
 			boolean filesetOutdated = coretask.filesetOutdated();
 	        if (binariesExists() == false || filesetOutdated) {
@@ -575,6 +589,7 @@ public class RWGService extends Service implements RWGConstants {
     	//status = "Random-Walk Gossip-Based Manycast Active";
     	//statusHandler.post(statusUpdate);
     	mProgressDialog.dismiss();
+    	notifyRWGOn();
     	 return;     	
         }
     }
@@ -588,6 +603,7 @@ public class RWGService extends Service implements RWGConstants {
     		buff = new char[1];
     		
     		Log.i("THREAD",Thread.currentThread().getName());
+    		
     		while(!pipeOpen && !stopThread){
     			//Log.i("THREAD",Thread.currentThread().getName()+ " interrupted = "+netHandleIncomingThread.isInterrupted());
     			//Log.i(TAG, "Pipe not open");
@@ -642,13 +658,29 @@ public class RWGService extends Service implements RWGConstants {
     	 }
     }
     
+    String bigFind = "";
+    boolean isBig = false;
     private void parseAndSave(String incoming) {
     	Log.i(TAG, "Parsing string:"+incoming);
-    	int index = incoming.indexOf("{");
-    	if(index!=-1)
-    		incoming = incoming.substring(index);
-    	Log.i(TAG, "Parsing string:"+incoming);
+    	if(incoming.charAt(0)=='<'){
+    		int index = incoming.indexOf("{");
+    		if(index!=-1)
+    			incoming = incoming.substring(index);
+    		Log.i(TAG, "Parsing string:"+incoming);
+    	}
+    	/*Log.i(TAG,incoming.charAt(incoming.length()-1)+"");
+    	if(incoming.charAt(incoming.length()-1)!=')') {
+    		isBig = true;
+    	}
+    	if(isBig) {
+    		bigFind+=incoming;
+    		Log.i(TAG,"receiving find");
+    		return;
+    	}*/
+    	
 		try {
+			/*if(isBig)
+				incoming = bigFind;*/
 			JSONObject obj = new JSONObject(incoming);
 			ContentValues content = new ContentValues();
 			String longStr = obj.getString("findLong");
@@ -675,16 +707,97 @@ public class RWGService extends Service implements RWGConstants {
 //			content.put("sid", findId);
 			content.put("guid", findId);
 			
-			Log.i(TAG, content.toString());
+//			ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
+//			Log.i(TAG, content.toString());
+//			String imageEncoded = null;
+//			try {
+//				 imageEncoded = obj.getString("image");
+//			}
+//			catch(Exception e) {
+//				Log.e(TAG, "error",e);
+//			}
+//			
+//			
+//			try {
+////				String guid = (String) image.get(PositDbHelper.FINDS_GUID);
+//				ContentValues photoCv = new ContentValues();
+//				photoCv.put(PositDbHelper.PHOTOS_MIME_TYPE, "image/jpeg");
+//				photoCv.put(PositDbHelper.FINDS_PROJECT_ID, projectId+"");
+//				photoCv.put(PositDbHelper.PHOTOS_IDENTIFIER, findId);
+//
+//				//Log.i("The IMAGE DATA", fullData);
+//				byte[] data = Base64Coder.decode(imageEncoded);
+//				Bitmap imageBM = BitmapFactory.decodeByteArray(data, 0, data.length);
+//				Log.i("The Bitmap To Save", imageBM.toString());
+//				bitmaps.add(imageBM);
+//				Log.i(TAG, "bitmap saved!");	
+//			}
+//			catch (Exception e){
+//				Log.d(TAG, ""+e);
+//			}
+		
 			Find find = new Find(mContext);
 			find.insertToDB(content, null);
-			
+//			Utils.saveImagesAndUris(mContext, bitmaps);
+			notifyNewFind(name,description);
+//			if(incoming.charAt(incoming.length()-1)==')')
+//	    		isBig=false;
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		} catch (NumberFormatException e) {
 			Log.e(TAG, e.toString());
 		}
 	}   
+    
+    public void notifyRWGOn() {
+    	//int icon = R.drawable.notification_icon;        // icon from resources
+    	CharSequence tickerText = "Ad-hoc Mode On";              // ticker-text
+    	long when = System.currentTimeMillis();         // notification time
+    	Context context = getApplicationContext();      // application Context
+    	CharSequence contentTitle = "Ad-hoc mode";  // expanded message title
+
+    	Intent notificationIntent = new Intent(this, ListFindsActivity.class);
+    	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+    	// the next two lines initialize the Notification, using the configurations above
+    	Notification notification = new Notification(R.drawable.ic_menu_share, tickerText, when);
+    	notification.setLatestEventInfo(context, contentTitle, "RWG is running", contentIntent);
+    	notification.flags |= Notification.FLAG_ONGOING_EVENT;
+    	notification.flags |= Notification.FLAG_NO_CLEAR;
+    	mNotificationManager.notify(Utils.ADHOC_ON_ID, notification);
+    }
+    
+    public void notifyNewFind(String name, String description) {
+    	newFindsNum++;
+    	
+    	//int icon = R.drawable.notification_icon;        // icon from resources
+    	CharSequence tickerText = "New RWG Find";              // ticker-text
+    	long when = System.currentTimeMillis();         // notification time
+    	Context context = getApplicationContext();      // application Context
+    	CharSequence contentTitle = "New RWG Find";  // expanded message title
+    	CharSequence contentText= "";
+    	if(newFindsNum==1) {
+    		contentText = "Name: "+name+" | Description: "+description;      // expanded message text
+    	}
+    	else {
+    		contentText = newFindsNum+" unviewed RWG Finds";
+    	}
+    	Intent notificationIntent = new Intent(this, ListFindsActivity.class);
+    	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+    	// the next two lines initialize the Notification, using the configurations above
+    	Notification notification = new Notification(R.drawable.icon, tickerText, when);
+    	notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+    	notification.defaults |= Notification.DEFAULT_SOUND;
+    	notification.defaults |= Notification.DEFAULT_VIBRATE;
+    	notification.defaults |= Notification.DEFAULT_LIGHTS;
+    	notification.ledARGB = 0xff0000ff;
+    	notification.ledOnMS = 300;
+    	notification.ledOffMS = 1000;
+    	notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+    	notification.flags |= Notification.FLAG_AUTO_CANCEL;
+    	mNotificationManager.notify(Utils.NOTIFICATION_ID, notification);
+    }
 
 	public static void send(String sendMessage) {
 		try{

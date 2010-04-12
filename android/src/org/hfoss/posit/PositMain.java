@@ -29,6 +29,7 @@ import org.hfoss.posit.utilities.Utils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -57,6 +58,8 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	public RWGService rwgService;
 	public Intent rwg;
 	
+	NotificationManager mNotificationManager;
+	
 	/**
 	 * Called when the activity is first created.  Sets the UI layout, adds
 	 * the buttons, checks whether the phone is registered with a POSIT server.
@@ -81,6 +84,8 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 //		if(sahanaButton!=null)
 //			sahanaButton.setOnClickListener(this);
 
+		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = sp.edit();
 		Log.i(TAG, "onCreate(), Preferences= " + sp.getAll().toString());
@@ -105,6 +110,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			Log.i(TAG, "RWG running");
 			Utils.showToast(this, "RWG running");
 		}
+		
 	}
 
 	/**
@@ -199,7 +205,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			startService(rwg);
 			break;
 		case R.id.rwg_end:
-			if(RWGService.isRunning())  // Kill RWG if already running
+			if(RWGService.isRunning() && rwg!=null)  // Kill RWG if already running
 				stopService(rwg);
 			try{
 				rwgService.killProcessRunning("./rwgexec");
@@ -207,6 +213,7 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 			catch(Exception e) {
 				Log.e(TAG,e.getClass().toString(),e);
 			}
+			mNotificationManager.cancel(Utils.ADHOC_ON_ID);
 			Utils.showToast(this, "RWG Service Stopped");
 			break;
 		}
@@ -297,10 +304,16 @@ public class PositMain extends Activity implements OnClickListener, RWGConstants
 	 */
 	@Override
 	public void finish() {
-		if (RWGService.isRunning()) {
+		if(RWGService.isRunning() && rwg!=null)  // Kill RWG if already running
 			stopService(rwg);
-			Utils.showToast(this, "RWGService stopped");
+		try{
+			rwgService.killProcessRunning("./rwgexec");
 		}
+		catch(Exception e) {
+			Log.e(TAG,e.getClass().toString(),e);
+		}
+		mNotificationManager.cancel(Utils.ADHOC_ON_ID);
+		Utils.showToast(this, "RWG Service Stopped");
 		super.finish();
 	}
 
