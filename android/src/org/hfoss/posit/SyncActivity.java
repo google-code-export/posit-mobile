@@ -43,6 +43,7 @@ import android.view.KeyEvent;
  */
 public class SyncActivity extends Activity  {
 
+	private boolean syncSuccess=true;
 	private ProgressDialog mProgressDialog;
 	private static final String TAG = "SyncActivity";
 	private NetworkConnectivityListener ncl;
@@ -176,9 +177,15 @@ public class SyncActivity extends Activity  {
 //				finish();
 				break;						
 			case SyncThread.DONE: 
+				if(syncSuccess=true){
 				mProgressDialog.setMessage("Sync completed successfully. " 
 						+ PRESS_BACK);
 				Utils.showToast(mContext, "Sync completed successfully.");
+				}else{
+				mProgressDialog.setMessage("Sync failed." 
+						+ PRESS_BACK);
+				Utils.showToast(mContext, "Sync failed.");
+				}
 				finish();
 				break;
 			case SyncThread.NETWORKERROR:
@@ -186,6 +193,7 @@ public class SyncActivity extends Activity  {
 						+ PRESS_BACK);
 				Utils.showToast(mContext, "Sync Exiting: No network available");
 				mSyncThread.setConnected(false);
+				syncSuccess=false;
 //				finish();
 				break;
 			case SyncThread.SYNCERROR:
@@ -193,6 +201,7 @@ public class SyncActivity extends Activity  {
 						+ PRESS_BACK);
 				mSyncThread.stopThread();
 //				mSyncThread.setConnected(false);
+				syncSuccess=false;
 				finish();
 				break;
 			default:
