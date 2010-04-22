@@ -173,32 +173,33 @@ public class ImageViewActivity extends Activity {
 
 
 
-
-	@Override
-	 public boolean onCreateOptionsMenu(Menu menu) {
-		 if(mBm==null) {
-			 MenuInflater inflater = getMenuInflater();
-			 inflater.inflate(R.menu.image_view_menu, menu);
-		 }
-		 return true;
-	 }
-
-	 /**
-	  * There is only one menu item, and it deletes the image
-	  */
-	 @Override
-	 public boolean onMenuItemSelected(int featureId, MenuItem item) {
-		 switch (item.getItemId()) {
-		 
-		 case R.id.delete_image_view_menu_item:
-			 showDialog(CONFIRM_DELETE_DIALOG);
-			 break;
-			 
-		 default: 
-			 return false;
-		 }
-		 return true;
-	 }
+// Commented out to not let users delete photos from the phone
+	
+//	@Override
+//	 public boolean onCreateOptionsMenu(Menu menu) {
+//		 if(mBm==null) {
+//			 MenuInflater inflater = getMenuInflater();
+//			 inflater.inflate(R.menu.image_view_menu, menu);
+//		 }
+//		 return true;
+//	 }
+//
+//	 /**
+//	  * There is only one menu item, and it deletes the image
+//	  */
+//	 @Override
+//	 public boolean onMenuItemSelected(int featureId, MenuItem item) {
+//		 switch (item.getItemId()) {
+//		 
+//		 case R.id.delete_image_view_menu_item:
+//			 showDialog(CONFIRM_DELETE_DIALOG);
+//			 break;
+//			 
+//		 default: 
+//			 return false;
+//		 }
+//		 return true;
+//	 }
 
 	 @Override
 	 protected Dialog onCreateDialog(int id) {
