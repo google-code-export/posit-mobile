@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item 
+		android:id="@+id/save_find_menu_item" 
+		android:title="@string/save" 
+		android:icon="@android:drawable/ic_menu_save"></item>
+	<item 
+		android:id="@+id/discard_changes_menu_item" 
+		android:title="@string/discard_changes" 
+		android:icon="@android:drawable/ic_menu_close_clear_cancel"></item>
+	<item 
+		android:id="@+id/camera_menu_item"
+		android:title="@string/take_picture" 
+		android:icon="@android:drawable/ic_menu_camera"></item>
+	<item 
+		android:id="@+id/delete_find_menu_item"
+		android:title="@string/delete"
+		android:icon="@android:drawable/ic_menu_delete" ></item>
+</menu>

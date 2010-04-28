@@ -1,0 +1,36 @@
+<PreferenceScreen
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory 
+		android:title="@string/general">
+		
+		<CheckBoxPreference
+			android:key="SYNC_ON_OFF"
+			android:title="@string/synchronization_on_off"
+			android:summary="@string/synchronization_on_off_detail"
+			android:defaultValue="true"  />
+		<CheckBoxPreference
+			android:key="NOTIFY_START_STOP"
+			android:title="@string/notify_start_stop"
+			android:summary="@string/notify_start_stop_detail"
+			android:defaultValue="true"  />
+	</PreferenceCategory>
+	<PreferenceCategory 
+		android:title="@string/communication">
+
+		<Preference 
+		   android:key="APP_KEY"  
+		   android:title="@string/application_key"  
+		   android:summary="@string/sever_barcode_reader"  />
+		
+	<EditTextPreference
+		android:key="ADHOC_GROUPSIZE"
+		android:title="@string/adhoc_groupsize"
+		android:summary="@string/adhoc_groupsize_summary"
+		android:dialogTitle="@string/adhoc_groupsize_title"
+		android:defaultValue="3"/>
+	</PreferenceCategory>
+	
+
+	
+	
+</PreferenceScreen>

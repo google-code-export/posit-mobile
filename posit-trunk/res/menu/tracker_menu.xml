@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/start_tracking_menu_item" 
+	android:id="@+id/start_tracking_menu_item" 
+	android:icon="@drawable/tracker_record"></item>
+	
+<item android:title="@string/stop_tracking_menu_item" 
+	android:id="@+id/stop_tracking_menu_item" 
+	android:icon="@drawable/stop"></item>
+  
+<!--   
+<item 
+	android:id="@+id/back_to_main_menu_item" 
+	android:title="@string/backToMain"
+	android:icon="@drawable/icon"></item>
+  -->
+</menu>
+
