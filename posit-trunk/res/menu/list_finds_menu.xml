@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item 
+		android:icon="@drawable/ic_menu_refresh" 
+		android:title="@string/sync"
+		android:id="@+id/sync_finds_menu_item"></item>
+	<item 
+		android:title="@string/map" 
+		android:id="@+id/map_finds_menu_item"
+		android:icon="@android:drawable/ic_menu_mapmode"></item>
+	<item 
+		android:title="@string/delete_finds" 
+		android:id="@+id/delete_finds_menu_item"
+		android:icon="@android:drawable/ic_menu_delete"></item>
+
+</menu>
+
+<!-- 
+	<item 
+		android:id="@+id/delete_finds_selected" 
+		android:title="@string/delete_selected"
+		android:icon="@android:drawable/ic_menu_gallery"></item>
+		
+	<item
+		android:id="@+id/georss"
+		android:title="Generate GeoRSS">
+	</item>
+	
+-->

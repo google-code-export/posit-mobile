@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:background="#000000"
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:orientation="vertical"
+>
+
+<TableLayout 
+	android:id="@+id/tracker_view" 
+	android:layout_width="fill_parent" 
+	android:layout_height="136sp" 
+	android:orientation="vertical" 
+	android:stretchColumns="0,1">
+					
+<TableRow 
+	android:layout_width="fill_parent" 
+	android:layout_height="24sp">
+
+<LinearLayout 
+android:layout_width="fill_parent" 
+android:layout_height="24sp">
+
+<TextView android:id="@+id/trackerExpeditionLabel" 
+android:text="@string/trackerExpeditionLabel" 
+android:layout_width="wrap_content" 
+android:layout_height="wrap_content" />
+
+<TextView
+android:id="@+id/trackerExpedition"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="12sp"
+android:textColor="#ffffff"
+android:text="@string/trackerExpedition"
+android:layout_centerHorizontal="true"
+/>
+
+<TextView android:id="@+id/trackerPointsLabel" 
+android:text="@string/trackerPointsLabel" 
+android:layout_width="wrap_content" 
+android:layout_height="wrap_content" 
+android:layout_marginLeft="30sp"
+/>
+
+<TextView
+android:id="@+id/trackerPoints"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="12sp"
+android:textColor="#ffffff"
+android:text="@string/trackerPoints"
+android:layout_centerHorizontal="true"
+/>
+
+<TextView android:id="@+id/trackerSwathLabel" 
+android:text="@string/trackerSwathLabel" 
+android:layout_width="wrap_content" 
+android:layout_height="wrap_content" 
+android:layout_marginLeft="30sp"
+/>
+
+<TextView
+android:id="@+id/trackerSwath"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="12sp"
+android:textColor="#ffffff"
+android:text="@string/trackerSwath"
+android:layout_centerHorizontal="true"
+/>
+</LinearLayout>
+
+</TableRow>
+
+<TableRow 
+	android:layout_width="fill_parent" 
+	android:layout_height="24sp">
+
+<LinearLayout 
+android:layout_width="fill_parent" 
+android:layout_height="24sp">
+
+
+<TextView android:id="@+id/trackerStatusLabel" 
+android:text="@string/trackerStatusLabel" 
+android:layout_width="wrap_content" 
+android:layout_height="wrap_content" />
+
+	
+<TextView
+android:id="@+id/trackerStatus"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="12sp"
+android:textColor="#ffffff"
+android:text="@string/trackerStatus"
+android:layout_centerHorizontal="true"
+/>
+
+
+</LinearLayout>
+</TableRow>
+
+<TableRow 
+	android:layout_width="fill_parent" 
+	android:layout_height="24sp">
+	
+<LinearLayout 
+android:layout_width="fill_parent" 
+android:layout_height="24sp">
+
+<TextView android:id="@+id/trackerLabel" 
+android:text="@string/trackerLabel" 
+android:layout_width="wrap_content" 
+android:layout_height="wrap_content" />
+
+</LinearLayout>
+</TableRow>
+
+<TableRow 
+	android:layout_width="fill_parent" 
+	android:layout_height="24sp">
+	
+<LinearLayout 
+android:layout_width="fill_parent" 
+android:layout_height="24sp">
+
+<TextView
+android:id="@+id/trackerLocation"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:textSize="12sp"
+android:textColor="#ffffff"
+android:text="@string/trackerDefaultLocation"
+android:layout_centerHorizontal="true"
+/>
+
+</LinearLayout>
+</TableRow>
+</TableLayout>
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:orientation="vertical"
+     android:layout_width="fill_parent"
+     android:layout_height="fill_parent">
+
+          <com.google.android.maps.MapView
+	          android:id="@+id/mapFinds"
+	          android:layout_width="fill_parent"
+	          android:layout_height="fill_parent"
+	          android:enabled="true"
+	          android:clickable="true"
+	          android:apiKey="0jDofiyQNYc45WRMW30E0VPIp_jKqBMC5MgCmfw" />
+	          
+          <LinearLayout
+    		android:id="@+id/zoomview"
+    		android:layout_width="wrap_content"
+    		android:layout_height="wrap_content"
+    		android:layout_alignBottom="@id/mapFinds"
+    		android:layout_centerHorizontal="true"/>
+          
+          <!--<com.google.android.maps.MapView
+          android:id="@+id/mapper"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent"          
+          android:apiKey="0jDofiyQNYc7eQi-rd0X6WM9re_SV0FgcYow6lg"/>
+          -->
+			
+</RelativeLayout>
+
+
+</LinearLayout>
+

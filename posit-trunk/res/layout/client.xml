@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
+    <ScrollView 
+    	android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		
+		<LinearLayout 
+			xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:orientation="vertical" android:scrollbars="vertical|horizontal"
+			android:layout_marginBottom="30dp">
+	
+			<TextView  
+				android:freezesText="true"
+			    android:id="@+id/TextView00" 
+			    android:layout_marginLeft="15px" 
+			    android:layout_width="fill_parent" 
+			    android:layout_height="wrap_content" 
+			    android:text="Wifi disabled, please wait..."/>
+			
+			<TextView 
+				android:id="@+id/TextView01" 
+				android:layout_marginLeft="15px" 
+				android:layout_marginRight="15px" 
+				android:layout_marginTop="5px"
+				android:layout_marginBottom="5px"
+				android:layout_width="fill_parent" 
+				android:layout_height="300px"
+				android:maxLines="18" 
+				android:textColor="#000000"
+				android:scrollbars="vertical"
+				android:scrollbarAlwaysDrawVerticalTrack="true"
+				android:background="#bbbbbb"
+				android:text=""
+				android:freezesText="true" />
+			
+			<EditText 
+				android:text="" 
+				android:id="@+id/EditText01" 
+				android:layout_width="fill_parent" 
+				android:layout_marginLeft="30px" 
+				android:layout_marginRight="30px" 
+				android:layout_height="wrap_content"/>
+			
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:orientation="horizontal"
+			    android:layout_width="fill_parent"
+			    android:layout_height="fill_parent">
+			
+				<Button 
+					android:text="Send" 
+					android:id="@+id/Button01" 
+					android:layout_marginLeft="30px"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"/>
+				
+				<Button 
+					android:text="Exit" 
+					
+					android:id="@+id/Button02" 
+					android:layout_marginLeft="30px"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content"/>
+			
+			</LinearLayout>
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:orientation="vertical"
+		xmlns:android="http://schemas.android.com/apk/res/android">
+		<TextView
+			android:id="@+id/applicationTypeLabel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textSize="14sp"
+			android:textColor="#ffffff"
+			android:text="Crisis Management Tool"
+			android:layout_marginBottom="15dp"/>
+		<TextView
+			android:id="@+id/version"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textSize="14sp"
+			android:textColor="#ffffff"
+			android:text="Version 0.6.0r alpha"
+			android:layout_marginBottom="10dp"/>
+		<Button
+			android:id="@+id/listFindButton"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="View Finds"
+			/>
+		<Button
+			android:id="@+id/addFindButton"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Add Find"
+			/>
+			<!--  
+		<Button
+			android:id="@+id/sahanaSMS"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Sahana SMS Module"
+			/>
+			 -->
+	</LinearLayout>
+	
+		<!--
+				<Button
+			android:id="@+id/rwgButton"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Start RWG"
+			/>   		
+		android:visibility="gone"  -->
+	

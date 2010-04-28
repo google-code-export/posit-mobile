@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="org/hfoss/posit/AddFindActivity.java|org/hfoss/posit/DBHelper.java|org/hfoss/posit/web/SyncService.java|org/hfoss/posit/StringUtils.java|org/hfoss/posit/ViewObject.java|org/hfoss/posit/ResourceIDNotStringArrayException.java|org/hfoss/posit/provider/MyDBHelper.java|org/hfoss/posit/provider/POSITProvider.java|org/hfoss/posit/SyncTester.java|org/hfoss/posit/provider/FindsListAdapter.java|org/hfoss/posit/TrackerActivity.java|org/hfoss/posit/StartMapActivity.java|org/hfoss/posit/utilities/MyLocationListener.java|org/hfoss/posit/adhoc/AdhocClient.java|org/hfoss/posit/adhoc/AdhocClientActivity.java" kind="src" path="src"/>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
