@@ -165,7 +165,8 @@ public class Find {
 	 * @return
 	 */
 	public boolean insertImagesToDB(List<ContentValues> images) {
-		if (Utils.debug) Log.i(TAG, "insertImagesToDB, mId=" + mId + " guId=" + mGuid);
+		if (Utils.debug) 
+			Log.i(TAG, "insertImagesToDB, mId=" + mId + " guId=" + mGuid);
 		if (images == null || images.size() == 0)
 			return true; // Nothing to do
 		if (mId != -1 && !mGuid.equals(""))

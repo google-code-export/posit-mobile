@@ -89,7 +89,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	private static boolean NEWFIND=true;
 	
 	
-	private String imageBase64String = null;
+	private byte[] imageToSend = null;
 	private boolean stopThread;
 	
 	//Temporary files representing pictures taken for a find
@@ -542,7 +542,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			Log.i("after retrive", (System.currentTimeMillis()-start)+"");
 			//if (IS_ADHOC)
 			if (RWGService.isRunning())
-				sendAdhocFind(contentValues,null);//imageBase64String);
+				sendAdhocFind(contentValues,imageToSend);
 			Log.i("after adhoc check", (System.currentTimeMillis()-start)+"");
 			
 			doSave(contentValues);
@@ -587,7 +587,7 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 	 * network.  
 	 * @param contentValues
 	 */
-	private void sendAdhocFind(ContentValues contentValues, String image) {
+	private void sendAdhocFind(ContentValues contentValues, byte[] image) {
 		Utils.showToast(this, "sending ad hoc find");
 		
 		String longitude = contentValues.getAsString(getString(R.string.longitudeDB));
@@ -608,8 +608,11 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			obj.put("name", name);
 			obj.put("description", description);
 			obj.put("projectId", PROJECT_ID);
-			if(image!=null)
-				obj.put("image",image);
+			if(image!=null) {
+				String imgStr = new String(Base64Coder.encode(image));
+			
+				obj.put("image",imgStr);
+			}
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		}
@@ -756,9 +759,9 @@ implements OnClickListener, OnItemClickListener, LocationListener {
 			rowId = data.getIntExtra("rowId", -1);
 			tempImage = (Bitmap) data.getExtras().get("data");
 			
-			//ByteArrayOutputStream baos = new ByteArrayOutputStream();  
-			//tempImage.compress(Bitmap.CompressFormat.JPEG, 80, baos);  
-			//imageBase64String = new String(baos.toByteArray()); 
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+			tempImage.compress(Bitmap.CompressFormat.JPEG, 80, baos);  
+			imageToSend = baos.toByteArray(); 
 			mTempBitmaps.add(tempImage);
 			displayGallery(mFindId);
 			break;

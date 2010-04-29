@@ -663,24 +663,38 @@ public class RWGService extends Service implements RWGConstants {
     private void parseAndSave(String incoming) {
     	Log.i(TAG, "Parsing string:"+incoming);
     	if(incoming.charAt(0)=='<'){
-    		int index = incoming.indexOf("{");
+    		int index = incoming.indexOf(">");
     		if(index!=-1)
-    			incoming = incoming.substring(index);
+    			incoming = incoming.substring(index+1);
     		Log.i(TAG, "Parsing string:"+incoming);
     	}
-    	/*Log.i(TAG,incoming.charAt(incoming.length()-1)+"");
-    	if(incoming.charAt(incoming.length()-1)!=')') {
-    		isBig = true;
-    	}
-    	if(isBig) {
-    		bigFind+=incoming;
-    		Log.i(TAG,"receiving find");
-    		return;
-    	}*/
     	
+    	Log.i(TAG,incoming.charAt(incoming.length()-1)+"");
+    	//if the last character is not a }, it's big
+    	if(incoming.charAt(incoming.length()-1)!='}') {
+    		isBig = true;
+    		Log.i(TAG+"1", bigFind);
+    		bigFind+=incoming;
+    		Log.i(TAG+"2", bigFind);
+    	}
+    	else {
+    		isBig = false;
+    		bigFind+=incoming;
+    		incoming = bigFind;
+    	}
+    	
+    	Log.i(TAG+"3", bigFind);
+    	
+    	if(isBig) {
+    		
+    		Log.i(TAG,"receiving find");
+    		
+    		return;
+    	}
+    	
+    	Log.i(TAG,"saving find");
 		try {
-			/*if(isBig)
-				incoming = bigFind;*/
+
 			JSONObject obj = new JSONObject(incoming);
 			ContentValues content = new ContentValues();
 			String longStr = obj.getString("findLong");
@@ -707,46 +721,48 @@ public class RWGService extends Service implements RWGConstants {
 //			content.put("sid", findId);
 			content.put("guid", findId);
 			
-//			ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
-//			Log.i(TAG, content.toString());
-//			String imageEncoded = null;
-//			try {
-//				 imageEncoded = obj.getString("image");
-//			}
-//			catch(Exception e) {
-//				Log.e(TAG, "error",e);
-//			}
-//			
-//			
-//			try {
-////				String guid = (String) image.get(PositDbHelper.FINDS_GUID);
-//				ContentValues photoCv = new ContentValues();
-//				photoCv.put(PositDbHelper.PHOTOS_MIME_TYPE, "image/jpeg");
-//				photoCv.put(PositDbHelper.FINDS_PROJECT_ID, projectId+"");
-//				photoCv.put(PositDbHelper.PHOTOS_IDENTIFIER, findId);
-//
-//				//Log.i("The IMAGE DATA", fullData);
-//				byte[] data = Base64Coder.decode(imageEncoded);
-//				Bitmap imageBM = BitmapFactory.decodeByteArray(data, 0, data.length);
-//				Log.i("The Bitmap To Save", imageBM.toString());
-//				bitmaps.add(imageBM);
-//				Log.i(TAG, "bitmap saved!");	
-//			}
-//			catch (Exception e){
-//				Log.d(TAG, ""+e);
-//			}
-		
-			Find find = new Find(mContext);
-			find.insertToDB(content, null);
-//			Utils.saveImagesAndUris(mContext, bitmaps);
+			
+			Find find = new Find(mContext, findId);
+			
+			List<Bitmap> bitmaps = new ArrayList<Bitmap>();
+			Log.i(TAG, content.toString());
+			String image = null;
+			try {
+				if(obj.has("image")){
+					image = (String) obj.getString("image");
+	//				String guid = (String) image.get(PositDbHelper.FINDS_GUID);
+					ContentValues photoCv = new ContentValues();
+					photoCv.put(PositDbHelper.PHOTOS_MIME_TYPE, "image/jpeg");
+					photoCv.put(PositDbHelper.FINDS_PROJECT_ID, projectId+"");
+					photoCv.put(PositDbHelper.PHOTOS_IDENTIFIER, findId);
+	
+					//Log.i("The IMAGE DATA", fullData);
+					byte[] data = Base64Coder.decode(image);
+					//byte[] data = imageEncoded.getBytes();
+					Log.i(TAG, "length = "+data.length);
+					Bitmap imageBM = BitmapFactory.decodeByteArray(data, 0, data.length);
+					//Log.i("The Bitmap To Save", imageBM.toString());
+					bitmaps.add(imageBM);
+					Log.i(TAG, "bitmap saved!");
+				}
+			}
+			catch (Exception e){
+				Log.d(TAG, ""+e,e);
+			}
+			
+			List<ContentValues> photocvs = Utils.saveImagesAndUris(mContext, bitmaps);
+			//Log.i(TAG,"size = "+photocvs.size());
+			
+			find.insertToDB(content, photocvs);
 			notifyNewFind(name,description);
-//			if(incoming.charAt(incoming.length()-1)==')')
-//	    		isBig=false;
+	    		
 		} catch (JSONException e) {
 			Log.e("JSONError", e.toString());
 		} catch (NumberFormatException e) {
 			Log.e(TAG, e.toString());
 		}
+		bigFind = "";
+		isBig=false;
 	}   
     
     public void notifyRWGOn() {
